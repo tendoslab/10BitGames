@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Ultimate Tic-Tac-Toe | Mini Games Planet</title>
     <meta name="description" content="Play Ultimate Tic-Tac-Toe, a bigger and more strategic twist on the classic game. Win 3 small boards in a row to claim the large grid — but every move you make decides which board your opponent must play in next.">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -21,6 +21,62 @@
     </style>
 </head>
 <body class="min-h-screen bg-slate-900 text-slate-100 font-sans flex flex-col items-center py-3 px-4 m-0 overflow-x-hidden">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Bungee+Shade&family=Karla:wght@700&display=swap" rel="stylesheet">
+    <style>
+      .mgp-topbar {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+        background: #150F22;
+        border-bottom: 2px solid #3B2C58;
+        width: 100%;
+        margin: -0.75rem -1rem 0.75rem;
+      }
+
+      .mgp-topbar a {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        color: #FBF7FF;
+        text-decoration: none;
+        font-family: 'Karla', Arial, sans-serif;
+        font-weight: 700;
+        font-size: 0.9rem;
+        border: 2px solid #3B2C58;
+        padding: 0.35rem 0.7rem 0.35rem 0.55rem;
+        border-radius: 999px;
+      }
+
+      .mgp-topbar a:hover,
+      .mgp-topbar a:focus-visible {
+        border-color: #FBF7FF;
+      }
+
+      .mgp-topbar a svg {
+        width: 14px;
+        height: 14px;
+        flex-shrink: 0;
+      }
+
+      .mgp-topbar .mgp-site-name {
+        font-family: 'Bungee Shade', 'Karla', Arial, sans-serif;
+        color: #FF3EA5;
+        font-size: 1.05rem;
+        text-shadow: 0 0 6px rgba(255, 62, 165, 0.5);
+      }
+    </style>
+
+    <div class="mgp-topbar">
+      <a href="/">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M15 5 L8 12 L15 19" stroke="#FBF7FF" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        All games
+      </a>
+      <span class="mgp-site-name">Mini Games Planet</span>
+    </div>
 
     <header class="max-w-2xl w-full text-center mb-2">
         <h1 class="text-2xl font-black tracking-tight">Ultimate Tic-Tac-Toe</h1>
@@ -83,6 +139,7 @@
                 <div id="status-text" class="text-sm font-black uppercase tracking-wider"></div>
             </div>
             <div class="flex gap-2">
+                <button onclick="toggleSound()" id="btn-sound" aria-label="Toggle sound" class="p-2 bg-slate-800/50 rounded-xl text-slate-400 hover:text-white transition-all"><svg id="sound-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="4 9 8 9 12 5 12 19 8 15 4 15 4 9"></polygon><path d="M16 8a5 5 0 0 1 0 8"></path><path d="M18.5 5.5a9 9 0 0 1 0 13"></path></svg></button>
                 <button onclick="openSettings()" class="p-2 bg-slate-800/50 rounded-xl text-slate-400 hover:text-white transition-all"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1-1-1.72v-.51a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg></button>
                 <button onclick="resetToHome()" class="p-2 bg-slate-800/50 rounded-xl text-slate-400 hover:text-white transition-all"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg></button>
             </div>
@@ -123,6 +180,49 @@
         let boards = [], localBoardStatus = [], xIsNext = true, currentBoardIndex = null, globalWinner = null;
         let isVsComputer = false, isTimerEnabled = false, difficulty = 'Normal';
         let timerX = 300, timerO = 300, timerInterval = null, lastMove = {b: null, c: null};
+
+        // ── Sound effects ────────────────────────────────────────────────
+        let audioCtx = null, soundEnabled = true;
+        const SOUND_ICON_ON = '<polygon points="4 9 8 9 12 5 12 19 8 15 4 15 4 9"></polygon><path d="M16 8a5 5 0 0 1 0 8"></path><path d="M18.5 5.5a9 9 0 0 1 0 13"></path>';
+        const SOUND_ICON_OFF = '<polygon points="4 9 8 9 12 5 12 19 8 15 4 15 4 9"></polygon><line x1="16" y1="9" x2="22" y2="15"></line><line x1="22" y1="9" x2="16" y2="15"></line>';
+
+        function initAudio() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+        }
+        function playTone(freq, duration, type, volume, freq2) {
+            if (!soundEnabled) return;
+            try {
+                initAudio();
+                const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.type = type || 'sine';
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                if (freq2) osc.frequency.exponentialRampToValueAtTime(freq2, audioCtx.currentTime + duration);
+                gain.gain.setValueAtTime(volume, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + duration);
+                osc.start(audioCtx.currentTime);
+                osc.stop(audioCtx.currentTime + duration);
+            } catch (e) {}
+        }
+        function sfxMove(player) {
+            if (player === 'X') playTone(520, 0.08, 'sine', 0.12, 640);
+            else playTone(380, 0.08, 'sine', 0.12, 300);
+        }
+        function sfxBoardWin() {
+            [660, 880].forEach((f, i) => setTimeout(() => playTone(f, 0.12, 'square', 0.1), i * 70));
+        }
+        function sfxGameWin() {
+            [523.25, 659.25, 784, 1046.5].forEach((f, i) => setTimeout(() => playTone(f, 0.16, 'square', 0.14), i * 110));
+        }
+        function sfxDraw() { playTone(220, 0.35, 'sawtooth', 0.12, 140); }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            document.getElementById('sound-icon').innerHTML = soundEnabled ? SOUND_ICON_ON : SOUND_ICON_OFF;
+            document.getElementById('btn-sound').setAttribute('aria-label', soundEnabled ? 'Mute sound' : 'Unmute sound');
+            if (soundEnabled) { initAudio(); playTone(440, 0.06, 'sine', 0.1); }
+        }
 
         function openSettings() { document.getElementById('settings-modal').classList.add('modal-active'); }
         function closeSettings() { document.getElementById('settings-modal').classList.remove('modal-active'); resetToHome(); }
@@ -216,6 +316,7 @@
 
             boards[bIdx][cIdx] = xIsNext ? 'X' : 'O';
             lastMove = {b: bIdx, c: cIdx};
+            sfxMove(xIsNext ? 'X' : 'O');
 
             const lWinLine = getWinningLine(boards[bIdx]);
             if (lWinLine) localBoardStatus[bIdx] = boards[bIdx][lWinLine[0]];
@@ -223,6 +324,8 @@
 
             const globalStatusMap = localBoardStatus.map(s => s === 'D' ? null : s);
             const gWinLine = getWinningLine(globalStatusMap);
+
+            if (lWinLine && !gWinLine) sfxBoardWin();
 
             if (gWinLine) {
                 endGame(globalStatusMap[gWinLine[0]], "", gWinLine);
@@ -278,6 +381,7 @@
 
         function endGame(w, r = "", line = null) {
             globalWinner = w;
+            if (w === 'D') sfxDraw(); else sfxGameWin();
             render(r);
 
             if (line) {

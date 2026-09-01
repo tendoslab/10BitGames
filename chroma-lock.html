@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Chroma Lock | Mini Games Planet</title>
 <meta name="description" content="Rotate the chamber, let gravity shift, and guide each colored spark into its matching core. 20 levels of increasing difficulty featuring crates, wrong-color blockers, and teleporter portals.">
 <style>
@@ -13,6 +13,60 @@
 </style>
 </head>
 <body>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bungee+Shade&family=Karla:wght@700&display=swap" rel="stylesheet">
+<style>
+  .mgp-topbar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    background: #150F22;
+    border-bottom: 2px solid #3B2C58;
+  }
+
+  .mgp-topbar a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: #FBF7FF;
+    text-decoration: none;
+    font-family: 'Karla', Arial, sans-serif;
+    font-weight: 700;
+    font-size: 0.9rem;
+    border: 2px solid #3B2C58;
+    padding: 0.35rem 0.7rem 0.35rem 0.55rem;
+    border-radius: 999px;
+  }
+
+  .mgp-topbar a:hover,
+  .mgp-topbar a:focus-visible {
+    border-color: #FBF7FF;
+  }
+
+  .mgp-topbar a svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+  }
+
+  .mgp-topbar .mgp-site-name {
+    font-family: 'Bungee Shade', 'Karla', Arial, sans-serif;
+    color: #FF3EA5;
+    font-size: 1.05rem;
+    text-shadow: 0 0 6px rgba(255, 62, 165, 0.5);
+  }
+</style>
+
+<div class="mgp-topbar">
+  <a href="/">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M15 5 L8 12 L15 19" stroke="#FBF7FF" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    All games
+  </a>
+  <span class="mgp-site-name">Mini Games Planet</span>
+</div>
 <div class="site-intro">
   <h1>CHROMA LOCK</h1>
   <p>Rotate the chamber to shift gravity and guide each colored spark home to its matching core. Crates block the way, mismatched cores act as walls, and purple-to-orange portals teleport sparks across the room. 20 levels, from a simple drop to a five-piece squeeze.</p>
@@ -22,7 +76,7 @@
     display: none;
     position: fixed;
     top: 0; left: 0;
-    width: 100%; height: 100%;
+    width: 100%; height: 100vh; height: 100dvh;
     background: #000;
     z-index: 99999;
     touch-action: none;
@@ -31,7 +85,9 @@
 ">
     <div id="game-host-mobile" style="
         width: min(100vw, 100vh);
+        width: min(100vw, 100dvh);
         height: min(100vw, 100vh);
+        height: min(100vw, 100dvh);
         touch-action: none;
     "></div>
     <button onclick="
@@ -111,7 +167,9 @@ if (window._gzIsMobile) {
     const style = document.createElement('style');
     style.textContent = `
         #game-wrapper {
-            width: min(100vw, 100vh); height: min(100vw, 100vh); position: relative;
+            width: min(100vw, 100vh); width: min(100vw, 100dvh);
+            height: min(100vw, 100vh); height: min(100vw, 100dvh);
+            position: relative;
             background-color: #121015;
             background-image: linear-gradient(45deg,#1a1625 25%,transparent 25%,transparent 75%,#1a1625 75%,#1a1625),linear-gradient(45deg,#1a1625 25%,transparent 25%,transparent 75%,#1a1625 75%,#1a1625);
             background-size: 40px 40px; background-position: 0 0,20px 20px;
@@ -135,7 +193,7 @@ if (window._gzIsMobile) {
         .hidden { pointer-events:none; opacity:0; transform: scale(0.96); }
         h1 { font-size:44px; margin-bottom:8px; color:#4facfe; text-shadow:0 0 30px rgba(79,172,254,0.5); text-transform:uppercase; letter-spacing:4px; text-align:center; }
         .subtitle { font-size:15px; color:#6a6a80; margin-bottom:24px; letter-spacing:1px; }
-        p { font-size:16px; text-align:center; max-width:82%; line-height:1.7; color:#b0b0c0; margin:4px 0; }
+        p { font-size:16px; text-align:center; max-width:82%; line-height:1.7; color:#b0b0c0; margin:10px 0; }
         .btn {
             background:linear-gradient(135deg,#4facfe 0%,#00f2fe 100%);
             border:none; padding:14px 0; margin:7px; width:210px; min-height:48px;
@@ -176,11 +234,33 @@ if (window._gzIsMobile) {
         .menu-win.mastered h1 { color:#FFD700 !important; text-shadow:0 0 30px rgba(255,215,0,0.7) !important; }
         .mastery-pulse { animation: mastery-pop 0.6s ease; }
         @keyframes mastery-pop { 0% { transform:scale(1); } 30% { transform:scale(1.08); } 60% { transform:scale(0.98); } 100% { transform:scale(1); } }
-        .key-hint { display:inline-block; background:#2a2a3a; border:1px solid #4a4a5a; border-radius:5px; padding:1px 8px; font-family:monospace; font-size:13px; color:#aaa; }
+        .key-hint { display:inline-block; background:#2a2a3a; border:1px solid #4a4a5a; border-radius:5px; padding:1px 8px; margin:0 3px; font-family:monospace; font-size:13px; color:#aaa; }
+        .key-hint.arrow { font-family: Arial, 'Trebuchet MS', sans-serif; font-size:14px; padding:1px 10px; }
         .legend { display:flex; gap:16px; margin:10px 0; justify-content:center; flex-wrap:wrap; }
         .legend-item { display:flex; align-items:center; gap:6px; font-size:13px; color:#9090a0; }
         .dot { width:14px; height:14px; border-radius:50%; }
     `;
+
+    if (isMobile) {
+        // On mobile the game board itself must stay a small square (it fits
+        // the width of a portrait phone), but the menus (level select, pause,
+        // instructions) have far more content than that square can show and
+        // were getting clipped inside it. Freeing them to the full viewport
+        // lets a tall level grid or long instructions list actually fit —
+        // scrolling if it still needs to — instead of being cut off.
+        style.textContent += `
+            .ui-layer {
+                position: fixed !important;
+                top: 0; left: 0;
+                width: 100vw; height: 100vh; height: 100dvh;
+                border-radius: 0;
+                overflow-y: auto;
+                padding: 24px 0;
+            }
+            .level-grid { max-width: 90vw; }
+            .rules-box { width: 90%; }
+        `;
+    }
 
     const wrapper = document.createElement('div');
     wrapper.id = 'game-wrapper';
@@ -197,7 +277,7 @@ if (window._gzIsMobile) {
                 <button class="hud-btn" id="btn-pause">&#8801; Menu</button>
             </div>
         </div>
-        <div class="rot-hint hidden" id="rot-hint">&#8592; &#8594; to rotate &nbsp;|&nbsp; R to reset</div>
+        <div class="rot-hint hidden" id="rot-hint">&#9664; &#9654; to rotate &nbsp;|&nbsp; R to reset</div>
         ${isMobile ? `
         <div class="mobile-controls hidden" id="mobile-controls">
             <button class="mobile-rot-btn" id="btn-rot-left-mobile">&#8592;</button>
@@ -224,7 +304,7 @@ if (window._gzIsMobile) {
 
         <div id="menu-inst" class="ui-layer hidden">
             <h1>How to Play</h1>
-            <p><span class="key-hint">&#8592;</span> <span class="key-hint">&#8594;</span> or <span class="key-hint">A</span> <span class="key-hint">D</span> &mdash; rotate the chamber</p>
+            <p><span class="key-hint arrow">&#9664;</span> <span class="key-hint arrow">&#9654;</span> or <span class="key-hint">A</span> <span class="key-hint">D</span> &mdash; rotate the chamber</p>
             <p style="margin-top:6px;">Gravity shifts with each rotation.</p>
             <p>Sparks fall until they hit a wall, a crate, or their matching core.</p>
             <p style="margin-top:8px;"><b style="color:#9b59b6">Purple IN</b> portal teleports to <b style="color:#e67e22">Orange OUT</b> portal.</p>
