@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Bob's Beanstalk Bounce | Mini Games Planet</title>
 <meta name="description" content="Bob needs to bounce on a magic beanstalk to return to his home in the clouds. Keep Bob safe from the birds, planes, and hot air balloons in this endless climbing game with power-ups, changing weather, and a high score you can chase.">
 <style>
@@ -13,13 +13,67 @@
 </style>
 </head>
 <body>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bungee+Shade&family=Karla:wght@700&display=swap" rel="stylesheet">
+<style>
+  .mgp-topbar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    background: #150F22;
+    border-bottom: 2px solid #3B2C58;
+  }
+
+  .mgp-topbar a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: #FBF7FF;
+    text-decoration: none;
+    font-family: 'Karla', Arial, sans-serif;
+    font-weight: 700;
+    font-size: 0.9rem;
+    border: 2px solid #3B2C58;
+    padding: 0.35rem 0.7rem 0.35rem 0.55rem;
+    border-radius: 999px;
+  }
+
+  .mgp-topbar a:hover,
+  .mgp-topbar a:focus-visible {
+    border-color: #FBF7FF;
+  }
+
+  .mgp-topbar a svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+  }
+
+  .mgp-topbar .mgp-site-name {
+    font-family: 'Bungee Shade', 'Karla', Arial, sans-serif;
+    color: #FF3EA5;
+    font-size: 1.05rem;
+    text-shadow: 0 0 6px rgba(255, 62, 165, 0.5);
+  }
+</style>
+
+<div class="mgp-topbar">
+  <a href="/">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M15 5 L8 12 L15 19" stroke="#FBF7FF" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    All games
+  </a>
+  <span class="mgp-site-name">Mini Games Planet</span>
+</div>
 <div class="site-intro">
   <h1>BOB'S BEANSTALK BOUNCE</h1>
   <p>Bob needs to bounce on a magic beanstalk to return to his home in the clouds. Keep Bob safe from the birds, planes, and hot air balloons as he climbs higher and higher &mdash; grab springs, wings, and stars along the way to help him go further.</p>
 </div>
 <div style="display:none" id="gz-ol">
   <div style="position:fixed;top:0;left:0;width:100%;height:100%;background:#000;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;touch-action:none;">
-    <button onclick="document.getElementById('gz-ol').style.display='none';document.body.style.overflow='';" style="position:absolute;top:12px;right:12px;background:rgba(0,0,0,0.75);color:#fff;border:2px solid rgba(255,255,255,0.4);border-radius:50%;width:44px;height:44px;font-size:18px;cursor:pointer;z-index:100000;">&#x2715;</button>
+    <button onclick="closeBounceFullscreen()" style="position:absolute;top:12px;right:12px;background:rgba(0,0,0,0.75);color:#fff;border:2px solid rgba(255,255,255,0.4);border-radius:50%;width:44px;height:44px;font-size:18px;cursor:pointer;z-index:100000;">&#x2715;</button>
     <div style="width:min(100vw,calc(100vh * 2/3));height:min(100vh,calc(100vw * 3/2));">
       <div class="blogger-game-wrapper" style="width:100%;height:100%;max-height:none;border-radius:0;border:none;">
         <iframe id="bounceGameIframeFS" scrolling="no" title="Bob's Beanstalk Bounce" style="width:100%;height:100%;border:none;display:block;"></iframe>
@@ -30,18 +84,41 @@
 
 <div id="gz-pv" style="display:none;background:#1a2e1a;border-radius:12px;border:2px solid #2E7D32;padding:40px 20px;text-align:center;font-family:'Trebuchet MS',sans-serif;">
   <div style="color:#4CAF50;font-size:1.4rem;font-weight:bold;letter-spacing:2px;margin-bottom:6px;">BOB&#39;S BEANSTALK BOUNCE</div>
-  <div style="color:#6a8a6a;font-size:0.85rem;margin-bottom:24px;">tap left &middot; tap right &middot; climb higher</div>
-  <button onclick="document.getElementById('gz-ol').style.display='block';document.body.style.overflow='hidden';" style="background:linear-gradient(135deg,#4CAF50,#2E7D32);border:none;padding:16px 48px;border-radius:30px;color:#fff;font-size:1.05rem;font-weight:bold;cursor:pointer;">&#9654; PLAY FULLSCREEN</button>
+  <div style="display:flex;justify-content:center;gap:36px;margin:6px 0 16px;">
+    <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" style="animation:mgp-tap-hand 1.1s ease-in-out infinite;">
+        <path d="M9 11.5V4.5a1.5 1.5 0 0 1 3 0v5M12 9.5V3a1.5 1.5 0 0 1 3 0v6.5M15 9.5V5a1.5 1.5 0 0 1 3 0v9c0 3.5-2 6-5.5 6S6 17 6 14v-3.2c0-.9.7-1.6 1.6-1.6.5 0 1 .2 1.4.6" stroke="#8FD98F" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span style="color:#6a8a6a;font-size:0.65rem;letter-spacing:1px;">HOLD LEFT</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:6px;transform:scaleX(-1);">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" style="animation:mgp-tap-hand 1.1s ease-in-out 0.35s infinite;">
+        <path d="M9 11.5V4.5a1.5 1.5 0 0 1 3 0v5M12 9.5V3a1.5 1.5 0 0 1 3 0v6.5M15 9.5V5a1.5 1.5 0 0 1 3 0v9c0 3.5-2 6-5.5 6S6 17 6 14v-3.2c0-.9.7-1.6 1.6-1.6.5 0 1 .2 1.4.6" stroke="#8FD98F" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span style="color:#6a8a6a;font-size:0.65rem;letter-spacing:1px;transform:scaleX(-1);display:inline-block;">HOLD RIGHT</span>
+    </div>
+  </div>
+  <div style="color:#6a8a6a;font-size:0.85rem;margin-bottom:24px;">hold either side of the screen to climb</div>
+  <button onclick="openBounceFullscreen()" style="background:linear-gradient(135deg,#4CAF50,#2E7D32);border:none;padding:16px 48px;border-radius:30px;color:#fff;font-size:1.05rem;font-weight:bold;cursor:pointer;">&#9654; PLAY FULLSCREEN</button>
 </div>
 
 <style>
+    @keyframes mgp-tap-hand {
+        0%, 100% { transform: translateY(0); opacity: 0.7; }
+        50% { transform: translateY(4px); opacity: 1; }
+    }
+    .game-stage {
+        display: flex;
+        justify-content: center;
+        padding: 28px 20px 44px;
+        background: radial-gradient(ellipse at center, rgba(96,175,254,0.14), transparent 70%);
+    }
     .blogger-game-wrapper {
-        width: 100%;
-        height: 75vh;          
-        min-height: 450px;     
-        max-height: 700px;
+        width: min(92vw, calc((100vh - 220px) * 2 / 3), 460px);
+        height: min(calc(100vh - 220px), calc(92vw * 3 / 2), 690px);
+        min-height: 420px;
         margin: 0 auto;
-        overflow: hidden;      
+        overflow: hidden;
         border: 4px solid #2E7D32;
         border-radius: 16px;
         box-shadow: 0 8px 20px rgba(0,0,0,0.15);
@@ -56,15 +133,32 @@
     }
 </style>
 
-<div class="blogger-game-wrapper" id="gz-dt">
-    <iframe id="bounceGameIframe" scrolling="no" title="Bob's Beanstalk Bounce"></iframe>
+<div class="game-stage" id="gz-dt-stage">
+    <div class="blogger-game-wrapper" id="gz-dt">
+        <iframe id="bounceGameIframe" scrolling="no" title="Bob's Beanstalk Bounce"></iframe>
+    </div>
 </div>
 
 <script>
     // Mobile detection - show preview card, hide desktop wrapper
     if (('ontouchstart' in window) || window.innerWidth <= 768) {
-        document.getElementById('gz-dt').style.display = 'none';
+        document.getElementById('gz-dt-stage').style.display = 'none';
         document.getElementById('gz-pv').style.display = 'block';
+    }
+
+    function openBounceFullscreen() {
+        document.getElementById('gz-ol').style.display = 'block';
+        document.body.style.overflow = 'hidden';
+        // (Re)load a fresh instance into the fullscreen iframe each time it opens.
+        document.getElementById('bounceGameIframeFS').src = url;
+    }
+
+    function closeBounceFullscreen() {
+        document.getElementById('gz-ol').style.display = 'none';
+        document.body.style.overflow = '';
+        // Navigating away stops the iframe's JS/audio outright — just hiding
+        // the overlay left the game (and its sound) running in the background.
+        document.getElementById('bounceGameIframeFS').src = 'about:blank';
     }
 
     // ==========================================
@@ -646,7 +740,9 @@
     const blob = new Blob([gameCode], { type: 'text/html' });
     const url = URL.createObjectURL(blob);
     document.getElementById('bounceGameIframe').src = url;
-    document.getElementById('bounceGameIframeFS').src = url;
+    // The fullscreen iframe's src is set on demand by openBounceFullscreen()
+    // and cleared by closeBounceFullscreen(), so it never runs — or plays
+    // audio — while the overlay is closed.
 </script>
 
 </body>

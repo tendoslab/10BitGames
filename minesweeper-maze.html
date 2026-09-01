@@ -14,8 +14,8 @@
             --text-dim: #1a6600;
             --text-danger: #ff0033;
             --text-win: #00ccff;
-            --glow: 0 0 8px var(--text-main);
-            --glow-danger: 0 0 8px var(--text-danger);
+            --glow: 0 0 4px var(--text-main);
+            --glow-danger: 0 0 4px var(--text-danger);
         }
 
         * { box-sizing: border-box; user-select: none; }
@@ -30,6 +30,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            touch-action: manipulation;
         }
 
         body::after {
@@ -52,8 +53,10 @@
         .hdr-btn {
             background: transparent; color: var(--text-main);
             border: 1px solid var(--text-main);
-            font-family: inherit; font-size: 1rem; cursor: pointer;
-            padding: 2px 8px; text-shadow: inherit;
+            font-family: inherit; font-size: 1.05rem; cursor: pointer;
+            padding: 4px 10px; text-shadow: 0 0 2px currentColor;
+            letter-spacing: 1px;
+            touch-action: manipulation;
         }
         .hdr-btn:hover { background: var(--text-main); color: var(--bg-color); }
 
@@ -191,7 +194,8 @@
             background: #0a110a; color: var(--text-main);
             border: 1px solid var(--text-main);
             font-family: inherit; font-size: 1.5rem;
-            padding: 10px 0; cursor: pointer; text-shadow: var(--glow);
+            padding: 10px 0; cursor: pointer; text-shadow: 0 0 3px currentColor;
+            touch-action: manipulation;
         }
         .d-btn:active { background: var(--text-main); color: #000; text-shadow: none; }
         .empty-btn { visibility: hidden; }
@@ -202,6 +206,61 @@
     </style>
 </head>
 <body>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Bungee+Shade&family=Karla:wght@700&display=swap" rel="stylesheet">
+    <style>
+      .mgp-topbar {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+        background: #150F22;
+        border-bottom: 2px solid #3B2C58;
+        width: 100%;
+      }
+
+      .mgp-topbar a {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        color: #FBF7FF;
+        text-decoration: none;
+        font-family: 'Karla', Arial, sans-serif;
+        font-weight: 700;
+        font-size: 0.9rem;
+        border: 2px solid #3B2C58;
+        padding: 0.35rem 0.7rem 0.35rem 0.55rem;
+        border-radius: 999px;
+      }
+
+      .mgp-topbar a:hover,
+      .mgp-topbar a:focus-visible {
+        border-color: #FBF7FF;
+      }
+
+      .mgp-topbar a svg {
+        width: 14px;
+        height: 14px;
+        flex-shrink: 0;
+      }
+
+      .mgp-topbar .mgp-site-name {
+        font-family: 'Bungee Shade', 'Karla', Arial, sans-serif;
+        color: #FF3EA5;
+        font-size: 1.05rem;
+        text-shadow: 0 0 6px rgba(255, 62, 165, 0.5);
+      }
+    </style>
+
+    <div class="mgp-topbar">
+      <a href="/">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M15 5 L8 12 L15 19" stroke="#FBF7FF" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        All games
+      </a>
+      <span class="mgp-site-name">Mini Games Planet</span>
+    </div>
     <div class="intro">
         <h1>MINE SWEEPER MAZE</h1>
         <p>Navigate the grid to reach the finish line (F) without triggering a hidden explosive. Tap the [?] for full instructions.</p>
@@ -221,9 +280,9 @@
             <div class="title-bar">
                 <span id="sys-status">SYS_STATUS: ONLINE</span>
                 <div style="display: flex; gap: 6px;">
-                    <button id="btn-help" class="hdr-btn" onclick="toggleHelp()">?</button>
-                    <button id="btn-mute" class="hdr-btn" onclick="toggleMute()">♪</button>
-                    <button id="btn-restart" class="hdr-btn" onclick="initGame()">REBOOT</button>
+                    <button id="btn-help" class="hdr-btn" onclick="toggleHelp()" aria-label="How to play">? HELP</button>
+                    <button id="btn-mute" class="hdr-btn" onclick="toggleMute()" aria-label="Toggle sound">♪ SOUND</button>
+                    <button id="btn-restart" class="hdr-btn" onclick="initGame()" aria-label="Restart game">REBOOT</button>
                 </div>
             </div>
             <div class="scanner-panel">
@@ -324,7 +383,7 @@
 
         function toggleMute() {
             soundOn = !soundOn;
-            document.getElementById('btn-mute').innerText = soundOn ? '♪' : '✕';
+            document.getElementById('btn-mute').innerText = soundOn ? '♪ SOUND' : '✕ MUTED';
             if (soundOn) sfxClick();
         }
 
@@ -527,6 +586,17 @@
         updateStreakUI();
         initGame();
         window.focus();
+
+        // Firing the move/action immediately on touchstart (instead of waiting
+        // for the emulated click) and blocking the default gesture stops rapid
+        // taps across the direction pad from being read as a pinch/double-tap
+        // zoom gesture on mobile browsers.
+        document.querySelectorAll('.d-btn, .hdr-btn').forEach(function (btn) {
+            btn.addEventListener('touchstart', function (e) {
+                e.preventDefault();
+                btn.click();
+            }, { passive: false });
+        });
     </script>
 </body>
 </html>
