@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mine Sweeper Maze | Mini Games Planet</title>
+    <meta name="description" content="Navigate a treacherous 12x12 grid to reach the finish line without triggering any hidden explosives. Use the scanner readout to count nearby mines and deduce a safe path through the maze.">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+
+        :root {
+            --bg-color: #050505;
+            --text-main: #33ff00;
+            --text-dim: #1a6600;
+            --text-danger: #ff0033;
+            --text-win: #00ccff;
+            --glow: 0 0 8px var(--text-main);
+            --glow-danger: 0 0 8px var(--text-danger);
+        }
+
+        * { box-sizing: border-box; user-select: none; }
+
+        html, body {
+            margin: 0; padding: 0;
+            width: 100%; min-height: 100%;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'VT323', 'Courier New', monospace;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        body::after {
+            content: " "; display: block; position: fixed; top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 100; background-size: 100% 2px, 3px 100%; pointer-events: none;
+        }
+
+        .intro {
+            max-width: 600px; width: 100%;
+            padding: 20px 15px 0; text-align: left;
+            line-height: 1.6; z-index: 10;
+        }
+        .intro h1 {
+            font-size: 1.8rem; letter-spacing: 2px;
+            text-shadow: var(--glow); margin: 0 0 6px;
+        }
+        .intro p { margin: 0 0 8px; font-size: 1.05rem; color: var(--text-dim); }
+
+        .hdr-btn {
+            background: transparent; color: var(--text-main);
+            border: 1px solid var(--text-main);
+            font-family: inherit; font-size: 1rem; cursor: pointer;
+            padding: 2px 8px; text-shadow: inherit;
+        }
+        .hdr-btn:hover { background: var(--text-main); color: var(--bg-color); }
+
+        .info-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.9);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 30; padding: 20px;
+        }
+        .info-overlay.hidden { display: none; }
+        .info-box {
+            max-width: 500px; width: 100%;
+            border: 2px solid var(--text-main);
+            padding: 20px; text-align: center;
+            box-shadow: var(--glow);
+            background: #050505;
+        }
+        .info-box p { text-align: left; font-size: 1.05rem; line-height: 1.5; }
+
+        .game-wrapper {
+            display: flex; flex-direction: column;
+            width: 100%; max-width: 600px;
+            padding: 10px; gap: 15px;
+            z-index: 10;
+        }
+
+        header {
+            display: flex; flex-direction: column; gap: 5px;
+            border: 2px solid var(--text-main);
+            padding: 10px; text-shadow: var(--glow);
+            background: rgba(51, 255, 0, 0.05);
+            flex-shrink: 0;
+        }
+
+        .title-bar { display: flex; justify-content: space-between; align-items: center; font-size: 1.2rem; }
+        .scanner-panel {
+            font-size: 1.5rem; text-align: center; border-top: 1px dashed var(--text-main); padding-top: 5px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+
+        .streak-panel {
+            font-size: 1rem; text-align: center; border-top: 1px dashed var(--text-main); padding-top: 5px;
+            display: flex; justify-content: space-between; align-items: center;
+            opacity: 0.85;
+        }
+
+        .board-container {
+            display: flex; justify-content: center; align-items: center;
+            width: 100%; overflow: hidden; position: relative;
+        }
+
+        #board {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            grid-template-rows: repeat(12, 1fr);
+            gap: 2px;
+            width: 100%;
+            max-width: 400px;
+            aspect-ratio: 1 / 1;
+            border: 2px solid var(--text-main);
+            padding: 2px; background: #000;
+            box-shadow: var(--glow);
+        }
+
+        .cell {
+            display: flex; justify-content: center; align-items: center;
+            font-size: clamp(1rem, 4vmin, 1.8rem);
+            background: #0a110a;
+            border: 1px solid #1a441a;
+            transition: all 0.1s;
+            line-height: 1;
+            overflow: hidden;
+        }
+        .cell.unrevealed { color: var(--text-dim); }
+        .cell.revealed { background: #112211; color: var(--text-main); text-shadow: var(--glow); }
+
+        .cell.player {
+            background: var(--text-main) !important;
+            color: var(--bg-color) !important;
+            text-shadow: none !important;
+            font-weight: bold;
+            box-shadow: 0 0 10px var(--text-main) inset;
+            animation: pulse 1s infinite alternate;
+        }
+
+        .cell.player-dead {
+            background: var(--text-danger) !important;
+            color: #fff !important;
+            text-shadow: none !important;
+            font-weight: bold;
+            box-shadow: 0 0 15px var(--text-danger) inset;
+            animation: flash 0.3s infinite;
+        }
+
+        .cell.mine-revealed { background: var(--text-danger); color: #000; text-shadow: none; }
+        .cell.goal { color: var(--text-win); text-shadow: 0 0 5px var(--text-win); }
+
+        #end-screen {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 20; text-align: center;
+            backdrop-filter: blur(2px);
+        }
+        #end-screen.hidden { display: none; }
+
+        #end-title { font-size: clamp(1.4rem, 6vmin, 2.5rem); margin-bottom: 20px; font-weight: bold; padding: 0 10px; }
+
+        #big-reboot-btn {
+            background: var(--text-main); color: var(--bg-color);
+            border: 2px solid var(--text-main);
+            font-family: inherit; font-size: 1.5rem; font-weight: bold;
+            padding: 15px 30px; cursor: pointer; text-shadow: none;
+            animation: pulse 1s infinite alternate;
+            box-shadow: var(--glow);
+        }
+        #big-reboot-btn:hover { filter: brightness(1.2); }
+
+        @keyframes pulse {
+            0% { filter: brightness(1); transform: scale(0.95); }
+            100% { filter: brightness(1.3); transform: scale(1.05); }
+        }
+        @keyframes flash {
+            0% { background: var(--text-danger); color: #fff; }
+            50% { background: #fff; color: var(--text-danger); }
+            100% { background: var(--text-danger); color: #fff; }
+        }
+
+        footer {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px;
+            max-width: 250px; margin: 0 auto 20px; width: 100%; flex-shrink: 0;
+        }
+        .d-btn {
+            background: #0a110a; color: var(--text-main);
+            border: 1px solid var(--text-main);
+            font-family: inherit; font-size: 1.5rem;
+            padding: 10px 0; cursor: pointer; text-shadow: var(--glow);
+        }
+        .d-btn:active { background: var(--text-main); color: #000; text-shadow: none; }
+        .empty-btn { visibility: hidden; }
+
+        .state-danger { border-color: var(--text-danger) !important; color: var(--text-danger) !important; text-shadow: var(--glow-danger) !important; }
+        .state-win { border-color: var(--text-win) !important; color: var(--text-win) !important; text-shadow: 0 0 8px var(--text-win) !important; }
+
+    </style>
+</head>
+<body>
+    <div class="intro">
+        <h1>MINE SWEEPER MAZE</h1>
+        <p>Navigate the grid to reach the finish line (F) without triggering a hidden explosive. Tap the [?] for full instructions.</p>
+    </div>
+
+    <div id="help-screen" class="info-overlay hidden">
+        <div class="info-box">
+            <div style="font-size: 1.4rem; margin-bottom: 12px; text-shadow: var(--glow);">MISSION BRIEFING</div>
+            <p><strong>Premise:</strong> Navigate through a treacherous grid to reach the finish line (F) without triggering any hidden explosives.</p>
+            <p><strong>How to Play:</strong> Use the on-screen arrows or your keyboard (Arrow keys or W, A, S, D) to move. The scanner will alert you to the exact number of explosives hidden in the tiles directly adjacent to your current position (including diagonals). Use logic to deduce safe paths and escape!</p>
+            <button class="hdr-btn" style="margin-top: 12px; font-size: 1.1rem; padding: 8px 20px;" onclick="toggleHelp()">CLOSE</button>
+        </div>
+    </div>
+
+    <div class="game-wrapper" onclick="window.focus()">
+        <header id="ui-header">
+            <div class="title-bar">
+                <span id="sys-status">SYS_STATUS: ONLINE</span>
+                <div style="display: flex; gap: 6px;">
+                    <button id="btn-help" class="hdr-btn" onclick="toggleHelp()">?</button>
+                    <button id="btn-mute" class="hdr-btn" onclick="toggleMute()">♪</button>
+                    <button id="btn-restart" class="hdr-btn" onclick="initGame()">REBOOT</button>
+                </div>
+            </div>
+            <div class="scanner-panel">
+                <span id="scanner-readout">SCANNER: 0 DETECTED</span>
+                <span id="coord-readout">[0,0]</span>
+            </div>
+            <div class="streak-panel">
+                <span id="streak-readout">STREAK: 0</span>
+                <span id="best-readout">BEST: 0</span>
+            </div>
+        </header>
+
+        <main class="board-container">
+            <div id="board"></div>
+
+            <div id="end-screen" class="hidden">
+                <div id="end-title">SYSTEM FAILURE</div>
+                <button id="big-reboot-btn" onclick="initGame()">REBOOT SYSTEM</button>
+            </div>
+        </main>
+
+        <footer>
+            <div class="empty-btn"></div>
+            <button class="d-btn" onclick="move(0, -1)">▲</button>
+            <div class="empty-btn"></div>
+            <button class="d-btn" onclick="move(-1, 0)">◄</button>
+            <button class="d-btn" onclick="move(0, 1)">▼</button>
+            <button class="d-btn" onclick="move(1, 0)">►</button>
+        </footer>
+    </div>
+
+    <script>
+        const GRID_SIZE = 12;
+        const MINE_DENSITY = 0.16;
+        const DIRS = [ [-1,-1], [-1,0], [-1,1], [0,-1], [0,1], [1,-1], [1,0], [1,1] ];
+
+        let grid = [];
+        let player = {x: 0, y: 0};
+        let gameOver = false;
+        let gameWon = false;
+
+        let currentStreak = 0;
+        let bestStreak = 0;
+
+        function loadBestStreak() {
+            try {
+                bestStreak = parseInt(localStorage.getItem('mineSweeperMazeBestStreak') || '0', 10) || 0;
+            } catch (e) {
+                bestStreak = 0;
+            }
+        }
+
+        function saveBestStreak() {
+            try {
+                localStorage.setItem('mineSweeperMazeBestStreak', bestStreak);
+            } catch (e) {
+                // localStorage unavailable (e.g. private browsing) - streak just won't persist
+            }
+        }
+
+        function updateStreakUI() {
+            document.getElementById('streak-readout').innerText = 'STREAK: ' + currentStreak;
+            document.getElementById('best-readout').innerText = 'BEST: ' + bestStreak;
+        }
+
+        let audioCtx = null;
+        let soundOn = true;
+
+        function ensureAudio() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+        }
+
+        function playTone(freq, duration, type = 'square', volume = 0.15) {
+            if (!soundOn) return;
+            ensureAudio();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.value = freq;
+            gain.gain.value = volume;
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+            osc.stop(audioCtx.currentTime + duration);
+        }
+
+        function sfxMove() { playTone(220, 0.06, 'square', 0.08); }
+        function sfxClick() { playTone(500, 0.05, 'square', 0.1); }
+        function sfxDanger() {
+            playTone(140, 0.4, 'sawtooth', 0.2);
+            setTimeout(() => playTone(90, 0.5, 'sawtooth', 0.2), 120);
+        }
+        function sfxWin() {
+            [523, 659, 784, 1046].forEach((f, i) => setTimeout(() => playTone(f, 0.15, 'square', 0.12), i * 100));
+        }
+
+        function toggleMute() {
+            soundOn = !soundOn;
+            document.getElementById('btn-mute').innerText = soundOn ? '♪' : '✕';
+            if (soundOn) sfxClick();
+        }
+
+        function toggleHelp() {
+            sfxClick();
+            document.getElementById('help-screen').classList.toggle('hidden');
+        }
+
+        function initGame() {
+            let solvable = false;
+            while(!solvable) {
+                generateGrid();
+                solvable = checkSolvability();
+            }
+            player = {x: 0, y: 0};
+            grid[0][0].revealed = true;
+            gameOver = false;
+            gameWon = false;
+
+            document.getElementById('end-screen').classList.add('hidden');
+            updateUIColors('normal');
+            render();
+        }
+
+        function generateGrid() {
+            grid = Array(GRID_SIZE).fill().map((_, y) =>
+                Array(GRID_SIZE).fill().map((_, x) => ({
+                    x, y, isMine: false, count: 0, revealed: false
+                }))
+            );
+
+            for(let y=0; y<GRID_SIZE; y++) {
+                for(let x=0; x<GRID_SIZE; x++) {
+                    if ((x<2 && y<2) || (x===GRID_SIZE-1 && y===GRID_SIZE-1)) continue;
+                    if (Math.random() < MINE_DENSITY) grid[y][x].isMine = true;
+                }
+            }
+
+            for(let y=0; y<GRID_SIZE; y++) {
+                for(let x=0; x<GRID_SIZE; x++) {
+                    if(grid[y][x].isMine) continue;
+                    let count = 0;
+                    DIRS.forEach(([dy, dx]) => {
+                        const ny = y + dy, nx = x + dx;
+                        if(ny>=0 && ny<GRID_SIZE && nx>=0 && nx<GRID_SIZE && grid[ny][nx].isMine) count++;
+                    });
+                    grid[y][x].count = count;
+                }
+            }
+        }
+
+        function checkSolvability() {
+            let queue = [{x:0, y:0}];
+            let seen = new Set(['0,0']);
+
+            while(queue.length > 0) {
+                let {x, y} = queue.shift();
+                if (x === GRID_SIZE-1 && y === GRID_SIZE-1) return true;
+
+                [[0,1],[0,-1],[1,0],[-1,0]].forEach(([dx, dy]) => {
+                    let nx = x + dx, ny = y + dy;
+                    if(nx>=0 && nx<GRID_SIZE && ny>=0 && ny<GRID_SIZE) {
+                        let key = nx+','+ny;
+                        if(!seen.has(key) && !grid[ny][nx].isMine) {
+                            seen.add(key);
+                            queue.push({x:nx, y:ny});
+                        }
+                    }
+                });
+            }
+            return false;
+        }
+
+        function move(dx, dy) {
+            if(gameOver || gameWon) return;
+
+            let nx = player.x + dx;
+            let ny = player.y + dy;
+
+            if(nx<0 || nx>=GRID_SIZE || ny<0 || ny>=GRID_SIZE) return;
+
+            player.x = nx;
+            player.y = ny;
+            grid[ny][nx].revealed = true;
+            sfxMove();
+
+            if(grid[ny][nx].isMine) {
+                gameOver = true;
+                currentStreak = 0;
+                updateStreakUI();
+                updateUIColors('danger');
+                sfxDanger();
+                showEndScreen("SYSTEM FAILURE", "danger");
+            } else if (nx === GRID_SIZE-1 && ny === GRID_SIZE-1) {
+                gameWon = true;
+                currentStreak++;
+                if (currentStreak > bestStreak) {
+                    bestStreak = currentStreak;
+                    saveBestStreak();
+                }
+                updateStreakUI();
+                updateUIColors('win');
+                sfxWin();
+                showEndScreen("MISSION ACCOMPLISHED — STREAK: " + currentStreak, "win");
+            }
+
+            render();
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].indexOf(e.code) > -1) {
+                e.preventDefault();
+            }
+            switch(e.key) {
+                case 'ArrowUp': case 'w': move(0, -1); break;
+                case 'ArrowDown': case 's': move(0, 1); break;
+                case 'ArrowLeft': case 'a': move(-1, 0); break;
+                case 'ArrowRight': case 'd': move(1, 0); break;
+            }
+        });
+
+        function updateUIColors(state) {
+            const header = document.getElementById('ui-header');
+            header.className = state === 'danger' ? 'state-danger' : state === 'win' ? 'state-win' : '';
+        }
+
+        function showEndScreen(text, state) {
+            const screen = document.getElementById('end-screen');
+            const title = document.getElementById('end-title');
+            const btn = document.getElementById('big-reboot-btn');
+
+            screen.classList.remove('hidden');
+            title.innerText = text;
+
+            if (state === 'danger') {
+                title.style.color = "var(--text-danger)";
+                title.style.textShadow = "var(--glow-danger)";
+                btn.style.background = "var(--text-danger)";
+                btn.style.borderColor = "var(--text-danger)";
+            } else {
+                title.style.color = "var(--text-win)";
+                title.style.textShadow = "0 0 8px var(--text-win)";
+                btn.style.background = "var(--text-win)";
+                btn.style.borderColor = "var(--text-win)";
+            }
+        }
+
+        function render() {
+            const board = document.getElementById('board');
+            let html = '';
+
+            const currCell = grid[player.y][player.x];
+            document.getElementById('coord-readout').innerText = `[${player.x},${player.y}]`;
+
+            if(!gameOver && !gameWon) {
+                document.getElementById('sys-status').innerText = "SYS_STATUS: ONLINE";
+                document.getElementById('scanner-readout').innerText = `SCANNER: ${currCell.count} DETECTED`;
+            } else if (gameOver) {
+                document.getElementById('sys-status').innerText = "FATAL ERROR: MINE TRIGGERED";
+            } else {
+                document.getElementById('sys-status').innerText = "MISSION ACCOMPLISHED";
+            }
+
+            for(let y=0; y<GRID_SIZE; y++) {
+                for(let x=0; x<GRID_SIZE; x++) {
+                    const cell = grid[y][x];
+                    const isPlayer = (x === player.x && y === player.y);
+                    const isGoal = (x === GRID_SIZE-1 && y === GRID_SIZE-1);
+
+                    let classes = 'cell ';
+                    let content = '';
+
+                    if (gameOver && cell.isMine && isPlayer) {
+                        classes += 'player-dead ';
+                        content = '☠';
+                    } else if (gameOver && cell.isMine) {
+                        classes += 'mine-revealed ';
+                        content = 'X';
+                    } else if (isPlayer) {
+                        classes += 'player ';
+                        content = cell.count > 0 ? cell.count : '&nbsp;';
+                    } else if (isGoal && !isPlayer) {
+                        classes += 'goal ';
+                        content = 'F';
+                    } else if (cell.revealed) {
+                        classes += 'revealed ';
+                        content = cell.count > 0 ? cell.count : '&nbsp;';
+                    } else {
+                        classes += 'unrevealed ';
+                        content = '.';
+                    }
+
+                    html += `<div class="${classes}">${content}</div>`;
+                }
+            }
+            board.innerHTML = html;
+        }
+
+        loadBestStreak();
+        updateStreakUI();
+        initGame();
+        window.focus();
+    </script>
+</body>
+</html>
