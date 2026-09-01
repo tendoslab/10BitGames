@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mini Games Planet — Free browser mini-games</title>
+<meta name="description" content="Play free, original mini-games right in your browser. No downloads, no sign-up — arcade, puzzle and strategy games you can jump into on desktop or phone.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #241B36;
+    --panel: #322547;
+    --ink: #F5F3F7;
+    --ink-dim: #C9C1D6;
+    --amber: #F5A623;
+    --mint: #5EEAD4;
+    --coral: #FF6B6B;
+    --border: #4A3A66;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    line-height: 1.5;
+  }
+
+  h1, h2, .cabinet-title {
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 600;
+    margin: 0;
+  }
+
+  header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .site-name {
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 700;
+    font-size: 1.25rem;
+    color: var(--ink);
+    text-decoration: none;
+  }
+
+  .hero {
+    max-width: 640px;
+    padding: 3rem 1.5rem 2rem;
+  }
+
+  .hero h1 {
+    font-size: clamp(2rem, 6vw, 2.75rem);
+    line-height: 1.15;
+  }
+
+  .hero p {
+    color: var(--ink-dim);
+    font-size: 1.05rem;
+    max-width: 46ch;
+    margin-top: 0.9rem;
+  }
+
+  main {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 0 1.5rem 4rem;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1.25rem;
+    margin-top: 1rem;
+  }
+
+  .cabinet {
+    background: var(--panel);
+    border: 2px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .marquee {
+    padding: 0.9rem 1.1rem;
+    color: #241B36;
+  }
+
+  .marquee.amber { background: var(--amber); }
+  .marquee.mint  { background: var(--mint); }
+  .marquee.coral { background: var(--coral); }
+
+  .cabinet-title {
+    font-size: 1.15rem;
+  }
+
+  .cabinet-body {
+    padding: 1.1rem;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+  }
+
+  .cabinet-body p {
+    color: var(--ink-dim);
+    font-size: 0.95rem;
+    margin: 0 0 1.1rem;
+    flex-grow: 1;
+  }
+
+  .play-btn {
+    display: inline-block;
+    text-align: center;
+    padding: 0.6rem 1rem;
+    border: 2px solid var(--ink);
+    color: var(--ink);
+    text-decoration: none;
+    font-weight: 500;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+
+  .play-btn:hover,
+  .play-btn:focus-visible {
+    background: var(--ink);
+    color: var(--bg);
+    outline: none;
+  }
+
+  footer {
+    padding: 2rem 1.5rem;
+    border-top: 2px solid var(--border);
+    color: var(--ink-dim);
+    font-size: 0.85rem;
+    text-align: center;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .play-btn { transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <a class="site-name" href="/">Mini Games Planet</a>
+</header>
+
+<div class="hero">
+  <h1>Free mini-games, right in your browser</h1>
+  <p>No downloads, no accounts. Pick a game below and start playing on your phone, tablet or laptop.</p>
+</div>
+
+<main>
+  <div class="grid">
+
+    <article class="cabinet">
+      <div class="marquee amber">
+        <h2 class="cabinet-title">Bob's Beanstalk Bounce</h2>
+      </div>
+      <div class="cabinet-body">
+        <p>Guide Bob up a swaying beanstalk, timing your jumps across platforms that won't stay still for long.</p>
+        <a class="play-btn" href="bobs-beanstalk-bounce.html">Play now</a>
+      </div>
+    </article>
+
+    <article class="cabinet">
+      <div class="marquee mint">
+        <h2 class="cabinet-title">Chroma Lock</h2>
+      </div>
+      <div class="cabinet-body">
+        <p>Study the sequence, match the colors, and crack the lock before it resets. A fast, focused color-logic puzzle.</p>
+        <a class="play-btn" href="chroma-lock.html">Play now</a>
+      </div>
+    </article>
+
+    <article class="cabinet">
+      <div class="marquee coral">
+        <h2 class="cabinet-title">Minesweeper Maze</h2>
+      </div>
+      <div class="cabinet-body">
+        <p>Navigate a maze riddled with hidden mines. Read the number clues, trust the logic, and don't misstep.</p>
+        <a class="play-btn" href="minesweeper-maze.html">Play now</a>
+      </div>
+    </article>
+
+    <article class="cabinet">
+      <div class="marquee amber">
+        <h2 class="cabinet-title">Ultimate Tic-Tac-Toe</h2>
+      </div>
+      <div class="cabinet-body">
+        <p>Classic tic-tac-toe, leveled up: win small boards to claim squares on the big board, and outthink your opponent.</p>
+        <a class="play-btn" href="ultimate-tic-tac-toe.html">Play now</a>
+      </div>
+    </article>
+
+  </div>
+</main>
+
+<footer>
+  &copy; 2026 Mini Games Planet. All games are original creations.
+</footer>
+
+</body>
+</html>
