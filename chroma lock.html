@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chroma Lock | Mini Games Planet</title>
+<meta name="description" content="Rotate the chamber, let gravity shift, and guide each colored spark into its matching core. 20 levels of increasing difficulty featuring crates, wrong-color blockers, and teleporter portals.">
+<style>
+  body { margin: 0; background: #0e0c12; font-family: 'Trebuchet MS', sans-serif; }
+  .site-intro { max-width: 640px; margin: 0 auto; padding: 24px 15px 0; text-align: center; }
+  .site-intro h1 { color: #4facfe; letter-spacing: 3px; margin: 0 0 6px; font-size: 1.6rem; text-shadow: 0 0 20px rgba(79,172,254,0.4); }
+  .site-intro p { color: #8888a0; font-size: 0.95rem; line-height: 1.5; margin: 0; }
+</style>
+</head>
+<body>
+<div class="site-intro">
+  <h1>CHROMA LOCK</h1>
+  <p>Rotate the chamber to shift gravity and guide each colored spark home to its matching core. Crates block the way, mismatched cores act as walls, and purple-to-orange portals teleport sparks across the room. 20 levels, from a simple drop to a five-piece squeeze.</p>
+</div>
+<!-- Mobile fullscreen overlay — only used on touch devices -->
+<div id="gz-fullscreen-overlay" style="
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: #000;
+    z-index: 99999;
+    touch-action: none;
+    align-items: center;
+    justify-content: center;
+">
+    <div id="game-host-mobile" style="
+        width: min(100vw, 100vh);
+        height: min(100vw, 100vh);
+        touch-action: none;
+    "></div>
+    <button onclick="
+        document.getElementById('gz-fullscreen-overlay').style.display='none';
+        document.body.style.overflow='';
+    " style="
+        position: absolute;
+        top: 12px; right: 12px;
+        background: rgba(0,0,0,0.75);
+        color: white;
+        border: 2px solid rgba(255,255,255,0.4);
+        border-radius: 50%;
+        width: 44px; height: 44px;
+        font-size: 18px;
+        cursor: pointer;
+        z-index: 100000;
+        display: flex; align-items: center; justify-content: center;
+        line-height: 1;
+    ">✕</button>
+</div>
+
+<!-- Desktop: game renders inline here -->
+<div id="game-host-desktop" style="display:flex; justify-content:center; margin: 20px 0;"></div>
+
+<!-- Mobile: preview card with Play button (hidden on desktop) -->
+<div id="gz-game-preview" style="display:none;
+    background: #121015;
+    border-radius: 12px;
+    border: 2px solid #2a2a35;
+    padding: 40px 20px;
+    text-align: center;
+    font-family: 'Trebuchet MS', sans-serif;
+">
+    <div style="color:#4facfe; font-size:1.5rem; font-weight:bold; letter-spacing:3px; margin-bottom:8px;">CHROMA LOCK</div>
+    <div style="color:#6a6a80; font-size:0.85rem; margin-bottom:8px;">rotate · match · escape</div>
+    <div style="color:#9090a0; font-size:0.8rem; margin-bottom:24px;">
+        <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#4CAF50;margin-right:4px;"></span>Green
+        <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#00f2fe;margin:0 4px 0 12px;"></span>Cyan
+        <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#ff4d4d;margin:0 4px 0 12px;"></span>Red
+    </div>
+    <button onclick="
+        var ol = document.getElementById('gz-fullscreen-overlay');
+        ol.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    " style="
+        background: linear-gradient(135deg,#4facfe 0%,#00f2fe 100%);
+        border: none;
+        padding: 16px 48px;
+        border-radius: 30px;
+        color: #0e0c12;
+        font-size: 1.05rem;
+        font-weight: bold;
+        cursor: pointer;
+        letter-spacing: 1px;
+    ">▶ PLAY FULLSCREEN</button>
+</div>
+
+<script>
+// Route game to correct host based on device type
+window._gzIsMobile = ('ontouchstart' in window) || (window.innerWidth <= 768);
+if (window._gzIsMobile) {
+    document.getElementById('game-host-desktop').style.display = 'none';
+    document.getElementById('gz-game-preview').style.display = 'block';
+}
+</script>
+
+<script>
+(function() {
+    const isMobile = ('ontouchstart' in window) || (window.innerWidth <= 768);
+    const hostId = isMobile ? 'game-host-mobile' : 'game-host-desktop';
+    const host = document.getElementById(hostId);
+    host.style.display = 'flex';
+    host.style.alignItems = 'center';
+    host.style.justifyContent = 'center';
+    const shadow = host.attachShadow({mode: 'closed'});
+
+    const style = document.createElement('style');
+    style.textContent = `
+        #game-wrapper {
+            width: min(100vw, 100vh); height: min(100vw, 100vh); position: relative;
+            background-color: #121015;
+            background-image: linear-gradient(45deg,#1a1625 25%,transparent 25%,transparent 75%,#1a1625 75%,#1a1625),linear-gradient(45deg,#1a1625 25%,transparent 25%,transparent 75%,#1a1625 75%,#1a1625);
+            background-size: 40px 40px; background-position: 0 0,20px 20px;
+            border-radius: 14px; border: 8px solid #2a2a35;
+            box-shadow: inset 0 0 50px rgba(0,0,0,0.8),0 20px 60px rgba(0,0,0,0.8);
+            font-family: 'Trebuchet MS', sans-serif; overflow: hidden; user-select: none;
+        }
+        #game-wrapper::before {
+            content:''; position:absolute; top:0; left:0; right:0; bottom:0;
+            border:3px solid #4facfe; pointer-events:none;
+            border-radius:7px; box-shadow:inset 0 0 20px rgba(79,172,254,0.15); z-index:5; opacity:0.4;
+        }
+        canvas { display:block; width:100%; height:100%; position:relative; z-index:1; }
+        .ui-layer {
+            position:absolute; top:0; left:0; width:100%; height:100%;
+            background:rgba(14,12,18,0.97);
+            display:flex; flex-direction:column; justify-content:center; align-items:center;
+            color:#fff; z-index:10; transition:opacity 0.25s ease, transform 0.25s ease;
+            transform: scale(1);
+        }
+        .hidden { pointer-events:none; opacity:0; transform: scale(0.96); }
+        h1 { font-size:44px; margin-bottom:8px; color:#4facfe; text-shadow:0 0 30px rgba(79,172,254,0.5); text-transform:uppercase; letter-spacing:4px; text-align:center; }
+        .subtitle { font-size:15px; color:#6a6a80; margin-bottom:24px; letter-spacing:1px; }
+        p { font-size:16px; text-align:center; max-width:82%; line-height:1.7; color:#b0b0c0; margin:4px 0; }
+        .btn {
+            background:linear-gradient(135deg,#4facfe 0%,#00f2fe 100%);
+            border:none; padding:14px 0; margin:7px; width:210px; min-height:48px;
+            border-radius:30px; color:#0e0c12; font-size:17px; font-weight:bold;
+            cursor:pointer; box-shadow:0 4px 18px rgba(79,172,254,0.25);
+            text-transform:uppercase; letter-spacing:1px;
+            transition:transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+        }
+        .btn:hover { box-shadow:0 6px 24px rgba(79,172,254,0.4); transform:translateY(-2px); }
+        .btn:active { transform:scale(0.94) translateY(0); filter:brightness(0.95); }
+        .btn.secondary { background:linear-gradient(135deg,#3a3a4a 0%,#555566 100%); color:#ccc; box-shadow:0 4px 12px rgba(0,0,0,0.3); }
+        .level-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(56px, 1fr)); gap:10px; margin-top:16px; max-width:320px; }
+        .level-btn { padding:12px 0; font-size:18px; border-radius:12px; width:100%; min-height:48px; text-align:center; margin:0; position:relative; transition:transform 0.15s ease, box-shadow 0.15s ease; }
+        .level-btn:active { transform:scale(0.92); }
+        .level-btn.locked { background:#1e1e28; color:#444; box-shadow:none; cursor:not-allowed; transform:none; }
+        .level-btn.locked:hover, .level-btn.locked:active { box-shadow:none; transform:none; }
+        .level-btn.current { box-shadow:0 0 0 3px #fff,0 4px 18px rgba(79,172,254,0.4); }
+        .level-btn.completed:not(.current)::after { content:'✓'; position:absolute; top:2px; right:6px; font-size:11px; color:#4CAF50; }
+        .hud {
+            position:absolute; top:12px; left:12px; right:12px;
+            display:flex; justify-content:space-between; align-items:center;
+            color:#fff; font-weight:bold; font-size:18px; pointer-events:none; z-index:5;
+        }
+        .hud-left { display:flex; align-items:center; gap:10px; }
+        .hud-badge { background:rgba(0,0,0,0.55); padding:5px 14px; border-radius:20px; border:1px solid rgba(79,172,254,0.4); font-size:15px; color:#c0c0d0; }
+        .hud-btn { pointer-events:auto; background:rgba(0,0,0,0.55); padding:9px 16px; min-height:38px; border-radius:20px; cursor:pointer; border:1px solid rgba(79,172,254,0.35); color:#c0c0d0; font-size:14px; transition:background 0.15s ease, color 0.15s ease, transform 0.1s ease; margin-left:6px; }
+        .hud-btn:hover { background:rgba(79,172,254,0.2); color:#fff; }
+        .hud-btn:active { transform:scale(0.9); }
+        .mobile-controls { position:absolute; bottom:16px; left:0; right:0; display:flex; justify-content:space-between; padding:0 24px; z-index:6; pointer-events:none; }
+        .mobile-rot-btn { pointer-events:auto; width:64px; height:64px; border-radius:50%; background:rgba(0,0,0,0.55); border:2px solid rgba(79,172,254,0.5); color:#fff; font-size:26px; display:flex; align-items:center; justify-content:center; transition:background 0.15s ease, transform 0.1s ease; }
+        .mobile-rot-btn:active { background:rgba(79,172,254,0.35); transform:scale(0.9); }
+        .rot-hint { position:absolute; bottom:14px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.5); border-radius:20px; padding:5px 18px; font-size:13px; color:#666; pointer-events:none; z-index:5; border:1px solid #2a2a35; letter-spacing:0.5px; white-space:nowrap; }
+        .rules-box { background:rgba(0,0,0,0.35); padding:14px 20px; border-radius:10px; margin-bottom:18px; width:72%; border:1px solid rgba(79,172,254,0.2); }
+        .rules-box p { font-size:14px; margin:4px 0; }
+        .confetti-piece { position:absolute; width:8px; height:14px; top:-20px; opacity:0.95; z-index:15; animation-name:confetti-fall; animation-timing-function:linear; animation-fill-mode:forwards; pointer-events:none; }
+        @keyframes confetti-fall { 0% { transform:translateY(0) rotate(0deg); opacity:1; } 100% { transform:translateY(640px) rotate(720deg); opacity:0.2; } }
+        .menu-win.mastered { background: radial-gradient(circle at 50% 40%, rgba(255,215,0,0.18), rgba(14,12,18,0.97) 70%); }
+        .menu-win.mastered h1 { color:#FFD700 !important; text-shadow:0 0 30px rgba(255,215,0,0.7) !important; }
+        .mastery-pulse { animation: mastery-pop 0.6s ease; }
+        @keyframes mastery-pop { 0% { transform:scale(1); } 30% { transform:scale(1.08); } 60% { transform:scale(0.98); } 100% { transform:scale(1); } }
+        .key-hint { display:inline-block; background:#2a2a3a; border:1px solid #4a4a5a; border-radius:5px; padding:1px 8px; font-family:monospace; font-size:13px; color:#aaa; }
+        .legend { display:flex; gap:16px; margin:10px 0; justify-content:center; flex-wrap:wrap; }
+        .legend-item { display:flex; align-items:center; gap:6px; font-size:13px; color:#9090a0; }
+        .dot { width:14px; height:14px; border-radius:50%; }
+    `;
+
+    const wrapper = document.createElement('div');
+    wrapper.id = 'game-wrapper';
+    wrapper.innerHTML = `
+        <canvas id="gameCanvas" width="620" height="620" style="width:100%;height:100%;"></canvas>
+        <div id="hud" class="hud hidden">
+            <div class="hud-left">
+                <div class="hud-badge" id="level-display">Level 1</div>
+            </div>
+            <div>
+                <button class="hud-btn" id="btn-rot-left">&#8592;</button>
+                <button class="hud-btn" id="btn-rot-right">&#8594;</button>
+                <button class="hud-btn" id="btn-restart-hud">&#8635; Reset</button>
+                <button class="hud-btn" id="btn-pause">&#8801; Menu</button>
+            </div>
+        </div>
+        <div class="rot-hint hidden" id="rot-hint">&#8592; &#8594; to rotate &nbsp;|&nbsp; R to reset</div>
+        ${isMobile ? `
+        <div class="mobile-controls hidden" id="mobile-controls">
+            <button class="mobile-rot-btn" id="btn-rot-left-mobile">&#8592;</button>
+            <button class="mobile-rot-btn" id="btn-rot-right-mobile">&#8594;</button>
+        </div>` : ''}
+
+        <div id="menu-main" class="ui-layer">
+            <h1>CHROMA LOCK</h1>
+            <div class="subtitle">rotate &middot; match &middot; escape</div>
+            <div class="legend">
+                <div class="legend-item"><div class="dot" style="background:#4CAF50"></div>Green spark &rarr; core</div>
+                <div class="legend-item"><div class="dot" style="background:#00f2fe"></div>Cyan spark &rarr; core</div>
+                <div class="legend-item"><div class="dot" style="background:#ff4d4d"></div>Red spark &rarr; core</div>
+            </div>
+            <button class="btn" id="btn-start">Play</button>
+            <button class="btn secondary" id="btn-inst">How to Play</button>
+        </div>
+
+        <div id="menu-levels" class="ui-layer hidden">
+            <h1>Select Level</h1>
+            <div id="level-grid" class="level-grid"></div>
+            <button class="btn secondary" id="btn-back-levels" style="margin-top:24px;">Back</button>
+        </div>
+
+        <div id="menu-inst" class="ui-layer hidden">
+            <h1>How to Play</h1>
+            <p><span class="key-hint">&#8592;</span> <span class="key-hint">&#8594;</span> or <span class="key-hint">A</span> <span class="key-hint">D</span> &mdash; rotate the chamber</p>
+            <p style="margin-top:6px;">Gravity shifts with each rotation.</p>
+            <p>Sparks fall until they hit a wall, a crate, or their matching core.</p>
+            <p style="margin-top:8px;"><b style="color:#9b59b6">Purple IN</b> portal teleports to <b style="color:#e67e22">Orange OUT</b> portal.</p>
+            <p><i style="color:#888">Wrong-color cores block sparks &mdash; use them as walls!</i></p>
+            <p style="margin-top:8px;"><span class="key-hint">R</span> resets the level anytime.</p>
+            <button class="btn secondary" id="btn-back-inst" style="margin-top:20px;">Back</button>
+        </div>
+
+        <div id="menu-pause" class="ui-layer hidden">
+            <h1>Paused</h1>
+            <div class="rules-box">
+                <p>Match sparks to same-colored cores.</p>
+                <p>Purple <b>IN</b> &rarr; Orange <b>OUT</b> teleporter.</p>
+                <p>Crates catch falling sparks. Wrong cores block them.</p>
+            </div>
+            <button class="btn" id="btn-resume">Resume</button>
+            <button class="btn" id="btn-restart">Restart Level</button>
+            <button class="btn secondary" id="btn-sound">Sound: ON</button>
+            <button class="btn secondary" id="btn-level-select">Level Select</button>
+            <button class="btn secondary" id="btn-quit">Main Menu</button>
+        </div>
+
+        <div id="menu-win" class="ui-layer hidden">
+            <h1>Level Cleared!</h1>
+            <p id="win-sub" style="margin-bottom:20px;color:#888;font-size:14px;"></p>
+            <button class="btn" id="btn-next">Next Level &#8594;</button>
+            <button class="btn secondary" id="btn-win-levels" style="margin-top:4px;">Level Select</button>
+        </div>
+    `;
+
+    shadow.appendChild(style);
+    shadow.appendChild(wrapper);
+
+    // ── Audio ─────────────────────────────────────────────────────────────
+    let audioCtx = null, soundEnabled = true;
+    function initAudio() {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+    }
+    function playSound(type) {
+        if (!audioCtx || !soundEnabled) return;
+        const now = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        const p = {
+            rotate: ['triangle', 300, 100, 0.15, 0.08],
+            lock:   ['sine',     600, 1200, 0.2,  0.15],
+            tp_in:  ['sawtooth', 600, 200,  0.4,  0.08],
+            tp_out: ['sine',     200, 900,  0.25, 0.08],
+            win:    ['square',   350, 700,  0.3,  0.15],
+        }[type];
+        if (!p) return;
+        osc.type = p[0];
+        osc.frequency.setValueAtTime(p[1], now);
+        osc.frequency.exponentialRampToValueAtTime(p[2], now + p[3]);
+        gain.gain.setValueAtTime(p[4], now);
+        gain.gain.linearRampToValueAtTime(0, now + p[3]);
+        osc.start(now); osc.stop(now + p[3]);
+    }
+
+    function playFanfare() {
+        if (!audioCtx || !soundEnabled) return;
+        const now = audioCtx.currentTime;
+        const notes = [523.25, 659.25, 784.0, 1046.5, 784.0, 1046.5, 1318.5];
+        notes.forEach((freq, i) => {
+            const t0 = now + i * 0.12;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(freq, t0);
+            gain.gain.setValueAtTime(0.18, t0);
+            gain.gain.linearRampToValueAtTime(0, t0 + 0.35);
+            osc.start(t0); osc.stop(t0 + 0.35);
+        });
+    }
+
+    function spawnConfetti() {
+        const colors = ['#4facfe','#00f2fe','#ff4d4d','#4CAF50','#FFD700','#e67e22','#9b59b6'];
+        for (let i = 0; i < 40; i++) {
+            const piece = document.createElement('div');
+            piece.className = 'confetti-piece';
+            piece.style.left = (Math.random() * 100) + '%';
+            piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+            piece.style.animationDuration = (1.8 + Math.random() * 1.4) + 's';
+            piece.style.animationDelay = (Math.random() * 0.4) + 's';
+            piece.style.transform = 'rotate(' + Math.floor(Math.random() * 360) + 'deg)';
+            wrapper.appendChild(piece);
+            setTimeout(() => piece.remove(), 3600);
+        }
+    }
+
+    // ── Level Data ────────────────────────────────────────────────────────
+    const levelData = [
+        ["WWWWWWWW",
+         "W......W",
+         "W.WWWW.W",
+         "W.W..W.W",
+         "W.P..G.W",
+         "WWWWWWWW"],
+
+        ["WWWWWWWW",
+         "W.P..B.W",
+         "W.W..W.W",
+         "W......W",
+         "W.W.G..W",
+         "WWWWWWWW"],
+
+        ["WWWWWWWW",
+         "W..P...W",
+         "W.WWWW.W",
+         "W.WGEW.W",
+         "W.WWWW.W",
+         "W..T...W",
+         "WWWWWWWW"],
+
+        ["WWWWWWWW",
+         "W.P..Q.W",
+         "W......W",
+         "W......W",
+         "W.H..G.W",
+         "WWWWWWWW"],
+
+        ["WWWWWWWWW",
+         "W.P...T.W",
+         "W.WWWWW.W",
+         "W.E.B.G.W",
+         "W.W.W.W.W",
+         "WWWWWWWWW"],
+
+        ["WWWWWWWWW",
+         "W.Q..T..W",
+         "W.WWWWW.W",
+         "W.P..E..W",
+         "W.H..G..W",
+         "WWWWWWWWW"],
+
+        ["WWWWWWWWWW",
+         "W.P....Q.W",
+         "W..WWWW..W",
+         "W.T....E.W",
+         "W.G....H.W",
+         "WWWWWWWWWW"],
+
+        ["WWWWWWWWWW",
+         "W........W",
+         "W.R.P.Q..W",
+         "W.W.W.W..W",
+         "W.G.H.I..W",
+         "WWWWWWWWWW"],
+
+        ["WWWWWWWWW",
+         "W.P.B.Q.W",
+         "W.WWWWW.W",
+         "W.W.E.W.W",
+         "W.W.G.W.W",
+         "W.WWWWW.W",
+         "W.T...H.W",
+         "WWWWWWWWW"],
+
+        ["WWWWWWWWWW",
+         "W...T....W",
+         "W.P.WW.Q.W",
+         "W.B.WW.B.W",
+         "W.G.WW.H.W",
+         "W...E....W",
+         "WWWWWWWWWW"],
+
+        ["WWWWWWWWWWW",
+         "W..P.RQ...W",
+         "W..WWWWW..W",
+         "W.T.E.....W",
+         "W.G.I..H..W",
+         "WWWWWWWWWWW"],
+
+        ["WWWWWWWWWW",
+         "W.P....T.W",
+         "W.WWWWWW.W",
+         "W.B....Q.W",
+         "W.WWWWWW.W",
+         "W.E..H.G.W",
+         "WWWWWWWWWW"],
+
+        ["WWWWWWWWWW",
+         "W.P..B...W",
+         "W.WWWWWW.W",
+         "W.B....G.W",
+         "W.WWWWWW.W",
+         "W.T....E.W",
+         "WWWWWWWWWW"],
+
+        ["WWWWWWWWWW",
+         "W.P.B.Q..W",
+         "W.W.W.W..W",
+         "W.T.W.E..W",
+         "W.H.W.G..W",
+         "WWWWWWWWWW"],
+
+        ["WWWWWWWWWW",
+         "WP.Q.R.B.W",
+         "WW.W.W.W.W",
+         "WT.W.W.E.W",
+         "WH.G.I.B.W",
+         "WWWWWWWWWW"],
+
+        ["WWWWWWWWWWW",
+         "WP..B...H.W",
+         "W.WWW.W.W.W",
+         "W.E.W.Q...W",
+         "W.B...T.B.W",
+         "W.W.W.I.W.W",
+         "W.B.G.R...W",
+         "WWWWWWWWWWW"],
+
+        ["WWWWWWWWWWWW",
+         "W..........W",
+         "W.R.P.Q....W",
+         "W.W.W.W.W..W",
+         "W.G.H.I.B..W",
+         "WWWWWWWWWWWW"],
+
+        ["WWWWWWWWWWWW",
+         "W.R.P.Q.B..W",
+         "W.W.W.W.W..W",
+         "W.G.H.I....W",
+         "WWWWWWWWWWWW"],
+
+        ["WWWWWWWWWWWW",
+         "W..........W",
+         "W.R.P.Q.B..W",
+         "W.W.W.W.W..W",
+         "W.G.H.I....W",
+         "WWWWWWWWWWWW"],
+
+        ["WWWWWWWWWWWWWW",
+         "W............W",
+         "W.R.P.Q.B.B..W",
+         "W.W.W.W.W.W..W",
+         "W.G.H.I......W",
+         "W.WWWWWWWW...W",
+         "WWWWWWWWWWWWWW"],
+    ];
+
+    const levelNames = [
+        "Basics","Box Backstop","Locked Chamber","Duo Cross","Box & Portal",
+        "Duo Porting","Portal Bridge","Trio Sorting","The Vault","The Wall",
+        "Trio Port","The Conductor","Box Trap","Duo Squeeze","Trio Squeeze","Master Core",
+        "Sorting Room","Tight Squeeze","Quad Sort","The Depths"
+    ];
+
+    // ── State ─────────────────────────────────────────────────────────────
+    const canvas = wrapper.querySelector('#gameCanvas');
+    const ctx = canvas.getContext('2d');
+    let gameState = 'MENU', currentLevel = 0, highestUnlocked = 0, previousMenu = 'MENU';
+    try { highestUnlocked = parseInt(localStorage.getItem('chromaLockV9')) || 0; } catch(e) {}
+
+    let totalRotationsThisRun = 0;
+    let bestMasteryRotations = 0;
+    try { bestMasteryRotations = parseInt(localStorage.getItem('chromaLockBestRun')) || 0; } catch(e) {}
+    let masteredEver = false;
+    try { masteredEver = localStorage.getItem('chromaLockMasteredEver') === '1'; } catch(e) {}
+    let sessionClearedLevels = new Set();
+
+    let grid = [], entities = [], teleporters = {};
+    let tileSize = 60, boardRot = 0, targetRot = 0, gDir = 0;
+    let isInputLocked = false, isTeleportingGlobal = false;
+    let rotCount = 0;
+
+    // ── UI helpers ────────────────────────────────────────────────────────
+    const getUI = id => wrapper.querySelector('#' + id);
+    const allLayers = ['menu-main','menu-levels','menu-inst','menu-pause','menu-win','hud','rot-hint'].concat(isMobile ? ['mobile-controls'] : []);
+
+    function showUI(id, keepHud) {
+        allLayers.forEach(l => { if (!keepHud || (l !== 'hud' && l !== 'mobile-controls')) getUI(l).classList.add('hidden'); });
+        getUI(id).classList.remove('hidden');
+        if (keepHud) {
+            getUI('hud').classList.remove('hidden');
+            getUI('rot-hint').classList.remove('hidden');
+            if (isMobile) getUI('mobile-controls').classList.remove('hidden');
+        }
+    }
+
+    function generateLevelMenu() {
+        const g = getUI('level-grid');
+        g.innerHTML = '';
+        for (let i = 0; i < levelData.length; i++) {
+            const btn = document.createElement('button');
+            const locked = i > highestUnlocked;
+            const completed = i < highestUnlocked;
+            btn.className = 'btn level-btn' + (locked ? ' locked' : '') + (completed ? ' completed' : '') + (i === currentLevel && gameState === 'PLAY' ? ' current' : '');
+            btn.textContent = i + 1;
+            btn.title = levelNames[i];
+            if (!locked) {
+                btn.onclick = () => {
+                    initAudio();
+                    currentLevel = i;
+                    loadLevel(i);
+                    showUI('hud', true);
+                    gameState = 'PLAY';
+                };
+            }
+            g.appendChild(btn);
+        }
+    }
+
+    function setNextLevelButton() {
+        const btn = getUI('btn-next');
+        btn.innerHTML = 'Next Level &#8594;';
+        btn.onclick = () => {
+            currentLevel++;
+            if (currentLevel >= levelData.length) {
+                const winPanel = getUI('menu-win');
+                const clearedAllThisSession = sessionClearedLevels.size >= levelData.length;
+                const firstTimeEver = !masteredEver;
+
+                if (firstTimeEver || clearedAllThisSession) {
+                    // A genuine milestone: either this is the very first time the game has
+                    // ever been fully completed, or the player just cleared all 20 levels
+                    // in this one sitting (a real full-run attempt, replayable for a new best).
+                    masteredEver = true;
+                    try { localStorage.setItem('chromaLockMasteredEver', '1'); } catch(e) {}
+
+                    winPanel.querySelector('h1').textContent = '🏆 GAME MASTERED 🏆';
+
+                    if (clearedAllThisSession) {
+                        const isNewBest = bestMasteryRotations === 0 || totalRotationsThisRun < bestMasteryRotations;
+                        if (isNewBest) {
+                            bestMasteryRotations = totalRotationsThisRun;
+                            try { localStorage.setItem('chromaLockBestRun', bestMasteryRotations); } catch(e) {}
+                        }
+                        getUI('win-sub').innerHTML = 'All 20 levels cleared in ' + totalRotationsThisRun + ' total rotations.' +
+                            (isNewBest ? '<br><b style="color:#FFD700">New personal best!</b>' : '<br>Personal best: ' + bestMasteryRotations + ' rotations');
+                    } else {
+                        // First-ever completion, but spread across separate visits - we can't
+                        // honestly report a single-session rotation total, so we don't claim one.
+                        getUI('win-sub').innerHTML = "You've cleared every level in Chroma Lock! 🎉";
+                    }
+
+                    winPanel.classList.add('mastered');
+                    winPanel.classList.add('mastery-pulse');
+                    setTimeout(() => winPanel.classList.remove('mastery-pulse'), 650);
+                    spawnConfetti();
+                    setTimeout(spawnConfetti, 400);
+                    playFanfare();
+                } else {
+                    // Already mastered before, and this wasn't a full clean sweep this session -
+                    // most likely just replaying level 20 on its own. Acknowledge it plainly,
+                    // no confetti/fanfare, no misleading "total" number.
+                    winPanel.classList.remove('mastered');
+                    getUI('win-sub').innerHTML = 'Solved in ' + rotCount + ' rotation' + (rotCount !== 1 ? 's' : '') + '.' +
+                        (bestMasteryRotations > 0
+                            ? '<br>You\'ve already mastered all 20 levels - personal best full run: ' + bestMasteryRotations + ' rotations.'
+                            : '<br>You\'ve already mastered all 20 levels.') +
+                        '<br>Clear levels 1→20 in one sitting for a shot at a new record!';
+                }
+
+                totalRotationsThisRun = 0;
+                sessionClearedLevels = new Set();
+                btn.textContent = 'Main Menu';
+                btn.onclick = () => {
+                    currentLevel = 0;
+                    winPanel.classList.remove('mastered');
+                    showUI('menu-main');
+                };
+            } else {
+                loadLevel(currentLevel);
+                showUI('hud', true);
+                gameState = 'PLAY';
+            }
+        };
+    }
+
+    // ── Button wiring ─────────────────────────────────────────────────────
+    getUI('btn-rot-left').onclick  = () => { initAudio(); if (gameState === 'PLAY') rotateBoard(1);  };
+    getUI('btn-rot-right').onclick = () => { initAudio(); if (gameState === 'PLAY') rotateBoard(-1); };
+    if (isMobile) {
+        getUI('btn-rot-left-mobile').onclick  = () => { initAudio(); if (gameState === 'PLAY') rotateBoard(1);  };
+        getUI('btn-rot-right-mobile').onclick = () => { initAudio(); if (gameState === 'PLAY') rotateBoard(-1); };
+    }
+    getUI('btn-start').onclick = () => { previousMenu = 'MENU'; generateLevelMenu(); showUI('menu-levels'); };
+    getUI('btn-inst').onclick = () => showUI('menu-inst');
+    getUI('btn-back-inst').onclick = () => showUI('menu-main');
+    getUI('btn-back-levels').onclick = () => showUI(previousMenu === 'PAUSE' ? 'menu-pause' : 'menu-main');
+    getUI('btn-pause').onclick = () => { gameState = 'PAUSE'; showUI('menu-pause'); };
+    getUI('btn-restart-hud').onclick = () => { loadLevel(currentLevel); showUI('hud', true); gameState = 'PLAY'; };
+    getUI('btn-resume').onclick = () => { gameState = 'PLAY'; showUI('hud', true); };
+    getUI('btn-restart').onclick = () => { loadLevel(currentLevel); gameState = 'PLAY'; showUI('hud', true); };
+    getUI('btn-level-select').onclick = () => { previousMenu = 'PAUSE'; generateLevelMenu(); showUI('menu-levels'); };
+    getUI('btn-quit').onclick = () => { gameState = 'MENU'; showUI('menu-main'); };
+    getUI('btn-win-levels').onclick = () => { previousMenu = 'WIN'; generateLevelMenu(); showUI('menu-levels'); };
+    getUI('btn-sound').onclick = () => {
+        soundEnabled = !soundEnabled;
+        getUI('btn-sound').textContent = 'Sound: ' + (soundEnabled ? 'ON' : 'OFF');
+        if (soundEnabled) initAudio();
+    };
+    setNextLevelButton();
+
+    // ── Input ─────────────────────────────────────────────────────────────
+    wrapper.setAttribute('tabindex', '0');
+    wrapper.style.outline = 'none';
+    wrapper.style.touchAction = 'none';
+    wrapper.addEventListener('keydown', e => {
+        if (!['ArrowLeft','ArrowRight','a','d','r','R'].includes(e.key)) return;
+        e.stopPropagation(); e.preventDefault();
+        if (gameState !== 'PLAY' || isInputLocked || isTeleportingGlobal) return;
+        if (e.key === 'ArrowRight' || e.key === 'd') rotateBoard(-1);
+        if (e.key === 'ArrowLeft'  || e.key === 'a') rotateBoard(1);
+        if (e.key === 'r' || e.key === 'R') loadLevel(currentLevel);
+    }, true);
+    wrapper.addEventListener('click', () => wrapper.focus());
+
+    let touchStartX = 0;
+    wrapper.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, {passive: true});
+    wrapper.addEventListener('touchend', e => {
+        if (gameState !== 'PLAY' || isInputLocked || isTeleportingGlobal) return;
+        const dx = e.changedTouches[0].clientX - touchStartX;
+        if (Math.abs(dx) > 30) rotateBoard(dx > 0 ? -1 : 1);
+    }, {passive: true});
+
+    // ── Level loading ─────────────────────────────────────────────────────
+    function loadLevel(index) {
+        initAudio();
+        const raw = levelData[index];
+        grid = []; entities = []; teleporters = {};
+        boardRot = 0; targetRot = 0; gDir = 0;
+        isInputLocked = false; isTeleportingGlobal = false; rotCount = 0;
+
+        const rows = raw.length, cols = raw[0].length;
+        tileSize = 560 / Math.max(rows, cols);
+
+        for (let y = 0; y < rows; y++) {
+            const row = [];
+            for (let x = 0; x < cols; x++) {
+                const c = raw[y][x];
+                if      (c === 'W') row.push(1);
+                else if (c === 'G') row.push(3);
+                else if (c === 'H') row.push(4);
+                else if (c === 'I') row.push(5);
+                else if (c === 'T') { row.push(6); teleporters.in  = {x, y}; }
+                else if (c === 'E') { row.push(7); teleporters.out = {x, y}; }
+                else {
+                    row.push(0);
+                    if (c === 'P') entities.push({type:'player', color:'#4CAF50', goal:3, x, y, vx:x, vy:y, won:false, scale:1});
+                    if (c === 'Q') entities.push({type:'player', color:'#00f2fe', goal:4, x, y, vx:x, vy:y, won:false, scale:1});
+                    if (c === 'R') entities.push({type:'player', color:'#ff4d4d', goal:5, x, y, vx:x, vy:y, won:false, scale:1});
+                    if (c === 'B') entities.push({type:'box', x, y, vx:x, vy:y, won:false, scale:1});
+                }
+            }
+            grid.push(row);
+        }
+
+        getUI('level-display').textContent = 'Level ' + (index + 1) + ': ' + levelNames[index];
+        getUI('menu-win').querySelector('h1').textContent = 'Level Cleared!';
+        getUI('menu-win').classList.remove('mastered');
+        setNextLevelButton();
+    }
+
+    // ── Physics ───────────────────────────────────────────────────────────
+    function rotateBoard(dir) {
+        if (isInputLocked || isTeleportingGlobal) return;
+        targetRot += dir * (Math.PI / 2);
+        gDir = (gDir + dir + 4) % 4;
+        rotCount++;
+        entities.forEach(e => e.tpCool = false);
+        playSound('rotate');
+        isInputLocked = true;
+        applyPhysics();
+    }
+
+    function getGrid(x, y) {
+        if (y < 0 || y >= grid.length || x < 0 || x >= grid[0].length) return 1;
+        return grid[y][x];
+    }
+
+    function getEntityAt(x, y) {
+        return entities.find(e => e.x === x && e.y === y && !e.won);
+    }
+
+    function applyPhysics() {
+        if (isTeleportingGlobal) return;
+
+        const dx = [0, 1, 0, -1][gDir];
+        const dy = [1, 0, -1, 0][gDir];
+
+        let moved = true, playLock = false;
+
+        while (moved) {
+            moved = false;
+            for (const e of entities) {
+                if (e.won || e.isTeleporting) continue;
+
+                const nx = e.x + dx, ny = e.y + dy;
+                const tile = getGrid(nx, ny);
+                const occupant = getEntityAt(nx, ny);
+
+                const wrongGoal = tile >= 3 && tile <= 5 && e.type === 'player' && tile !== e.goal;
+                const boxOnGoal = tile >= 3 && tile <= 5 && e.type === 'box';
+
+                if (tile !== 1 && !occupant && !wrongGoal && !boxOnGoal) {
+                    if (e.type === 'player' && tile === e.goal) {
+                        e.x = nx; e.y = ny; e.won = true;
+                        moved = true; playLock = true;
+                        continue;
+                    }
+                    if (tile === 6 && teleporters.out && !e.tpCool) {
+                        const {x: ox, y: oy} = teleporters.out;
+                        if (!getEntityAt(ox, oy)) {
+                            e.x = nx; e.y = ny;
+                            e.teleportTarget = {x: ox, y: oy};
+                            e.isTeleporting = true;
+                            e.teleTimer = 0.45;
+                            e.tpCool = true;
+                            isTeleportingGlobal = true;
+                            playSound('tp_in');
+                            moved = true;
+                            continue;
+                        }
+                    }
+                    e.x = nx; e.y = ny; moved = true;
+                }
+            }
+        }
+
+        if (playLock) playSound('lock');
+        checkWin();
+    }
+
+    function checkWin() {
+        const players = entities.filter(e => e.type === 'player');
+        if (players.length > 0 && players.every(p => p.won)) {
+            isInputLocked = true;
+            totalRotationsThisRun += rotCount;
+            sessionClearedLevels.add(currentLevel);
+            if (currentLevel + 1 > highestUnlocked) {
+                highestUnlocked = currentLevel + 1;
+                try { localStorage.setItem('chromaLockV9', highestUnlocked); } catch(e) {}
+            }
+            setTimeout(() => {
+                playSound('win');
+                getUI('win-sub').textContent = 'Solved in ' + rotCount + ' rotation' + (rotCount !== 1 ? 's' : '') + '!';
+                gameState = 'WIN';
+                showUI('menu-win');
+            }, 500);
+        }
+    }
+
+    // ── Rendering ─────────────────────────────────────────────────────────
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.save();
+        ctx.translate(canvas.width/2, canvas.height/2);
+        ctx.rotate(boardRot);
+        ctx.translate(-canvas.width/2, -canvas.height/2);
+
+        const offX = (canvas.width  - grid[0].length * tileSize) / 2;
+        const offY = (canvas.height - grid.length    * tileSize) / 2;
+        const t = Date.now();
+
+        ctx.fillStyle = '#18161f';
+        ctx.fillRect(offX, offY, grid[0].length * tileSize, grid.length * tileSize);
+
+        for (let y = 0; y < grid.length; y++) {
+            for (let x = 0; x < grid[0].length; x++) {
+                const px = offX + x * tileSize, py = offY + y * tileSize, tile = grid[y][x];
+                ctx.strokeStyle = '#0e0c14'; ctx.lineWidth = 1;
+                ctx.strokeRect(px, py, tileSize, tileSize);
+
+                if (tile === 1) {
+                    ctx.fillStyle = '#3d3d50'; ctx.fillRect(px, py, tileSize, tileSize);
+                    ctx.fillStyle = '#2a2835'; ctx.fillRect(px+3, py+3, tileSize-6, tileSize-6);
+                    ctx.fillStyle = 'rgba(255,255,255,0.04)';
+                    ctx.fillRect(px+3, py+3, tileSize-6, 3);
+                    ctx.fillRect(px+3, py+3, 3, tileSize-6);
+
+                } else if (tile >= 3 && tile <= 5) {
+                    const colors = {3:'#4CAF50', 4:'#00f2fe', 5:'#ff4d4d'};
+                    const col = colors[tile];
+                    const pulse = Math.sin(t / 180) * 4;
+                    ctx.shadowColor = col; ctx.shadowBlur = 12 + pulse;
+                    ctx.strokeStyle = col; ctx.lineWidth = 2.5;
+                    ctx.beginPath(); ctx.arc(px + tileSize/2, py + tileSize/2, tileSize/2.8, 0, Math.PI*2); ctx.stroke();
+                    ctx.fillStyle = col + '33';
+                    ctx.beginPath(); ctx.arc(px + tileSize/2, py + tileSize/2, tileSize/2.8, 0, Math.PI*2); ctx.fill();
+                    ctx.fillStyle = '#fff';
+                    ctx.beginPath(); ctx.arc(px + tileSize/2, py + tileSize/2, tileSize/9, 0, Math.PI*2); ctx.fill();
+                    ctx.shadowBlur = 0;
+
+                } else if (tile === 6 || tile === 7) {
+                    const isOut = tile === 7;
+                    const col = isOut ? '#e67e22' : '#9b59b6';
+                    const pulse = Math.sin(t / 130) * 3;
+                    ctx.fillStyle = col;
+                    ctx.beginPath();
+                    ctx.arc(px + tileSize/2, py + tileSize/2, tileSize/2.5 + (isOut ? pulse : 0), 0, Math.PI*2);
+                    ctx.fill();
+                    ctx.fillStyle = 'rgba(255,255,255,0.9)';
+                    ctx.font = 'bold ' + Math.max(10, tileSize/3.8) + 'px Trebuchet MS';
+                    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                    ctx.fillText(isOut ? 'OUT' : 'IN', px + tileSize/2, py + tileSize/2);
+                }
+            }
+        }
+
+        for (const e of entities) {
+            if (e.scale <= 0) continue;
+            const px = offX + e.vx * tileSize, py = offY + e.vy * tileSize;
+            const cx = px + tileSize/2, cy = py + tileSize/2;
+
+            ctx.save();
+            ctx.translate(cx, cy); ctx.scale(e.scale, e.scale); ctx.translate(-cx, -cy);
+
+            if (e.type === 'player') {
+                ctx.shadowColor = e.color; ctx.shadowBlur = 16;
+                ctx.fillStyle = e.color;
+                ctx.beginPath(); ctx.arc(cx, cy, tileSize/2.4, 0, Math.PI*2); ctx.fill();
+                ctx.shadowBlur = 0;
+                ctx.fillStyle = 'rgba(255,255,255,0.18)';
+                ctx.beginPath(); ctx.ellipse(cx - tileSize/10, cy - tileSize/8, tileSize/5, tileSize/7, 0, 0, Math.PI*2); ctx.fill();
+                const er = tileSize/7, eo = tileSize/5.5, pr = tileSize/14;
+                ctx.fillStyle = 'white';
+                ctx.beginPath(); ctx.arc(cx-eo, cy-eo/2, er, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(cx+eo, cy-eo/2, er, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = '#111';
+                ctx.beginPath(); ctx.arc(cx-eo, cy-eo/2, pr, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(cx+eo, cy-eo/2, pr, 0, Math.PI*2); ctx.fill();
+
+            } else if (e.type === 'box') {
+                ctx.fillStyle = '#4a3020';
+                ctx.fillRect(px+1, py+1, tileSize-2, tileSize-2);
+                ctx.fillStyle = '#7a4f2f';
+                ctx.fillRect(px+5, py+5, tileSize-10, tileSize-10);
+                ctx.strokeStyle = '#3a2010'; ctx.lineWidth = 1.5;
+                ctx.beginPath(); ctx.moveTo(px+5, py+5); ctx.lineTo(px+tileSize-5, py+tileSize-5); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(px+tileSize-5, py+5); ctx.lineTo(px+5, py+tileSize-5); ctx.stroke();
+                ctx.fillStyle = 'rgba(255,255,255,0.06)';
+                ctx.fillRect(px+5, py+5, tileSize-10, 4);
+            }
+
+            ctx.restore();
+        }
+
+        ctx.restore();
+    }
+
+    // ── Game loop ─────────────────────────────────────────────────────────
+    let lastTime = 0;
+    function loop(time) {
+        requestAnimationFrame(loop);
+        const dt = Math.min((time - lastTime) / 1000, 0.1);
+        lastTime = time;
+        if (gameState !== 'PLAY') return;
+
+        const diffRot = targetRot - boardRot;
+        boardRot += diffRot * 18 * dt;
+
+        let allSettled = true;
+
+        for (const e of entities) {
+            if (e.isTeleporting) {
+                allSettled = false;
+                e.teleTimer -= dt;
+                e.scale = Math.max(0, e.teleTimer / 0.45);
+                if (e.teleTimer <= 0) {
+                    e.x = e.teleportTarget.x; e.y = e.teleportTarget.y;
+                    e.vx = e.x; e.vy = e.y;
+                    e.scale = 1;
+                    e.isTeleporting = false;
+                    isTeleportingGlobal = false;
+                    playSound('tp_out');
+                    applyPhysics();
+                }
+            } else {
+                const ddx = e.x - e.vx, ddy = e.y - e.vy;
+                e.vx += ddx * 22 * dt;
+                e.vy += ddy * 22 * dt;
+                if (Math.abs(ddx) > 0.02 || Math.abs(ddy) > 0.02) allSettled = false;
+            }
+        }
+
+        if (allSettled && Math.abs(diffRot) < 0.04 && !isTeleportingGlobal) {
+            isInputLocked = false;
+        }
+
+        draw();
+    }
+
+    requestAnimationFrame(loop);
+})();
+</script>
+
+</body>
+</html>
