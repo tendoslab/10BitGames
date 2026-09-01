@@ -299,10 +299,37 @@
     padding: 0.15rem 0.5rem;
     border-radius: 999px;
     pointer-events: none;
+    transition: opacity 0.15s ease;
+  }
+
+  /* ---------------------------------------------------------------------
+     AD SLOT placeholders — swap the contents of these two containers for
+     real AdSense <ins> ad units once your AdSense account is approved.
+     Kept clearly labelled and away from Play buttons / game controls,
+     per AdSense's own placement policy.
+  --------------------------------------------------------------------- */
+  .ad-slot {
+    max-width: 1080px;
+    margin: 0 auto 2rem;
+    padding: 0 1.5rem;
+  }
+
+  .ad-slot-inner {
+    border: 2px dashed var(--border);
+    border-radius: 4px;
+    padding: 1rem;
+    text-align: center;
+    color: var(--ink-dim);
+    font-size: 0.8rem;
+    letter-spacing: 0.03em;
   }
 
   @media (hover: none) {
     .thumb-hint { display: block; }
+  }
+
+  .thumb-wrap.previewing .thumb-hint {
+    opacity: 0;
   }
 
   .mascot {
@@ -417,10 +444,18 @@
   </div>
 </div>
 
+<div class="ad-slot">
+  <div class="ad-slot-inner">Ad slot — homepage banner</div>
+</div>
+
 <main>
   <div class="grid" id="gameGrid"></div>
   <p class="empty-state" id="emptyState">No games match your search — try a different name or category.</p>
 </main>
+
+<div class="ad-slot">
+  <div class="ad-slot-inner">Ad slot — pre-footer</div>
+</div>
 
 <footer>
   &copy; 2026 Mini Games Planet. All games are original creations.
@@ -438,31 +473,29 @@ var GAMES = [
     slug: "bobs-beanstalk-bounce",
     title: "Bob's Beanstalk Bounce",
     description: "Guide Bob up a swaying beanstalk, timing your jumps across platforms that won't stay still for long.",
-    categories: ["arcade"],
-    accent: "amber"
+    categories: ["arcade"]
   },
   {
     slug: "chroma-lock",
     title: "Chroma Lock",
     description: "Study the sequence, match the colors, and crack the lock before it resets. A fast, focused color-logic puzzle.",
-    categories: ["puzzle"],
-    accent: "cyan"
+    categories: ["puzzle"]
   },
   {
     slug: "minesweeper-maze",
     title: "Minesweeper Maze",
     description: "Navigate a maze riddled with hidden mines. Read the number clues, trust the logic, and don't misstep.",
-    categories: ["puzzle"],
-    accent: "magenta"
+    categories: ["puzzle"]
   },
   {
     slug: "ultimate-tic-tac-toe",
     title: "Ultimate Tic-Tac-Toe",
     description: "Classic tic-tac-toe, leveled up: win small boards to claim squares on the big board, and outthink your opponent.",
-    categories: ["two-player", "strategy"],
-    accent: "amber"
+    categories: ["two-player", "strategy"]
   }
 ];
+
+var ACCENT_CYCLE = ["amber", "cyan", "magenta"];
 
 var MASCOT_ROTATIONS = [-8, 6, -4, 9];
 
@@ -479,15 +512,16 @@ function mascotSvg(index) {
 }
 
 function cardHtml(game, index) {
+  var accent = ACCENT_CYCLE[index % ACCENT_CYCLE.length];
   return '' +
-    '<article class="cabinet" data-categories="' + game.categories.join(' ') + '" data-title="' + game.title.toLowerCase() + '" style="--accent: var(--' + game.accent + ');">' +
+    '<article class="cabinet" data-categories="' + game.categories.join(' ') + '" data-title="' + game.title.toLowerCase() + '" style="--accent: var(--' + accent + ');">' +
       '<div class="thumb-wrap" data-video="assets/previews/' + game.slug + '.mp4">' +
         '<div class="thumb-fallback-label">' + game.title + '</div>' +
         '<img class="thumb-img" src="assets/thumbs/' + game.slug + '.jpg" alt="' + game.title + ' gameplay screenshot" onerror="this.remove()">' +
         '<video class="thumb-video" muted loop playsinline preload="none" aria-hidden="true"></video>' +
-        '<span class="thumb-hint">Tap to preview</span>' +
+        '<span class="thumb-hint">Hold to preview</span>' +
       '</div>' +
-      '<div class="marquee ' + game.accent + '">' +
+      '<div class="marquee ' + accent + '">' +
         mascotSvg(index) +
         '<h2 class="cabinet-title">' + game.title + '</h2>' +
       '</div>' +
@@ -539,9 +573,9 @@ function cardHtml(game, index) {
       wrap.addEventListener('focusin', startPreview);
       wrap.addEventListener('focusout', stopPreview);
     } else {
-      wrap.addEventListener('click', function () {
-        wrap.classList.contains('previewing') ? stopPreview() : startPreview();
-      });
+      wrap.addEventListener('touchstart', startPreview, { passive: true });
+      wrap.addEventListener('touchend', stopPreview);
+      wrap.addEventListener('touchcancel', stopPreview);
     }
   });
 
