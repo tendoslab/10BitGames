@@ -6,17 +6,17 @@
 <title>Mini Games Planet — Free browser mini-games</title>
 <meta name="description" content="Play free, original mini-games right in your browser. No downloads, no sign-up — arcade, puzzle and strategy games you can jump into on desktop or phone.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Bungee+Shade&family=Karla:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #241B36;
-    --panel: #322547;
-    --ink: #F5F3F7;
-    --ink-dim: #C9C1D6;
-    --amber: #F5A623;
-    --mint: #5EEAD4;
-    --coral: #FF6B6B;
-    --border: #4A3A66;
+    --bg: #150F22;
+    --panel: #201735;
+    --ink: #FBF7FF;
+    --ink-dim: #B9A9D6;
+    --amber: #FFB238;
+    --cyan: #2BF5E0;
+    --magenta: #FF3EA5;
+    --border: #3B2C58;
   }
 
   * { box-sizing: border-box; }
@@ -24,41 +24,89 @@
   body {
     margin: 0;
     background: var(--bg);
+    background-image: repeating-linear-gradient(
+      to bottom,
+      rgba(255,255,255,0.02) 0px,
+      rgba(255,255,255,0.02) 1px,
+      transparent 1px,
+      transparent 3px
+    );
     color: var(--ink);
-    font-family: 'Inter', sans-serif;
-    line-height: 1.5;
+    font-family: 'Karla', sans-serif;
+    line-height: 1.55;
   }
 
   h1, h2, .cabinet-title {
-    font-family: 'Fredoka', sans-serif;
-    font-weight: 600;
+    font-family: 'Bungee', sans-serif;
+    font-weight: 400;
     margin: 0;
+    letter-spacing: 0.01em;
   }
 
   header {
+    position: relative;
+    z-index: 3;
     padding: 1.25rem 1.5rem;
     border-bottom: 2px solid var(--border);
     display: flex;
     align-items: center;
     justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
   }
 
   .site-name {
-    font-family: 'Fredoka', sans-serif;
-    font-weight: 700;
-    font-size: 1.25rem;
-    color: var(--ink);
+    font-family: 'Bungee Shade', sans-serif;
+    font-size: 1.4rem;
+    color: var(--magenta);
     text-decoration: none;
+    text-shadow: 0 0 8px rgba(255, 62, 165, 0.55), 0 0 22px rgba(255, 62, 165, 0.3);
+  }
+
+  /* --- hero + decorative background shapes --- */
+  .hero-section {
+    position: relative;
+    overflow: hidden;
+    padding-bottom: 1rem;
+  }
+
+  .hero-section::before {
+    /* diagonal color band, Quiz-Room style */
+    content: "";
+    position: absolute;
+    top: -20%;
+    right: -10%;
+    width: 70%;
+    height: 160%;
+    background: var(--cyan);
+    opacity: 0.08;
+    transform: rotate(-8deg);
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  .burst {
+    position: absolute;
+    top: 0.5rem;
+    right: 1.5rem;
+    width: 90px;
+    height: 90px;
+    opacity: 0.9;
+    z-index: 0;
+    pointer-events: none;
   }
 
   .hero {
+    position: relative;
+    z-index: 1;
     max-width: 640px;
-    padding: 3rem 1.5rem 2rem;
+    padding: 3rem 1.5rem 1.5rem;
   }
 
   .hero h1 {
-    font-size: clamp(2rem, 6vw, 2.75rem);
-    line-height: 1.15;
+    font-size: clamp(1.7rem, 5.5vw, 2.5rem);
+    line-height: 1.25;
+    color: var(--ink);
   }
 
   .hero p {
@@ -68,16 +116,115 @@
     margin-top: 0.9rem;
   }
 
+  /* scalloped marquee-bulb divider */
+  .bulb-divider {
+    position: relative;
+    z-index: 1;
+    height: 16px;
+    margin: 0.5rem 0 1.75rem;
+    background-image: radial-gradient(circle, var(--amber) 0 4px, transparent 4.5px);
+    background-size: 28px 16px;
+    background-repeat: repeat-x;
+    background-position: center;
+    filter: drop-shadow(0 0 4px rgba(255, 178, 56, 0.6));
+  }
+
+  .controls-row {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.9rem;
+    align-items: center;
+    padding: 0 1.5rem 2rem;
+  }
+
+  .search-wrap {
+    position: relative;
+    flex: 1 1 220px;
+    max-width: 320px;
+  }
+
+  .search-input {
+    width: 100%;
+    font-family: 'Karla', sans-serif;
+    font-size: 0.95rem;
+    color: var(--ink);
+    background: var(--panel);
+    border: 2px solid var(--border);
+    border-radius: 999px;
+    padding: 0.55rem 1rem 0.55rem 2.3rem;
+  }
+
+  .search-input::placeholder { color: var(--ink-dim); }
+
+  .search-input:focus-visible {
+    outline: none;
+    border-color: var(--cyan);
+  }
+
+  .search-icon {
+    position: absolute;
+    left: 0.85rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    color: var(--ink-dim);
+    pointer-events: none;
+  }
+
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.7rem;
+  }
+
+  .filter-btn {
+    font-family: 'Karla', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    padding: 0.45rem 1rem;
+    border: 2px dashed var(--border);
+    background: transparent;
+    color: var(--ink-dim);
+    border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+    cursor: pointer;
+  }
+
+  .filter-btn:hover,
+  .filter-btn:focus-visible {
+    border-color: var(--ink-dim);
+    color: var(--ink);
+    outline: none;
+  }
+
+  .filter-btn.active {
+    background: var(--ink);
+    color: var(--bg);
+    border-color: var(--ink);
+    border-style: solid;
+  }
+
   main {
     max-width: 1080px;
     margin: 0 auto;
     padding: 0 1.5rem 4rem;
   }
 
+  .empty-state {
+    display: none;
+    color: var(--ink-dim);
+    padding: 2rem 0;
+    font-size: 0.95rem;
+  }
+
+  .empty-state.visible { display: block; }
+
   .grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 1.25rem;
+    gap: 1.4rem;
     margin-top: 1rem;
   }
 
@@ -87,19 +234,100 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    transition: box-shadow 0.15s ease, transform 0.15s ease, border-color 0.15s ease;
+  }
+
+  .cabinet.is-hidden { display: none; }
+
+  .cabinet:hover,
+  .cabinet.is-active {
+    border-color: var(--accent, var(--ink));
+    box-shadow: 0 0 0 2px var(--accent, var(--ink)), 0 0 18px var(--accent, var(--ink));
+    transform: translateY(-2px);
+  }
+
+  .thumb-wrap {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    background: var(--accent, var(--amber));
+    overflow: hidden;
+    cursor: pointer;
+  }
+
+  .thumb-fallback-label {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem;
+    text-align: center;
+    font-family: 'Bungee', sans-serif;
+    color: #150F22;
+    font-size: 1rem;
+  }
+
+  .thumb-img,
+  .thumb-video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .thumb-img { z-index: 2; }
+
+  .thumb-video {
+    z-index: 3;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    pointer-events: none;
+  }
+
+  .thumb-wrap.previewing .thumb-video { opacity: 1; }
+
+  .thumb-hint {
+    display: none;
+    position: absolute;
+    bottom: 0.5rem;
+    right: 0.6rem;
+    z-index: 4;
+    font-size: 0.75rem;
+    color: var(--ink);
+    background: rgba(21, 15, 34, 0.75);
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
+    pointer-events: none;
+  }
+
+  @media (hover: none) {
+    .thumb-hint { display: block; }
+  }
+
+  .mascot {
+    position: absolute;
+    top: 0.4rem;
+    right: 0.5rem;
+    width: 34px;
+    height: 34px;
+    z-index: 5;
+    filter: drop-shadow(0 1px 1px rgba(0,0,0,0.25));
   }
 
   .marquee {
+    position: relative;
     padding: 0.9rem 1.1rem;
-    color: #241B36;
+    color: #150F22;
   }
 
   .marquee.amber { background: var(--amber); }
-  .marquee.mint  { background: var(--mint); }
-  .marquee.coral { background: var(--coral); }
+  .marquee.cyan  { background: var(--cyan); }
+  .marquee.magenta { background: var(--magenta); }
 
   .cabinet-title {
-    font-size: 1.15rem;
+    font-size: 1.05rem;
+    padding-right: 2rem;
   }
 
   .cabinet-body {
@@ -123,7 +351,8 @@
     border: 2px solid var(--ink);
     color: var(--ink);
     text-decoration: none;
-    font-weight: 500;
+    font-weight: 700;
+    font-family: 'Karla', sans-serif;
     transition: background 0.15s ease, color 0.15s ease;
   }
 
@@ -144,6 +373,9 @@
 
   @media (prefers-reduced-motion: reduce) {
     .play-btn { transition: none; }
+    .thumb-video { transition: none; }
+    .cabinet { transition: none; }
+    .cabinet.is-active { transform: none; }
   }
 </style>
 </head>
@@ -153,60 +385,201 @@
   <a class="site-name" href="/">Mini Games Planet</a>
 </header>
 
-<div class="hero">
-  <h1>Free mini-games, right in your browser</h1>
-  <p>No downloads, no accounts. Pick a game below and start playing on your phone, tablet or laptop.</p>
+<div class="hero-section">
+  <svg class="burst" viewBox="0 0 100 100" aria-hidden="true">
+    <polygon points="50,2 61,32 92,28 68,50 80,80 50,62 20,80 32,50 8,28 39,32"
+      fill="var(--magenta)" opacity="0.35"/>
+  </svg>
+
+  <div class="hero">
+    <h1>Free mini-games, right in your browser</h1>
+    <p>No downloads, no accounts. Search or filter below and start playing on your phone, tablet or laptop.</p>
+  </div>
+
+  <div class="bulb-divider" aria-hidden="true"></div>
+
+  <div class="controls-row">
+    <div class="search-wrap">
+      <svg class="search-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/>
+        <line x1="16.5" y1="16.5" x2="21" y2="21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <input class="search-input" type="text" id="gameSearch" placeholder="Search games…" aria-label="Search games">
+    </div>
+
+    <nav class="filters" aria-label="Filter games by category">
+      <button class="filter-btn active" data-filter="all">All games</button>
+      <button class="filter-btn" data-filter="two-player">Two player</button>
+      <button class="filter-btn" data-filter="puzzle">Puzzle</button>
+      <button class="filter-btn" data-filter="strategy">Strategy</button>
+      <button class="filter-btn" data-filter="arcade">Arcade</button>
+    </nav>
+  </div>
 </div>
 
 <main>
-  <div class="grid">
-
-    <article class="cabinet">
-      <div class="marquee amber">
-        <h2 class="cabinet-title">Bob's Beanstalk Bounce</h2>
-      </div>
-      <div class="cabinet-body">
-        <p>Guide Bob up a swaying beanstalk, timing your jumps across platforms that won't stay still for long.</p>
-        <a class="play-btn" href="bobs-beanstalk-bounce.html">Play now</a>
-      </div>
-    </article>
-
-    <article class="cabinet">
-      <div class="marquee mint">
-        <h2 class="cabinet-title">Chroma Lock</h2>
-      </div>
-      <div class="cabinet-body">
-        <p>Study the sequence, match the colors, and crack the lock before it resets. A fast, focused color-logic puzzle.</p>
-        <a class="play-btn" href="chroma-lock.html">Play now</a>
-      </div>
-    </article>
-
-    <article class="cabinet">
-      <div class="marquee coral">
-        <h2 class="cabinet-title">Minesweeper Maze</h2>
-      </div>
-      <div class="cabinet-body">
-        <p>Navigate a maze riddled with hidden mines. Read the number clues, trust the logic, and don't misstep.</p>
-        <a class="play-btn" href="minesweeper-maze.html">Play now</a>
-      </div>
-    </article>
-
-    <article class="cabinet">
-      <div class="marquee amber">
-        <h2 class="cabinet-title">Ultimate Tic-Tac-Toe</h2>
-      </div>
-      <div class="cabinet-body">
-        <p>Classic tic-tac-toe, leveled up: win small boards to claim squares on the big board, and outthink your opponent.</p>
-        <a class="play-btn" href="ultimate-tic-tac-toe.html">Play now</a>
-      </div>
-    </article>
-
-  </div>
+  <div class="grid" id="gameGrid"></div>
+  <p class="empty-state" id="emptyState">No games match your search — try a different name or category.</p>
 </main>
 
 <footer>
   &copy; 2026 Mini Games Planet. All games are original creations.
 </footer>
+
+<script>
+/* -----------------------------------------------------------------------
+   GAME LIST
+   To add a new game once you have its files uploaded, just add one object
+   here — nothing else in this file needs to change. slug must match your
+   renamed .html filename (without the extension).
+----------------------------------------------------------------------- */
+var GAMES = [
+  {
+    slug: "bobs-beanstalk-bounce",
+    title: "Bob's Beanstalk Bounce",
+    description: "Guide Bob up a swaying beanstalk, timing your jumps across platforms that won't stay still for long.",
+    categories: ["arcade"],
+    accent: "amber"
+  },
+  {
+    slug: "chroma-lock",
+    title: "Chroma Lock",
+    description: "Study the sequence, match the colors, and crack the lock before it resets. A fast, focused color-logic puzzle.",
+    categories: ["puzzle"],
+    accent: "cyan"
+  },
+  {
+    slug: "minesweeper-maze",
+    title: "Minesweeper Maze",
+    description: "Navigate a maze riddled with hidden mines. Read the number clues, trust the logic, and don't misstep.",
+    categories: ["puzzle"],
+    accent: "magenta"
+  },
+  {
+    slug: "ultimate-tic-tac-toe",
+    title: "Ultimate Tic-Tac-Toe",
+    description: "Classic tic-tac-toe, leveled up: win small boards to claim squares on the big board, and outthink your opponent.",
+    categories: ["two-player", "strategy"],
+    accent: "amber"
+  }
+];
+
+var MASCOT_ROTATIONS = [-8, 6, -4, 9];
+
+function mascotSvg(index) {
+  var rot = MASCOT_ROTATIONS[index % MASCOT_ROTATIONS.length];
+  return '<svg class="mascot" viewBox="0 0 60 60" style="transform: rotate(' + rot + 'deg);" aria-hidden="true">' +
+    '<path d="M8,30 C6,15 22,4 34,6 C48,8 56,20 54,34 C52,48 38,56 24,54 C10,52 10,42 8,30 Z" fill="#150F22" stroke="#150F22" stroke-width="1"/>' +
+    '<circle cx="22" cy="26" r="7" fill="#FBF7FF"/>' +
+    '<circle cx="38" cy="24" r="7" fill="#FBF7FF"/>' +
+    '<circle cx="23" cy="27" r="3" fill="#150F22"/>' +
+    '<circle cx="37" cy="25" r="3" fill="#150F22"/>' +
+    '<path d="M20,40 Q30,46 40,38" fill="none" stroke="#FBF7FF" stroke-width="2.5" stroke-linecap="round"/>' +
+    '</svg>';
+}
+
+function cardHtml(game, index) {
+  return '' +
+    '<article class="cabinet" data-categories="' + game.categories.join(' ') + '" data-title="' + game.title.toLowerCase() + '" style="--accent: var(--' + game.accent + ');">' +
+      '<div class="thumb-wrap" data-video="assets/previews/' + game.slug + '.mp4">' +
+        '<div class="thumb-fallback-label">' + game.title + '</div>' +
+        '<img class="thumb-img" src="assets/thumbs/' + game.slug + '.jpg" alt="' + game.title + ' gameplay screenshot" onerror="this.remove()">' +
+        '<video class="thumb-video" muted loop playsinline preload="none" aria-hidden="true"></video>' +
+        '<span class="thumb-hint">Tap to preview</span>' +
+      '</div>' +
+      '<div class="marquee ' + game.accent + '">' +
+        mascotSvg(index) +
+        '<h2 class="cabinet-title">' + game.title + '</h2>' +
+      '</div>' +
+      '<div class="cabinet-body">' +
+        '<p>' + game.description + '</p>' +
+        '<a class="play-btn" href="' + game.slug + '.html">Play now</a>' +
+      '</div>' +
+    '</article>';
+}
+
+(function () {
+  var grid = document.getElementById('gameGrid');
+  grid.innerHTML = GAMES.map(cardHtml).join('');
+
+  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var canHover = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+
+  document.querySelectorAll('.thumb-wrap').forEach(function (wrap) {
+    var card = wrap.closest('.cabinet');
+    var video = wrap.querySelector('.thumb-video');
+    var src = wrap.getAttribute('data-video');
+    var loaded = false;
+
+    function ensureLoaded() {
+      if (!loaded && src) {
+        video.src = src;
+        loaded = true;
+      }
+    }
+
+    function startPreview() {
+      card.classList.add('is-active');
+      if (reduceMotion) return;
+      ensureLoaded();
+      wrap.classList.add('previewing');
+      video.play().catch(function () { /* file not added yet, ignore */ });
+    }
+
+    function stopPreview() {
+      card.classList.remove('is-active');
+      wrap.classList.remove('previewing');
+      video.pause();
+      video.currentTime = 0;
+    }
+
+    if (canHover) {
+      wrap.addEventListener('mouseenter', startPreview);
+      wrap.addEventListener('mouseleave', stopPreview);
+      wrap.addEventListener('focusin', startPreview);
+      wrap.addEventListener('focusout', stopPreview);
+    } else {
+      wrap.addEventListener('click', function () {
+        wrap.classList.contains('previewing') ? stopPreview() : startPreview();
+      });
+    }
+  });
+
+  var buttons = document.querySelectorAll('.filter-btn');
+  var cards = document.querySelectorAll('.cabinet');
+  var searchInput = document.getElementById('gameSearch');
+  var emptyState = document.getElementById('emptyState');
+  var activeFilter = 'all';
+
+  function applyFilters() {
+    var query = searchInput.value.trim().toLowerCase();
+    var visibleCount = 0;
+
+    cards.forEach(function (card) {
+      var cats = (card.getAttribute('data-categories') || '').split(' ');
+      var title = card.getAttribute('data-title') || '';
+      var matchesCategory = activeFilter === 'all' || cats.indexOf(activeFilter) !== -1;
+      var matchesSearch = query === '' || title.indexOf(query) !== -1;
+      var show = matchesCategory && matchesSearch;
+      card.classList.toggle('is-hidden', !show);
+      if (show) visibleCount++;
+    });
+
+    emptyState.classList.toggle('visible', visibleCount === 0);
+  }
+
+  buttons.forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      buttons.forEach(function (b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      activeFilter = btn.getAttribute('data-filter');
+      applyFilters();
+    });
+  });
+
+  searchInput.addEventListener('input', applyFilters);
+})();
+</script>
 
 </body>
 </html>
