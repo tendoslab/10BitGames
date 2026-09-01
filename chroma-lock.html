@@ -6,8 +6,24 @@
 <title>Chroma Lock | Mini Games Planet</title>
 <meta name="description" content="Rotate the chamber, let gravity shift, and guide each colored spark into its matching core. 20 levels of increasing difficulty featuring crates, wrong-color blockers, and teleporter portals.">
 <style>
-  body { margin: 0; background: #0e0c12; font-family: 'Trebuchet MS', sans-serif; }
-  .site-intro { max-width: 640px; margin: 0 auto; padding: 24px 15px 0; text-align: center; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: 'Trebuchet MS', sans-serif;
+    background:
+      radial-gradient(1px 1px at 8% 15%, rgba(79,172,254,0.7), transparent),
+      radial-gradient(1px 1px at 22% 45%, rgba(255,255,255,0.5), transparent),
+      radial-gradient(1.5px 1.5px at 38% 12%, rgba(0,242,254,0.6), transparent),
+      radial-gradient(1px 1px at 55% 60%, rgba(255,255,255,0.4), transparent),
+      radial-gradient(1.5px 1.5px at 72% 25%, rgba(255,62,165,0.5), transparent),
+      radial-gradient(1px 1px at 88% 50%, rgba(79,172,254,0.6), transparent),
+      radial-gradient(1px 1px at 15% 80%, rgba(255,255,255,0.4), transparent),
+      radial-gradient(1.5px 1.5px at 92% 85%, rgba(0,242,254,0.5), transparent),
+      radial-gradient(ellipse 900px 500px at 50% -10%, rgba(79,172,254,0.08), transparent),
+      #0e0c12;
+    background-attachment: fixed;
+  }
+  .site-intro { position: relative; z-index: 1; max-width: 640px; margin: 0 auto; padding: 24px 15px 0; text-align: center; }
   .site-intro h1 { color: #4facfe; letter-spacing: 3px; margin: 0 0 6px; font-size: 1.6rem; text-shadow: 0 0 20px rgba(79,172,254,0.4); }
   .site-intro p { color: #8888a0; font-size: 0.95rem; line-height: 1.5; margin: 0; }
 </style>
@@ -59,7 +75,7 @@
 </style>
 
 <div class="mgp-topbar">
-  <a href="/">
+  <a href="index.html">
     <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <path d="M15 5 L8 12 L15 19" stroke="#FBF7FF" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>
@@ -114,19 +130,29 @@
 
 <!-- Mobile: preview card with Play button (hidden on desktop) -->
 <div id="gz-game-preview" style="display:none;
-    background: #121015;
-    border-radius: 12px;
+    position: relative;
+    overflow: hidden;
+    background:
+        radial-gradient(circle at 50% 20%, rgba(79,172,254,0.16), transparent 60%),
+        repeating-linear-gradient(45deg, #171520 0 10px, #14121c 10px 20px);
+    border-radius: 18px;
     border: 2px solid #2a2a35;
-    padding: 40px 20px;
+    box-shadow: 0 0 0 1px rgba(79,172,254,0.15), 0 12px 28px rgba(0,0,0,0.5);
+    padding: 38px 20px 30px;
     text-align: center;
     font-family: 'Trebuchet MS', sans-serif;
 ">
-    <div style="color:#4facfe; font-size:1.5rem; font-weight:bold; letter-spacing:3px; margin-bottom:8px;">CHROMA LOCK</div>
-    <div style="color:#6a6a80; font-size:0.85rem; margin-bottom:8px;">rotate · match · escape</div>
-    <div style="color:#9090a0; font-size:0.8rem; margin-bottom:24px;">
-        <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#4CAF50;margin-right:4px;"></span>Green
-        <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#00f2fe;margin:0 4px 0 12px;"></span>Cyan
-        <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#ff4d4d;margin:0 4px 0 12px;"></span>Red
+    <svg width="64" height="64" viewBox="0 0 64 64" style="margin-bottom:10px;animation:mgp-cl-spin 5s linear infinite;">
+        <circle cx="32" cy="32" r="26" fill="none" stroke="#2a2a3a" stroke-width="4"/>
+        <circle cx="32" cy="32" r="26" fill="none" stroke="#4facfe" stroke-width="4" stroke-linecap="round" stroke-dasharray="40 123"/>
+        <circle cx="32" cy="6" r="5" fill="#4facfe" style="filter:drop-shadow(0 0 4px #4facfe)"/>
+    </svg>
+    <div style="color:#eaf6ff; font-size:1.55rem; font-weight:bold; letter-spacing:3px; margin-bottom:6px; text-shadow:0 0 18px rgba(79,172,254,0.5);">CHROMA LOCK</div>
+    <div style="color:#7a7a95; font-size:0.85rem; margin-bottom:20px; letter-spacing:0.5px;">rotate &middot; match &middot; escape</div>
+    <div style="display:flex; justify-content:center; gap:18px; margin-bottom:28px;">
+        <span style="display:inline-flex;align-items:center;gap:6px;color:#9090a8;font-size:0.78rem;"><span style="display:inline-block;width:11px;height:11px;border-radius:50%;background:#4CAF50;box-shadow:0 0 6px #4CAF50;animation:mgp-cl-pulse 1.6s ease-in-out infinite;"></span>Green</span>
+        <span style="display:inline-flex;align-items:center;gap:6px;color:#9090a8;font-size:0.78rem;"><span style="display:inline-block;width:11px;height:11px;border-radius:50%;background:#00f2fe;box-shadow:0 0 6px #00f2fe;animation:mgp-cl-pulse 1.6s ease-in-out 0.3s infinite;"></span>Cyan</span>
+        <span style="display:inline-flex;align-items:center;gap:6px;color:#9090a8;font-size:0.78rem;"><span style="display:inline-block;width:11px;height:11px;border-radius:50%;background:#ff4d4d;box-shadow:0 0 6px #ff4d4d;animation:mgp-cl-pulse 1.6s ease-in-out 0.6s infinite;"></span>Red</span>
     </div>
     <button onclick="
         var ol = document.getElementById('gz-fullscreen-overlay');
@@ -142,8 +168,13 @@
         font-weight: bold;
         cursor: pointer;
         letter-spacing: 1px;
-    ">▶ PLAY FULLSCREEN</button>
+        box-shadow: 0 6px 20px rgba(79,172,254,0.4);
+    ">&#9654; PLAY FULLSCREEN</button>
 </div>
+<style>
+    @keyframes mgp-cl-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    @keyframes mgp-cl-pulse { 0%, 100% { opacity: 0.5; transform: scale(0.85); } 50% { opacity: 1; transform: scale(1.1); } }
+</style>
 
 <script>
 // Route game to correct host based on device type
@@ -185,7 +216,9 @@ if (window._gzIsMobile) {
         canvas { display:block; width:100%; height:100%; position:relative; z-index:1; }
         .ui-layer {
             position:absolute; top:0; left:0; width:100%; height:100%;
-            background:rgba(14,12,18,0.97);
+            background:
+                radial-gradient(circle at 50% 30%, rgba(79,172,254,0.10), transparent 55%),
+                rgba(14,12,18,0.97);
             display:flex; flex-direction:column; justify-content:center; align-items:center;
             color:#fff; z-index:10; transition:opacity 0.25s ease, transform 0.25s ease;
             transform: scale(1);
@@ -219,15 +252,20 @@ if (window._gzIsMobile) {
         }
         .hud-left { display:flex; align-items:center; gap:10px; }
         .hud-badge { background:rgba(0,0,0,0.55); padding:5px 14px; border-radius:20px; border:1px solid rgba(79,172,254,0.4); font-size:15px; color:#c0c0d0; }
+        .hud-badge-best { font-size:12px; color:#FFD700; border-color:rgba(255,215,0,0.35); }
         .hud-btn { pointer-events:auto; background:rgba(0,0,0,0.55); padding:9px 16px; min-height:38px; border-radius:20px; cursor:pointer; border:1px solid rgba(79,172,254,0.35); color:#c0c0d0; font-size:14px; transition:background 0.15s ease, color 0.15s ease, transform 0.1s ease; margin-left:6px; }
+        .hud-btn-icon { display:inline-flex; align-items:center; justify-content:center; padding:9px 13px; }
         .hud-btn:hover { background:rgba(79,172,254,0.2); color:#fff; }
         .hud-btn:active { transform:scale(0.9); }
         .mobile-controls { position:absolute; bottom:16px; left:0; right:0; display:flex; justify-content:space-between; padding:0 24px; z-index:6; pointer-events:none; }
         .mobile-rot-btn { pointer-events:auto; width:64px; height:64px; border-radius:50%; background:rgba(0,0,0,0.55); border:2px solid rgba(79,172,254,0.5); color:#fff; font-size:26px; display:flex; align-items:center; justify-content:center; transition:background 0.15s ease, transform 0.1s ease; }
         .mobile-rot-btn:active { background:rgba(79,172,254,0.35); transform:scale(0.9); }
         .rot-hint { position:absolute; bottom:14px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.5); border-radius:20px; padding:5px 18px; font-size:13px; color:#666; pointer-events:none; z-index:5; border:1px solid #2a2a35; letter-spacing:0.5px; white-space:nowrap; }
-        .rules-box { background:rgba(0,0,0,0.35); padding:14px 20px; border-radius:10px; margin-bottom:18px; width:72%; border:1px solid rgba(79,172,254,0.2); }
+        .rules-box { background:rgba(0,0,0,0.35); padding:16px 20px; border-radius:10px; margin:0 auto 18px; width:72%; max-width:420px; border:1px solid rgba(79,172,254,0.2); text-align:center; }
         .rules-box p { font-size:14px; margin:4px 0; }
+        .rule-row { display:flex; align-items:center; justify-content:center; gap:10px; text-align:left; font-size:14px; color:#b0b0c0; margin:8px 0; line-height:1.4; }
+        .rule-icon { flex-shrink:0; width:13px; height:13px; border-radius:50%; box-shadow:0 0 6px currentColor; }
+        .rule-icon-split { background:linear-gradient(90deg, #9b59b6 50%, #e67e22 50%); }
         .confetti-piece { position:absolute; width:8px; height:14px; top:-20px; opacity:0.95; z-index:15; animation-name:confetti-fall; animation-timing-function:linear; animation-fill-mode:forwards; pointer-events:none; }
         @keyframes confetti-fall { 0% { transform:translateY(0) rotate(0deg); opacity:1; } 100% { transform:translateY(640px) rotate(720deg); opacity:0.2; } }
         .menu-win.mastered { background: radial-gradient(circle at 50% 40%, rgba(255,215,0,0.18), rgba(14,12,18,0.97) 70%); }
@@ -259,8 +297,28 @@ if (window._gzIsMobile) {
             }
             .level-grid { max-width: 90vw; }
             .rules-box { width: 90%; }
+            /* The compact top HUD bar has no room for a second badge on a
+               narrow phone screen without crowding the rotate/menu buttons —
+               the level-best is still shown in the roomier pause menu and win screen. */
+            .hud .hud-badge-best { display: none; }
+            /* Give the menus room to breathe on a small screen instead of
+               feeling like everything is stacked edge-to-edge. */
+            h1 { font-size: clamp(30px, 9vw, 40px); letter-spacing: 2.5px; margin-bottom: 6px; }
+            .subtitle { margin-bottom: 18px; }
+            .legend { gap: 10px 18px; margin: 6px 0 4px; }
+            .btn:not(.level-btn) { width: min(240px, 78vw); margin: 8px; }
+            .level-grid { gap: 12px 10px; }
         `;
     }
+
+    // Bold, rounded chevrons (matching the site's own back-arrow icon) instead of
+    // the thin default-font arrow glyphs the rotate buttons used to show.
+    const ARROW_SVG_LEFT = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none"><path d="M15 5 L8 12 L15 19" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    const ARROW_SVG_RIGHT = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none"><path d="M9 5 L16 12 L9 19" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    const ARROW_SVG_LEFT_SM = '<svg viewBox="0 0 24 24" width="13" height="13" style="vertical-align:-2px" fill="none"><path d="M15 5 L8 12 L15 19" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    const ARROW_SVG_RIGHT_SM = '<svg viewBox="0 0 24 24" width="13" height="13" style="vertical-align:-2px" fill="none"><path d="M9 5 L16 12 L9 19" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    const ARROW_SVG_LEFT_LG = '<svg viewBox="0 0 24 24" width="26" height="26" fill="none"><path d="M15 5 L8 12 L15 19" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    const ARROW_SVG_RIGHT_LG = '<svg viewBox="0 0 24 24" width="26" height="26" fill="none"><path d="M9 5 L16 12 L9 19" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
     const wrapper = document.createElement('div');
     wrapper.id = 'game-wrapper';
@@ -269,19 +327,20 @@ if (window._gzIsMobile) {
         <div id="hud" class="hud hidden">
             <div class="hud-left">
                 <div class="hud-badge" id="level-display">Level 1</div>
+            <div class="hud-badge hud-badge-best" id="level-best-display">Best: &mdash;</div>
             </div>
             <div>
-                <button class="hud-btn" id="btn-rot-left">&#8592;</button>
-                <button class="hud-btn" id="btn-rot-right">&#8594;</button>
+                <button class="hud-btn hud-btn-icon" id="btn-rot-left" aria-label="Rotate left">${ARROW_SVG_LEFT}</button>
+                <button class="hud-btn hud-btn-icon" id="btn-rot-right" aria-label="Rotate right">${ARROW_SVG_RIGHT}</button>
                 <button class="hud-btn" id="btn-restart-hud">&#8635; Reset</button>
                 <button class="hud-btn" id="btn-pause">&#8801; Menu</button>
             </div>
         </div>
-        <div class="rot-hint hidden" id="rot-hint">&#9664; &#9654; to rotate &nbsp;|&nbsp; R to reset</div>
+        <div class="rot-hint hidden" id="rot-hint">${ARROW_SVG_LEFT_SM} &nbsp;rotate&nbsp; ${ARROW_SVG_RIGHT_SM} &nbsp;|&nbsp; R to reset</div>
         ${isMobile ? `
         <div class="mobile-controls hidden" id="mobile-controls">
-            <button class="mobile-rot-btn" id="btn-rot-left-mobile">&#8592;</button>
-            <button class="mobile-rot-btn" id="btn-rot-right-mobile">&#8594;</button>
+            <button class="mobile-rot-btn" id="btn-rot-left-mobile" aria-label="Rotate left">${ARROW_SVG_LEFT_LG}</button>
+            <button class="mobile-rot-btn" id="btn-rot-right-mobile" aria-label="Rotate right">${ARROW_SVG_RIGHT_LG}</button>
         </div>` : ''}
 
         <div id="menu-main" class="ui-layer">
@@ -315,10 +374,11 @@ if (window._gzIsMobile) {
 
         <div id="menu-pause" class="ui-layer hidden">
             <h1>Paused</h1>
+            <div class="hud-badge hud-badge-best" id="pause-best-display" style="margin-bottom:16px;">Best: &mdash;</div>
             <div class="rules-box">
-                <p>Match sparks to same-colored cores.</p>
-                <p>Purple <b>IN</b> &rarr; Orange <b>OUT</b> teleporter.</p>
-                <p>Crates catch falling sparks. Wrong cores block them.</p>
+                <div class="rule-row"><span class="rule-icon" style="background:#4CAF50"></span>Match sparks to same-colored cores</div>
+                <div class="rule-row"><span class="rule-icon rule-icon-split"></span>Purple <b>IN</b> &rarr; Orange <b>OUT</b> teleporter</div>
+                <div class="rule-row"><span class="rule-icon" style="background:#7a4f2f"></span>Crates catch sparks &middot; wrong cores block them</div>
             </div>
             <button class="btn" id="btn-resume">Resume</button>
             <button class="btn" id="btn-restart">Restart Level</button>
@@ -569,6 +629,15 @@ if (window._gzIsMobile) {
     try { masteredEver = localStorage.getItem('chromaLockMasteredEver') === '1'; } catch(e) {}
     let sessionClearedLevels = new Set();
 
+    // Per-level personal best (fewest rotations to solve that level).
+    let levelBestRotations = {};
+    try { levelBestRotations = JSON.parse(localStorage.getItem('chromaLockLevelBest')) || {}; } catch(e) { levelBestRotations = {}; }
+    function saveLevelBest() { try { localStorage.setItem('chromaLockLevelBest', JSON.stringify(levelBestRotations)); } catch(e) {} }
+    function levelBestLabel(index) {
+        const best = levelBestRotations[index];
+        return best === undefined ? 'Best: —' : 'Best: ' + best + ' rotation' + (best !== 1 ? 's' : '');
+    }
+
     let grid = [], entities = [], teleporters = {};
     let tileSize = 60, boardRot = 0, targetRot = 0, gDir = 0;
     let isInputLocked = false, isTeleportingGlobal = false;
@@ -758,6 +827,8 @@ if (window._gzIsMobile) {
         }
 
         getUI('level-display').textContent = 'Level ' + (index + 1) + ': ' + levelNames[index];
+        getUI('level-best-display').textContent = levelBestLabel(index);
+        getUI('pause-best-display').textContent = levelBestLabel(index);
         getUI('menu-win').querySelector('h1').textContent = 'Level Cleared!';
         getUI('menu-win').classList.remove('mastered');
         setNextLevelButton();
@@ -843,9 +914,15 @@ if (window._gzIsMobile) {
                 highestUnlocked = currentLevel + 1;
                 try { localStorage.setItem('chromaLockV9', highestUnlocked); } catch(e) {}
             }
+            const prevBest = levelBestRotations[currentLevel];
+            const isNewLevelBest = prevBest === undefined || rotCount < prevBest;
+            if (isNewLevelBest) { levelBestRotations[currentLevel] = rotCount; saveLevelBest(); }
             setTimeout(() => {
                 playSound('win');
-                getUI('win-sub').textContent = 'Solved in ' + rotCount + ' rotation' + (rotCount !== 1 ? 's' : '') + '!';
+                getUI('win-sub').innerHTML = 'Solved in ' + rotCount + ' rotation' + (rotCount !== 1 ? 's' : '') + '!' +
+                    (isNewLevelBest
+                        ? ' <span style="color:#FFD700">New personal best for this level!</span>'
+                        : '<br>Personal best: ' + prevBest + ' rotation' + (prevBest !== 1 ? 's' : '') + '.');
                 gameState = 'WIN';
                 showUI('menu-win');
             }, 500);
