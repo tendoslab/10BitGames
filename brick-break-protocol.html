@@ -170,6 +170,33 @@
             transition: width 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
+        #hudBtns {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+            justify-content: center;
+            pointer-events: auto;
+        }
+        .hud-btn {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: rgba(0,0,0,0.5);
+            border: 1px solid rgba(0,243,255,0.4);
+            color: #00f3ff;
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Orbitron', sans-serif;
+            transition: background 0.15s ease, transform 0.1s ease;
+            touch-action: manipulation;
+        }
+        .hud-btn:hover { background: rgba(0,243,255,0.2); }
+        .hud-btn:active { transform: scale(0.9); }
+
         .instruction-block {
             text-align: left;
             background: rgba(0,0,0,0.3);
@@ -287,6 +314,10 @@
             <div id="progressBarContainer">
                 <div id="progressBar"></div>
             </div>
+            <div id="hudBtns">
+                <button class="hud-btn" id="btn-hud-info" onclick="showInGameInstructions()" title="How to play" aria-label="How to play">?</button>
+                <button class="hud-btn" id="btn-hud-sound" onclick="toggleSound()" title="Toggle sound" aria-label="Toggle sound">&#128266;</button>
+            </div>
         </div>
 
         <div id="ui">
@@ -322,7 +353,7 @@
                         <li>Speed increases automatically as targets decrease!</li>
                     </ul>
                 </div>
-                <button class="wide" onclick="showMenu()">BACK TO SELECTION</button>
+                <button class="wide" id="btn-instructions-back" onclick="closeInstructions()">BACK TO SELECTION</button>
             </div>
 
             <div id="overPanel" class="panel" style="display:none;">
@@ -375,6 +406,49 @@
         let baseSpeed = 7.5;
         let completedLevels = [];
         let savedGridTemplate = null;
+        let instructionsOpenedFromGame = false;
+
+        // ── Audio ────────────────────────────────────────────────────────────
+        let audioCtx = null;
+        let soundEnabled = true;
+        try { soundEnabled = localStorage.getItem('bbpSound') !== '0'; } catch (e) {}
+
+        function initAudio() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+        }
+
+        function playTone(freq, type, dur, vol, sweepTo) {
+            if (!soundEnabled) return;
+            try {
+                initAudio();
+                const t0 = audioCtx.currentTime;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, t0);
+                if (sweepTo) osc.frequency.exponentialRampToValueAtTime(sweepTo, t0 + dur * 0.8);
+                gain.gain.setValueAtTime(vol, t0);
+                gain.gain.exponentialRampToValueAtTime(0.001, t0 + dur);
+                osc.start(t0); osc.stop(t0 + dur);
+            } catch (e) {}
+        }
+
+        function sfxWall() { playTone(220, 'triangle', 0.06, 0.10); }
+        function sfxPaddle() { playTone(330, 'triangle', 0.08, 0.14, 440); }
+        function sfxBreak() { playTone(880, 'square', 0.07, 0.10, 1200); }
+        function sfxUnbreakable() { playTone(140, 'sine', 0.05, 0.08); }
+        function sfxPowerup() { [660, 880, 1100].forEach((f, i) => setTimeout(() => playTone(f, 'sine', 0.12, 0.13), i * 70)); }
+        function sfxWin() { [523, 659, 784, 1046].forEach((f, i) => setTimeout(() => playTone(f, 'square', 0.22, 0.13), i * 130)); }
+        function sfxLose() { [300, 250, 200, 150].forEach((f, i) => setTimeout(() => playTone(f, 'sawtooth', 0.22, 0.11), i * 130)); }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            try { localStorage.setItem('bbpSound', soundEnabled ? '1' : '0'); } catch (e) {}
+            document.getElementById('btn-hud-sound').innerHTML = soundEnabled ? '&#128266;' : '&#128263;';
+            if (soundEnabled) initAudio();
+        }
 
         // Theme colors
         const colors = {
@@ -452,8 +526,33 @@
         }
 
         function showInstructions() {
+            instructionsOpenedFromGame = false;
+            document.getElementById('btn-instructions-back').textContent = 'BACK TO SELECTION';
             hideAllPanels();
             document.getElementById('instructionsPanel').style.display = 'block';
+        }
+
+        function showInGameInstructions() {
+            if (state !== 'PLAY') return;
+            instructionsOpenedFromGame = true;
+            state = 'PAUSED';
+            document.getElementById('hud').style.display = 'none';
+            document.getElementById('btn-instructions-back').textContent = 'RESUME';
+            hideAllPanels();
+            document.getElementById('instructionsPanel').style.display = 'block';
+        }
+
+        function closeInstructions() {
+            if (instructionsOpenedFromGame) {
+                instructionsOpenedFromGame = false;
+                hideAllPanels();
+                document.getElementById('hud').style.display = 'flex';
+                state = 'PLAY';
+                lastTime = window.performance.now();
+                requestAnimationFrame(gameLoop);
+            } else {
+                showMenu();
+            }
         }
 
         function updateLevelButtons() {
@@ -621,6 +720,7 @@
         }
 
         function startGame(lvl, replay = false) {
+            if (soundEnabled) initAudio();
             currentLevel = lvl;
             hasUsedLastChance = false; // Reset the Last Chance tracker
             hideAllPanels();
@@ -729,14 +829,15 @@
                     b.x += b.dx / subSteps;
                     b.y += b.dy / subSteps;
 
-                    if (b.x - b.r < 0) { b.x = b.r; b.dx *= -1; }
-                    if (b.x + b.r > gameW) { b.x = gameW - b.r; b.dx *= -1; }
-                    if (b.y - b.r < topOffset) { b.y = topOffset + b.r; b.dy *= -1; }
+                    if (b.x - b.r < 0) { b.x = b.r; b.dx *= -1; sfxWall(); }
+                    if (b.x + b.r > gameW) { b.x = gameW - b.r; b.dx *= -1; sfxWall(); }
+                    if (b.y - b.r < topOffset) { b.y = topOffset + b.r; b.dy *= -1; sfxWall(); }
 
                     if (b.dy > 0 && b.y + b.r >= paddle.y && b.y - b.r <= paddle.y + paddle.h) {
                         if (b.x + b.r >= paddle.x && b.x - b.r <= paddle.x + paddle.w) {
                             b.y = paddle.y - b.r;
                             b.dy *= -1;
+                            sfxPaddle();
 
                             let hitRatio = (b.x - (paddle.x + paddle.w / 2)) / (paddle.w / 2);
                             b.dx = (hitRatio * 6) + (paddle.vx * 0.15);
@@ -776,6 +877,7 @@
                                         blk.status = 0;
                                         breakableCount--;
                                         updateHUD();
+                                        sfxBreak();
 
                                         let spawnX = c*bw + bw/2;
                                         let spawnY = r*bh + bh/2 + topOffset;
@@ -790,6 +892,8 @@
                                                 type: Math.random() < 0.6 ? 'add' : 'multi'
                                             });
                                         }
+                                    } else {
+                                        sfxUnbreakable();
                                     }
                                 }
                             }
@@ -809,6 +913,7 @@
                 if (p.y + p.r >= paddle.y && p.y - p.r <= paddle.y + paddle.h &&
                     p.x >= paddle.x && p.x <= paddle.x + paddle.w) {
 
+                    sfxPowerup();
                     if (p.type === 'add') {
                         balls.push({
                             x: paddle.x + paddle.w / 2, y: paddle.y - 10,
@@ -844,6 +949,7 @@
 
             if (balls.length === 0) {
                 state = 'OVER';
+                sfxLose();
                 document.getElementById('hud').style.display = 'none';
                 document.getElementById('failLeft').innerText = breakableCount;
 
@@ -865,6 +971,7 @@
                 document.getElementById('overPanel').style.display = 'block';
             } else if (breakableCount <= 0) {
                 state = 'WIN';
+                sfxWin();
 
                 if (currentLevel !== 6 && !completedLevels.includes(currentLevel)) {
                     completedLevels.push(currentLevel);
@@ -1006,6 +1113,7 @@
         window.addEventListener('load', function() {
             init();
             updateLevelButtons();
+            document.getElementById('btn-hud-sound').innerHTML = soundEnabled ? '&#128266;' : '&#128263;';
         });
 
         // Firing on touchstart (instead of waiting for the emulated click) stops
