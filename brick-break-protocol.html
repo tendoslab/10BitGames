@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Brick Break Protocol | Mini Games Planet</title>
+    <title>Brick Break Protocol | 10-Bit Games</title>
     <meta name="description" content="Defend the network by bouncing your energy sphere to shatter all the glowing neon targets! Navigate around impenetrable dark matter barriers, collect power-ups to multiply your spheres, and clear all 5 infiltration sectors without letting the sphere breach the containment zone.">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;800&display=swap');
@@ -210,14 +210,18 @@
             .intro { padding-top: 10px; }
             .intro h1 { font-size: 1.25rem; letter-spacing: 1.5px; margin-bottom: 5px; }
             .intro p { font-size: 0.82rem; line-height: 1.4; }
+            #game-shell { height: 56vh; margin: 8px auto 40px; }
         }
     </style>
 </head>
 <body>
+    <link rel="icon" href="assets/favicon-192.png" type="image/png">
+    <link rel="icon" href="favicon.ico" sizes="any">
+    <link rel="apple-touch-icon" href="assets/favicon-apple-touch.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Bungee+Shade&family=Karla:wght@700&display=swap" rel="stylesheet">
     <style>
-      .mgp-topbar {
+      .tbg-topbar {
         display: flex;
         align-items: center;
         gap: 0.75rem;
@@ -227,7 +231,7 @@
         width: 100%;
       }
 
-      .mgp-topbar a {
+      .tbg-topbar a {
         display: inline-flex;
         align-items: center;
         gap: 0.35rem;
@@ -241,18 +245,18 @@
         border-radius: 999px;
       }
 
-      .mgp-topbar a:hover,
-      .mgp-topbar a:focus-visible {
+      .tbg-topbar a:hover,
+      .tbg-topbar a:focus-visible {
         border-color: #FBF7FF;
       }
 
-      .mgp-topbar a svg {
+      .tbg-topbar a svg {
         width: 14px;
         height: 14px;
         flex-shrink: 0;
       }
 
-      .mgp-topbar .mgp-site-name {
+      .tbg-topbar .tbg-site-name {
         font-family: 'Bungee Shade', 'Karla', Arial, sans-serif;
         color: #FF3EA5;
         font-size: 1.05rem;
@@ -260,14 +264,14 @@
       }
     </style>
 
-    <div class="mgp-topbar">
+    <div class="tbg-topbar">
       <a href="index.html">
         <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <path d="M15 5 L8 12 L15 19" stroke="#FBF7FF" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
         All games
       </a>
-      <span class="mgp-site-name">Mini Games Planet</span>
+      <span class="tbg-site-name">10-Bit Games</span>
     </div>
 
     <div class="intro">
@@ -632,7 +636,7 @@
             }];
             powerups = [];
             particles = [];
-            paddle = { x: gameW / 2 - 45, y: gameH - 50, w: 90, h: 10, vx: 0, lastX: gameW / 2 - 45 };
+            paddle = { x: gameW / 2 - 45, y: gameH - 90, w: 90, h: 10, vx: 0, lastX: gameW / 2 - 45 };
 
             loadLevelData(lvl, replay);
             updateHUD();
