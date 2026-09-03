@@ -66,28 +66,6 @@
     text-shadow: 0 0 8px rgba(255, 62, 165, 0.55), 0 0 22px rgba(255, 62, 165, 0.3);
   }
 
-  .sound-toggle {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    font-family: 'Karla', sans-serif;
-    font-size: 0.85rem;
-    font-weight: 700;
-    color: var(--ink-dim);
-    background: var(--panel);
-    border: 2px solid var(--border);
-    border-radius: 999px;
-    padding: 0.45rem 0.9rem;
-    cursor: pointer;
-  }
-
-  .sound-toggle:hover,
-  .sound-toggle:focus-visible {
-    border-color: var(--ink-dim);
-    color: var(--ink);
-  }
-
-  .sound-toggle svg { width: 16px; height: 16px; flex-shrink: 0; }
 
   /* --- hero + decorative background shapes --- */
   .hero-section {
@@ -453,12 +431,6 @@
 
 <header>
   <a class="site-name" href="index.html">10-Bit Games</a>
-  <button type="button" class="sound-toggle" id="soundToggle" aria-pressed="false">
-    <svg id="soundToggleIcon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <polygon points="4 9 8 9 12 5 12 19 8 15 4 15 4 9" fill="currentColor" stroke="none"></polygon>
-    </svg>
-    <span id="soundToggleLabel">Preview sound: off</span>
-  </button>
 </header>
 
 <div class="hero-section">
@@ -609,34 +581,6 @@ function cardHtml(game, index) {
   // Skip past the game's title/start screen so the hover preview shows
   // actual gameplay instead of a static splash frame.
   var PREVIEW_SKIP_SECONDS = 1.5;
-
-  var previewSoundOn = false;
-  try { previewSoundOn = localStorage.getItem('tbgPreviewSound') === '1'; } catch (e) {}
-
-  var soundToggleBtn = document.getElementById('soundToggle');
-  var soundToggleLabel = document.getElementById('soundToggleLabel');
-  var soundToggleIcon = document.getElementById('soundToggleIcon');
-  var MUTE_ICON = '<polygon points="4 9 8 9 12 5 12 19 8 15 4 15 4 9" fill="currentColor" stroke="none"></polygon>' +
-    '<line x1="16" y1="9" x2="21" y2="14" stroke="currentColor" stroke-width="2" stroke-linecap="round"></line>' +
-    '<line x1="21" y1="9" x2="16" y2="14" stroke="currentColor" stroke-width="2" stroke-linecap="round"></line>';
-  var UNMUTE_ICON = '<polygon points="4 9 8 9 12 5 12 19 8 15 4 15 4 9" fill="currentColor" stroke="none"></polygon>' +
-    '<path d="M16 8a5 5 0 0 1 0 8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>' +
-    '<path d="M18.5 5.5a9 9 0 0 1 0 13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>';
-
-  function applyPreviewSoundState() {
-    soundToggleBtn.setAttribute('aria-pressed', previewSoundOn ? 'true' : 'false');
-    soundToggleLabel.textContent = 'Preview sound: ' + (previewSoundOn ? 'on' : 'off');
-    soundToggleIcon.innerHTML = previewSoundOn ? UNMUTE_ICON : MUTE_ICON;
-    document.querySelectorAll('.thumb-video').forEach(function (v) { v.muted = !previewSoundOn; });
-  }
-
-  soundToggleBtn.addEventListener('click', function () {
-    previewSoundOn = !previewSoundOn;
-    try { localStorage.setItem('tbgPreviewSound', previewSoundOn ? '1' : '0'); } catch (e) {}
-    applyPreviewSoundState();
-  });
-
-  applyPreviewSoundState();
 
   document.querySelectorAll('.thumb-wrap').forEach(function (wrap) {
     var card = wrap.closest('.cabinet');

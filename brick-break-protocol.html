@@ -311,7 +311,7 @@
         </div>
         <div id="hudBtns">
             <button class="hud-btn" id="btn-hud-info" onclick="showInGameInstructions()" title="How to play" aria-label="How to play">?</button>
-            <button class="hud-btn" id="btn-hud-sound" onclick="toggleSound()" title="Toggle sound" aria-label="Toggle sound">&#128266;</button>
+            <button class="hud-btn sound-btn" onclick="toggleSound()" title="Toggle sound" aria-label="Toggle sound">&#128266;</button>
         </div>
     </div>
 
@@ -321,6 +321,9 @@
         <div id="ui">
             <div id="startPanel" class="panel">
                 <h1 class="game-h1">BRICK BREAK PROTOCOL</h1>
+                <div style="display:flex; justify-content:center; margin-bottom:15px;">
+                    <button class="hud-btn sound-btn" onclick="toggleSound()" title="Toggle sound" aria-label="Toggle sound">&#128266;</button>
+                </div>
                 <p>Select infiltration sector:</p>
                 <div class="level-grid">
                     <button id="btn-lvl-1" onclick="startGame(1)">LVL 1</button>
@@ -444,8 +447,14 @@
         function toggleSound() {
             soundEnabled = !soundEnabled;
             try { localStorage.setItem('bbpSound', soundEnabled ? '1' : '0'); } catch (e) {}
-            document.getElementById('btn-hud-sound').innerHTML = soundEnabled ? '&#128266;' : '&#128263;';
+            updateSoundButtons();
             if (soundEnabled) initAudio();
+        }
+
+        function updateSoundButtons() {
+            document.querySelectorAll('.sound-btn').forEach(function (btn) {
+                btn.innerHTML = soundEnabled ? '&#128266;' : '&#128263;';
+            });
         }
 
         // Theme colors
@@ -1111,7 +1120,7 @@
         window.addEventListener('load', function() {
             init();
             updateLevelButtons();
-            document.getElementById('btn-hud-sound').innerHTML = soundEnabled ? '&#128266;' : '&#128263;';
+            updateSoundButtons();
         });
 
         // Firing on touchstart (instead of waiting for the emulated click) stops
