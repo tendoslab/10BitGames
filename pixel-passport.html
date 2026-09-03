@@ -1,0 +1,1224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Pixel Passport | 10-Bit Games</title>
+<meta name="description" content="Every flag starts as scrambled static and sharpens over time — buzz in before it clears for way more points. Multiple choice or type-to-answer, six regions, streak multipliers, and a daily challenge with its own streak.">
+<style>
+  body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: 'Karla', Arial, sans-serif;
+    background:
+      radial-gradient(1px 1px at 10% 20%, rgba(242,184,75,0.5), transparent),
+      radial-gradient(1px 1px at 25% 55%, rgba(255,255,255,0.35), transparent),
+      radial-gradient(1.5px 1.5px at 42% 15%, rgba(51,214,192,0.45), transparent),
+      radial-gradient(1px 1px at 60% 65%, rgba(255,255,255,0.3), transparent),
+      radial-gradient(1.5px 1.5px at 78% 30%, rgba(242,184,75,0.4), transparent),
+      radial-gradient(1px 1px at 90% 55%, rgba(51,214,192,0.4), transparent),
+      radial-gradient(1px 1px at 15% 85%, rgba(255,255,255,0.3), transparent),
+      radial-gradient(ellipse 900px 500px at 50% -10%, rgba(242,184,75,0.07), transparent),
+      #120f1a;
+    background-attachment: fixed;
+  }
+  .site-intro { position: relative; z-index: 1; max-width: 640px; margin: 0 auto; padding: 24px 15px 0; text-align: center; }
+  .site-intro h1 { font-family: 'Bungee', sans-serif; font-weight: 400; color: #F2B84B; letter-spacing: 3px; margin: 0 0 6px; font-size: 1.6rem; text-shadow: 0 0 20px rgba(242,184,75,0.35); }
+  .site-intro p { color: #9490a8; font-size: 0.95rem; line-height: 1.5; margin: 0; }
+</style>
+<link rel="icon" href="assets/favicon-192.png?v=2" type="image/png">
+<link rel="icon" href="favicon.ico?v=2" sizes="any">
+<link rel="apple-touch-icon" href="assets/favicon-apple-touch.png?v=2">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Karla:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<style>
+  .tbg-topbar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    background: #150F22;
+    border-bottom: 2px solid #3B2C58;
+  }
+  .tbg-topbar a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: #FBF7FF;
+    text-decoration: none;
+    font-family: 'Karla', Arial, sans-serif;
+    font-weight: 700;
+    font-size: 0.9rem;
+    border: 2px solid #3B2C58;
+    padding: 0.35rem 0.7rem 0.35rem 0.55rem;
+    border-radius: 999px;
+  }
+  .tbg-topbar a:hover, .tbg-topbar a:focus-visible { border-color: #FBF7FF; }
+  .tbg-topbar a svg { width: 14px; height: 14px; flex-shrink: 0; }
+  .tbg-topbar .tbg-site-name {
+    font-family: 'Bungee Shade', 'Karla', Arial, sans-serif;
+    color: #FF3EA5;
+    font-size: 1.05rem;
+    text-shadow: 0 0 6px rgba(255, 62, 165, 0.5);
+    text-decoration: none;
+    border: none;
+    padding: 0;
+  }
+  .tbg-topbar .tbg-site-name:hover, .tbg-topbar .tbg-site-name:focus-visible { text-decoration: underline; }
+</style>
+
+<div class="tbg-topbar">
+  <a href="index.html">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M15 5 L8 12 L15 19" stroke="#FBF7FF" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    All games
+  </a>
+  <a class="tbg-site-name" href="index.html">10-Bit Games</a>
+</div>
+<div class="site-intro">
+  <h1>PIXEL PASSPORT</h1>
+  <p>Every flag starts as scrambled static and sharpens the longer you wait. Buzz in early for the big points, pick multiple choice or type it out, and keep a Daily Passport streak alive.</p>
+</div>
+
+<!-- Mobile fullscreen overlay — only used on touch devices -->
+<div id="gz-fullscreen-overlay" style="
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100vh; height: 100dvh;
+    background: #000;
+    z-index: 99999;
+    touch-action: none;
+    align-items: center;
+    justify-content: center;
+">
+    <div id="game-host-mobile" style="
+        width: 100%; height: 100%;
+        touch-action: pan-y;
+    "></div>
+    <button onclick="
+        document.getElementById('gz-fullscreen-overlay').style.display='none';
+        document.body.style.overflow='';
+    " style="
+        position: absolute;
+        top: 12px; right: 12px;
+        background: rgba(0,0,0,0.75);
+        color: white;
+        border: 2px solid rgba(255,255,255,0.4);
+        border-radius: 50%;
+        width: 44px; height: 44px;
+        font-size: 18px;
+        cursor: pointer;
+        z-index: 100000;
+        display: flex; align-items: center; justify-content: center;
+        line-height: 1;
+    ">✕</button>
+</div>
+
+<!-- Desktop: game renders inline here -->
+<div id="game-host-desktop" style="display:flex; justify-content:center; margin: 20px 0;"></div>
+
+<!-- Mobile: preview card with Play button (hidden on desktop) -->
+<div id="gz-game-preview" style="display:none;
+    position: relative;
+    overflow: hidden;
+    background:
+        radial-gradient(circle at 50% 20%, rgba(242,184,75,0.14), transparent 60%),
+        repeating-linear-gradient(45deg, #1a1626 0 10px, #16121f 10px 20px);
+    border-radius: 18px;
+    border: 2px solid #2f2a3a;
+    box-shadow: 0 0 0 1px rgba(242,184,75,0.15), 0 12px 28px rgba(0,0,0,0.5);
+    padding: 38px 20px 30px;
+    text-align: center;
+    font-family: 'Karla', Arial, sans-serif;
+">
+    <svg width="60" height="60" viewBox="0 0 64 64" style="margin-bottom:10px;">
+        <rect x="8" y="14" width="48" height="32" rx="4" fill="none" stroke="#F2B84B" stroke-width="3"/>
+        <rect x="14" y="20" width="20" height="20" fill="#33D6C0" opacity="0.85"/>
+        <rect x="14" y="20" width="20" height="20" fill="none" stroke="#120f1a" stroke-width="1" opacity="0.3"/>
+        <circle cx="46" cy="30" r="6" fill="#F2B84B"/>
+    </svg>
+    <div style="color:#f5eee0; font-size:1.5rem; font-weight:bold; letter-spacing:3px; margin-bottom:6px; text-shadow:0 0 18px rgba(242,184,75,0.4);">PIXEL PASSPORT</div>
+    <div style="color:#8a86a0; font-size:0.85rem; margin-bottom:20px; letter-spacing:0.5px;">buzz in before it sharpens</div>
+    <button onclick="
+        var ol = document.getElementById('gz-fullscreen-overlay');
+        ol.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    " style="
+        background: linear-gradient(135deg,#F2B84B 0%,#e0982a 100%);
+        border: none;
+        padding: 16px 48px;
+        border-radius: 30px;
+        color: #1a1400;
+        font-size: 1.05rem;
+        font-weight: bold;
+        cursor: pointer;
+        letter-spacing: 1px;
+        box-shadow: 0 6px 20px rgba(242,184,75,0.35);
+    ">&#9654; PLAY FULLSCREEN</button>
+</div>
+
+<script>
+window._gzIsMobile = ('ontouchstart' in window) || (window.innerWidth <= 768);
+if (window._gzIsMobile) {
+    document.getElementById('game-host-desktop').style.display = 'none';
+    document.getElementById('gz-game-preview').style.display = 'block';
+}
+</script>
+
+<script>
+(function() {
+    const isMobile = ('ontouchstart' in window) || (window.innerWidth <= 768);
+    const hostId = isMobile ? 'game-host-mobile' : 'game-host-desktop';
+    const host = document.getElementById(hostId);
+    host.style.display = 'flex';
+    host.style.alignItems = 'center';
+    host.style.justifyContent = 'center';
+    const shadow = host.attachShadow({mode: 'closed'});
+
+    const style = document.createElement('style');
+    style.textContent = `
+        #game-wrapper {
+            width: min(94vw, 560px);
+            max-height: min(92vh, 900px);
+            overflow-y: auto;
+            overflow-x: hidden;
+            box-sizing: border-box;
+            background:
+                repeating-linear-gradient(135deg, rgba(255,255,255,0.015) 0 2px, transparent 2px 7px),
+                #17131F;
+            border-radius: 16px;
+            border: 3px solid #F2B84B;
+            box-shadow: inset 0 0 40px rgba(0,0,0,0.5), 0 20px 60px rgba(0,0,0,0.7);
+            padding: 18px 18px 22px;
+            font-family: 'Karla', Arial, sans-serif;
+            color: #F5EEE0;
+            user-select: none;
+            position: relative;
+        }
+        ${isMobile ? `
+        #game-wrapper { width: 100%; height: 100%; max-width: 480px; max-height: 100dvh; margin: 0 auto; border-radius: 0; border-width: 0 0 0 0; }
+        ` : ''}
+        * { box-sizing: border-box; }
+        h1.pp-title { font-family: 'Bungee', sans-serif; font-weight: 400; font-size: clamp(24px, 6vw, 32px); letter-spacing: 2px; color: #F2B84B; text-align: center; margin: 4px 0 4px; text-shadow: 0 0 18px rgba(242,184,75,0.4); }
+        .pp-sub { text-align: center; color: #8a86a0; font-size: 13px; margin: 0 0 18px; letter-spacing: 0.3px; }
+        .pp-section-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: #746f88; margin: 14px 0 7px; text-align: center; }
+        .pp-segmented { display: flex; gap: 8px; justify-content: center; margin-bottom: 4px; flex-wrap: wrap; }
+        .pp-chip {
+            font-family: 'Karla', Arial, sans-serif;
+            font-weight: 700;
+            font-size: 13px;
+            padding: 8px 14px;
+            background: #221C33;
+            border: 2px solid #3a3350;
+            color: #b0abc4;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: border-color .15s ease, color .15s ease, background .15s ease;
+        }
+        .pp-chip:hover { border-color: #574d78; color: #fff; }
+        .pp-chip.active { background: #F2B84B; border-color: #F2B84B; color: #1a1400; }
+        .pp-hs-line { text-align: center; color: #746f88; font-size: 12.5px; margin: 12px 0 2px; min-height: 16px; }
+        .pp-hs-line b { color: #33D6C0; }
+        .pp-btn {
+            display: block;
+            width: min(280px, 100%);
+            margin: 10px auto 0;
+            padding: 14px 0;
+            min-height: 48px;
+            background: linear-gradient(135deg,#F2B84B 0%,#e0982a 100%);
+            border: none;
+            color: #1a1400;
+            font-family: 'Karla', Arial, sans-serif;
+            font-weight: 700;
+            font-size: 15.5px;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            text-align: center;
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+            transition: transform .12s ease, filter .12s ease;
+        }
+        .pp-btn:hover { filter: brightness(1.08); }
+        .pp-btn:active { transform: scale(0.96); }
+        .pp-btn.secondary { background: #2a2440; color: #d8d3ea; box-shadow: none; }
+        .pp-btn.ghost { background: transparent; border: 2px solid #3a3350; color: #b0abc4; clip-path: none; border-radius: 8px; padding: 11px 0; }
+        .pp-btn.ghost:hover { border-color: #574d78; color: #fff; }
+        .pp-badge-row { display: flex; justify-content: center; gap: 8px; margin-top: 6px; flex-wrap: wrap; }
+        .pp-badge { font-size: 11.5px; background: rgba(51,214,192,0.12); border: 1px solid rgba(51,214,192,0.35); color: #33D6C0; padding: 3px 10px; border-radius: 999px; }
+        .pp-sound-toggle { position: absolute; top: 14px; right: 14px; background: rgba(0,0,0,0.35); border: 1px solid #3a3350; color: #b0abc4; width: 34px; height: 34px; border-radius: 50%; cursor: pointer; font-size: 15px; display: flex; align-items: center; justify-content: center; }
+        .pp-sound-toggle:hover { border-color: #F2B84B; color: #F2B84B; }
+
+        .pp-layer { display: block; }
+        .pp-layer.hidden { display: none; }
+
+        .pp-hud { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+        .pp-pips { display: flex; gap: 4px; overflow-x: auto; flex: 1 1 auto; padding-bottom: 2px; }
+        .pp-pip { width: 13px; height: 13px; min-width: 13px; border-radius: 50%; background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.1); }
+        .pp-pip.current { border-color: #F2B84B; box-shadow: 0 0 0 2px rgba(242,184,75,0.3); }
+        .pp-pip.correct { background: #3DDC84; border-color: #3DDC84; }
+        .pp-pip.missed { background: #FF4D4D; border-color: #FF4D4D; }
+        .pp-scorebox { text-align: right; flex: 0 0 auto; }
+        .pp-score { font-family: 'Bungee', sans-serif; font-size: 16px; color: #F2B84B; line-height: 1; }
+        .pp-streak { font-size: 11px; color: #33D6C0; margin-top: 2px; }
+        .pp-hud-btn { background: rgba(0,0,0,0.35); border: 1px solid #3a3350; color: #b0abc4; padding: 6px 9px; border-radius: 8px; font-size: 12px; cursor: pointer; flex: 0 0 auto; }
+        .pp-hud-btn:hover { border-color: #F2B84B; color: #F2B84B; }
+
+        .pp-flag-frame { position: relative; width: 100%; aspect-ratio: 3/2; border-radius: 8px; overflow: hidden; background: #000; border: 3px solid #F2B84B; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
+        .pp-flag-frame canvas { width: 100%; height: 100%; display: block; }
+        .pp-corner { position: absolute; width: 14px; height: 14px; border-color: #F2B84B; pointer-events: none; opacity: 0.85; }
+        .pp-corner.tl { top: 4px; left: 4px; border-top: 3px solid; border-left: 3px solid; }
+        .pp-corner.tr { top: 4px; right: 4px; border-top: 3px solid; border-right: 3px solid; }
+        .pp-corner.bl { bottom: 4px; left: 4px; border-bottom: 3px solid; border-left: 3px solid; }
+        .pp-corner.br { bottom: 4px; right: 4px; border-bottom: 3px solid; border-right: 3px solid; }
+        .pp-countdown-chip { position: absolute; top: 7px; right: 7px; background: rgba(0,0,0,0.6); color: #fff; font-weight: 700; padding: 2px 9px; border-radius: 5px; font-size: 12.5px; letter-spacing: 0.5px; font-variant-numeric: tabular-nums; }
+        .pp-reveal-track { height: 5px; background: rgba(255,255,255,0.08); border-radius: 3px; margin: 8px 0 14px; overflow: hidden; }
+        .pp-reveal-fill { height: 100%; width: 0%; background: linear-gradient(90deg,#F2B84B,#33D6C0); }
+
+        .pp-mc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+        .pp-mc-btn {
+            font-family: 'Karla', Arial, sans-serif;
+            font-weight: 700;
+            font-size: 13.5px;
+            padding: 12px 8px;
+            min-height: 46px;
+            background: #221C33;
+            border: 2px solid #3a3350;
+            color: #F5EEE0;
+            cursor: pointer;
+            border-radius: 8px;
+            text-align: left;
+            transition: border-color .12s ease, background .12s ease, opacity .12s ease;
+        }
+        .pp-mc-btn:hover:not(:disabled) { border-color: #F2B84B; }
+        .pp-mc-btn:disabled { cursor: default; }
+        .pp-mc-btn.correct { background: rgba(61,220,132,0.18); border-color: #3DDC84; color: #cffde3; }
+        .pp-mc-btn.wrong { background: rgba(255,77,77,0.14); border-color: #FF4D4D; opacity: 0.6; }
+
+        .pp-type-form { display: flex; gap: 8px; }
+        .pp-type-input { flex: 1; padding: 11px 12px; border-radius: 8px; border: 2px solid #3a3350; background: #0e0c16; color: #F5EEE0; font-size: 15px; font-family: 'Karla', Arial, sans-serif; }
+        .pp-type-input:focus-visible { outline: none; border-color: #F2B84B; }
+        .pp-type-input.shake { animation: pp-shake 0.32s ease; border-color: #FF4D4D; }
+        @keyframes pp-shake { 0%,100%{transform:translateX(0);} 25%{transform:translateX(-6px);} 75%{transform:translateX(6px);} }
+        .pp-type-submit { flex: 0 0 auto; padding: 0 18px; background: #F2B84B; border: none; color: #1a1400; font-weight: 700; border-radius: 8px; cursor: pointer; }
+
+        .pp-result-banner { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(10,8,16,0.94); opacity: 0; pointer-events: none; transition: opacity .18s ease; text-align: center; padding: 10px; border-radius: 6px; }
+        .pp-result-banner.show { opacity: 1; pointer-events: auto; }
+        .pp-result-icon { font-size: 30px; margin-bottom: 4px; }
+        .pp-result-title { font-family: 'Bungee', sans-serif; font-size: 17px; margin-bottom: 3px; }
+        .pp-result-sub { font-size: 13px; color: #cfc9e0; margin-bottom: 10px; }
+        .pp-result-points { font-size: 22px; font-weight: 700; margin-bottom: 12px; }
+        .pp-next-btn { background: #F2B84B; border: none; color: #1a1400; font-weight: 700; padding: 9px 22px; border-radius: 8px; cursor: pointer; font-size: 13.5px; }
+
+        .pp-win-total { font-family: 'Bungee', sans-serif; font-size: 40px; color: #F2B84B; text-align: center; margin: 4px 0; text-shadow: 0 0 24px rgba(242,184,75,0.5); }
+        .pp-win-stats { display: flex; justify-content: center; gap: 18px; margin: 10px 0 6px; flex-wrap: wrap; }
+        .pp-win-stat { text-align: center; }
+        .pp-win-stat b { display: block; font-size: 17px; color: #33D6C0; }
+        .pp-win-stat span { font-size: 11px; color: #8a86a0; text-transform: uppercase; letter-spacing: 0.5px; }
+        .pp-win-note { text-align: center; font-size: 13px; color: #cfc9e0; margin: 10px 0; line-height: 1.5; }
+        .pp-win-note.new-best { color: #F2B84B; font-weight: 700; }
+
+        .pp-rules-box { background: rgba(0,0,0,0.3); padding: 12px 16px; border-radius: 10px; margin: 4px 0 14px; border: 1px solid rgba(242,184,75,0.2); }
+        .pp-rules-box p { font-size: 13px; color: #cfc9e0; margin: 7px 0; line-height: 1.5; }
+    `;
+
+    shadow.appendChild(style);
+
+    const wrapper = document.createElement('div');
+    wrapper.id = 'game-wrapper';
+    wrapper.setAttribute('tabindex', '0');
+    wrapper.style.outline = 'none';
+    wrapper.innerHTML = `
+        <button class="pp-sound-toggle" id="btn-sound-main" title="Toggle sound">&#128266;</button>
+
+        <div id="menu-main" class="pp-layer">
+            <h1 class="pp-title">PIXEL PASSPORT</h1>
+            <p class="pp-sub">buzz in before it sharpens</p>
+
+            <div class="pp-section-label">Answer style</div>
+            <div class="pp-segmented" id="answer-mode-toggle">
+                <button class="pp-chip" data-mode="mc">Multiple Choice</button>
+                <button class="pp-chip" data-mode="type">Type It Out</button>
+            </div>
+
+            <div class="pp-section-label">Region</div>
+            <div class="pp-segmented" id="region-toggle">
+                <button class="pp-chip" data-region="World">World</button>
+                <button class="pp-chip" data-region="Europe">Europe</button>
+                <button class="pp-chip" data-region="Asia">Asia</button>
+                <button class="pp-chip" data-region="Africa">Africa</button>
+                <button class="pp-chip" data-region="Americas">Americas</button>
+                <button class="pp-chip" data-region="Oceania">Oceania</button>
+            </div>
+
+            <div class="pp-hs-line" id="hs-line">Best score: —</div>
+
+            <button class="pp-btn" id="btn-play">Play — <span id="round-count-label">10</span> Rounds</button>
+            <button class="pp-btn secondary" id="btn-daily">Daily Passport</button>
+            <div class="pp-badge-row" id="daily-badges"></div>
+            <button class="pp-btn ghost" id="btn-inst" style="margin-top:14px;">How to Play</button>
+        </div>
+
+        <div id="menu-inst" class="pp-layer hidden">
+            <h1 class="pp-title" style="font-size:22px;">How to Play</h1>
+            <div class="pp-rules-box">
+                <p>Every flag loads as scrambled color noise and sharpens over about 9 seconds. The earlier you buzz in, the more it's worth.</p>
+                <p><b style="color:#F2B84B">Multiple Choice</b> gives you 4 options and caps your top score. <b style="color:#F2B84B">Type It Out</b> is riskier to read but pays up to <b>1000</b> points a flag.</p>
+                <p>A wrong guess locks that flag out of its top score tier — so guess with intent, not spam.</p>
+                <p>String together correct answers to build a streak multiplier, up to <b>2&times;</b>. One miss resets it.</p>
+                <p><b style="color:#33D6C0">Daily Passport</b> gives everyone the same 10 flags each day. Come back tomorrow to keep your streak alive.</p>
+            </div>
+            <button class="pp-btn secondary" id="btn-inst-back">Back</button>
+        </div>
+
+        <div id="menu-pause" class="pp-layer hidden">
+            <h1 class="pp-title" style="font-size:22px;">Paused</h1>
+            <button class="pp-btn" id="btn-resume">Resume</button>
+            <button class="pp-btn secondary" id="btn-pause-restart">Restart Run</button>
+            <button class="pp-btn ghost" id="btn-pause-quit" style="margin-top:14px;">Quit to Menu</button>
+        </div>
+
+        <div id="menu-win" class="pp-layer hidden">
+            <h1 class="pp-title" id="win-title" style="font-size:22px;">Passport Stamped!</h1>
+            <div class="pp-win-total" id="win-total">0</div>
+            <div class="pp-win-stats">
+                <div class="pp-win-stat"><b id="win-acc">0/10</b><span>Correct</span></div>
+                <div class="pp-win-stat"><b id="win-streak">0</b><span>Best Streak</span></div>
+                <div class="pp-win-stat"><b id="win-avg">—</b><span>Avg Speed</span></div>
+            </div>
+            <p class="pp-win-note" id="win-note"></p>
+            <button class="pp-btn" id="btn-play-again">Play Again</button>
+            <button class="pp-btn ghost" id="btn-win-menu" style="margin-top:14px;">Change Settings</button>
+        </div>
+
+        <div id="game-screen" class="pp-layer hidden">
+            <div class="pp-hud">
+                <div class="pp-pips" id="pips"></div>
+                <div class="pp-scorebox">
+                    <div class="pp-score" id="hud-score">0</div>
+                    <div class="pp-streak" id="hud-streak"></div>
+                </div>
+                <button class="pp-hud-btn" id="btn-pause-open">&#9612;&#9612;</button>
+            </div>
+            <div class="pp-flag-frame" id="flag-frame">
+                <canvas id="flag-canvas" width="480" height="320"></canvas>
+                <span class="pp-corner tl"></span><span class="pp-corner tr"></span>
+                <span class="pp-corner bl"></span><span class="pp-corner br"></span>
+                <div class="pp-countdown-chip" id="countdown-chip">9s</div>
+                <div class="pp-result-banner" id="result-banner">
+                    <div class="pp-result-icon" id="result-icon">&#10003;</div>
+                    <div class="pp-result-title" id="result-title">Correct!</div>
+                    <div class="pp-result-sub" id="result-sub"></div>
+                    <div class="pp-result-points" id="result-points">+0</div>
+                    <button class="pp-next-btn" id="btn-next">Next &#9654;</button>
+                </div>
+            </div>
+            <div class="pp-reveal-track"><div class="pp-reveal-fill" id="reveal-fill"></div></div>
+            <div id="mc-answer" class="pp-mc-grid"></div>
+            <form id="type-answer" class="pp-type-form" style="display:none;">
+                <input class="pp-type-input" id="type-input" type="text" placeholder="Type the country…" autocomplete="off" list="country-list">
+                <button class="pp-type-submit" type="submit">Guess</button>
+            </form>
+            <datalist id="country-list"></datalist>
+        </div>
+    `;
+    shadow.appendChild(wrapper);
+
+    // ── Flag data ─────────────────────────────────────────────────────────
+    // Each flag is described as a short list of declarative layers drawn by
+    // the interpreter below (bg/stripes/rects/stars/etc). These are stylized
+    // approximations, not pixel-accurate reproductions — enough to recognize
+    // at a glance once the reveal clears, which is all a guessing game needs.
+    const FLAGS = [
+        // Europe
+        {id:'fr', name:'France', region:'Europe', layers:[['vstripes',['#0055A4','#FFFFFF','#EF4135']]]},
+        {id:'de', name:'Germany', region:'Europe', layers:[['hstripes',['#000000','#DD0000','#FFCE00']]]},
+        {id:'it', name:'Italy', region:'Europe', layers:[['vstripes',['#009246','#FFFFFF','#CE2B37']]]},
+        {id:'gb', name:'United Kingdom', region:'Europe', aliases:['uk','britain','great britain','england'], layers:[['unionjack']]},
+        {id:'ie', name:'Ireland', region:'Europe', layers:[['vstripes',['#169B62','#FFFFFF','#FF883E']]]},
+        {id:'se', name:'Sweden', region:'Europe', layers:[['bg','#006AA7'],['cross','#FECC02',0.36,0.16]]},
+        {id:'nl', name:'Netherlands', region:'Europe', aliases:['holland'], layers:[['hstripes',['#AE1C28','#FFFFFF','#21468B']]]},
+        {id:'ch', name:'Switzerland', region:'Europe', layers:[['bg','#D52B1E'],['swiss','#FFFFFF']]},
+        // Asia
+        {id:'jp', name:'Japan', region:'Asia', layers:[['bg','#FFFFFF'],['circle',0.5,0.5,0.3,'#BC002D']]},
+        {id:'cn', name:'China', region:'Asia', layers:[['bg','#DE2910'],['star',0.18,0.25,0.11,'#FFDE00'],['star',0.33,0.11,0.035,'#FFDE00'],['star',0.40,0.21,0.035,'#FFDE00'],['star',0.40,0.34,0.035,'#FFDE00'],['star',0.33,0.44,0.035,'#FFDE00']]},
+        {id:'kr', name:'South Korea', region:'Asia', aliases:['korea'], layers:[['bg','#FFFFFF'],['taegeuk',0.5,0.5,0.22]]},
+        {id:'in', name:'India', region:'Asia', layers:[['hstripes',['#FF9933','#FFFFFF','#138808']],['ring',0.5,0.5,0.08,0.012,'#000080'],['ring',0.5,0.5,0.02,0.008,'#000080']]},
+        {id:'id', name:'Indonesia', region:'Asia', layers:[['hstripes',['#FF0000','#FFFFFF']]]},
+        {id:'th', name:'Thailand', region:'Asia', layers:[['hstripes',['#A51931','#F4F5F8','#2D2A4A','#F4F5F8','#A51931'],[1,1,2,1,1]]]},
+        {id:'vn', name:'Vietnam', region:'Asia', layers:[['bg','#DA251D'],['star',0.5,0.5,0.18,'#FFFF00']]},
+        {id:'tr', name:'Turkey', region:'Asia', aliases:['turkiye'], layers:[['bg','#E30A17'],['crescent',0.42,0.5,0.16,0.05,'#FFFFFF'],['star',0.58,0.5,0.055,'#FFFFFF']]},
+        // Africa
+        {id:'ng', name:'Nigeria', region:'Africa', layers:[['vstripes',['#008751','#FFFFFF','#008751']]]},
+        {id:'eg', name:'Egypt', region:'Africa', layers:[['hstripes',['#CE1126','#FFFFFF','#000000']]]},
+        {id:'ke', name:'Kenya', region:'Africa', layers:[['hstripes',['#000000','#FFFFFF','#BB0000','#FFFFFF','#006600'],[3,0.4,2,0.4,3]]]},
+        {id:'gh', name:'Ghana', region:'Africa', layers:[['hstripes',['#CE1126','#FCD116','#006B3F']],['star',0.5,0.5,0.11,'#000000']]},
+        {id:'sn', name:'Senegal', region:'Africa', layers:[['vstripes',['#00853F','#FDEF42','#E31B23']],['star',0.5,0.5,0.09,'#00853F']]},
+        {id:'cm', name:'Cameroon', region:'Africa', layers:[['vstripes',['#007A5E','#CE1126','#FCD116']],['star',0.5,0.5,0.09,'#FCD116']]},
+        {id:'ma', name:'Morocco', region:'Africa', layers:[['bg','#C1272D'],['star',0.5,0.5,0.16,'#006233']]},
+        {id:'et', name:'Ethiopia', region:'Africa', layers:[['hstripes',['#078930','#FCDD09','#DA121A']],['circle',0.5,0.5,0.13,'#0F47AF'],['star',0.5,0.5,0.06,'#FCDD09']]},
+        // Americas
+        {id:'us', name:'United States', region:'Americas', aliases:['usa','united states of america','america'], layers:[['usa']]},
+        {id:'ca', name:'Canada', region:'Americas', layers:[['vstripes',['#FF0000','#FFFFFF','#FF0000'],[1,2,1]],['star',0.5,0.5,0.17,'#FF0000',11,-90,0.55]]},
+        {id:'br', name:'Brazil', region:'Americas', layers:[['bg','#009739'],['tri',[[0.5,0.16],[0.9,0.5],[0.5,0.84],[0.1,0.5]],'#FEDD00'],['circle',0.5,0.5,0.155,'#012169']]},
+        {id:'ar', name:'Argentina', region:'Americas', layers:[['hstripes',['#75AADB','#FFFFFF','#75AADB']],['sun',0.5,0.5,0.09,'#F6B40E',12]]},
+        {id:'cl', name:'Chile', region:'Americas', layers:[['rect',0,0,1,0.5,'#FFFFFF'],['rect',0,0.5,1,0.5,'#D52B1E'],['rect',0,0,0.333,0.5,'#0039A6'],['star',0.166,0.25,0.09,'#FFFFFF']]},
+        {id:'pe', name:'Peru', region:'Americas', layers:[['vstripes',['#D91023','#FFFFFF','#D91023']]]},
+        {id:'cu', name:'Cuba', region:'Americas', layers:[['hstripes',['#002A8F','#FFFFFF','#002A8F','#FFFFFF','#002A8F']],['tri',[[0,0],[0.5,0.5],[0,1]],'#CB1515'],['star',0.16,0.5,0.07,'#FFFFFF']]},
+        {id:'mx', name:'Mexico', region:'Americas', layers:[['vstripes',['#006341','#FFFFFF','#CE1126']],['circle',0.5,0.5,0.07,'#8B5E3C'],['ring',0.5,0.5,0.07,0.012,'#000000']]},
+        // Oceania
+        {id:'au', name:'Australia', region:'Oceania', layers:[['bg','#00247D'],['unionjackcanton',0,0,0.5,0.5],['star',0.25,0.75,0.09,'#FFFFFF',7,-90,0.45],['star',0.75,0.28,0.05,'#FFFFFF'],['star',0.87,0.5,0.04,'#FFFFFF'],['star',0.82,0.75,0.045,'#FFFFFF'],['star',0.65,0.85,0.032,'#FFFFFF']]},
+        {id:'nz', name:'New Zealand', region:'Oceania', layers:[['bg','#00247D'],['unionjackcanton',0,0,0.5,0.5],['star',0.75,0.25,0.055,'#FF0000'],['star',0.88,0.42,0.04,'#FF0000'],['star',0.80,0.65,0.05,'#FF0000'],['star',0.65,0.80,0.045,'#FF0000']]},
+        {id:'pg', name:'Papua New Guinea', region:'Oceania', layers:[['tri',[[0,0],[1,0],[1,1]],'#CE1126'],['tri',[[0,0],[1,1],[0,1]],'#000000'],['star',0.18,0.68,0.035,'#FCD116'],['star',0.30,0.55,0.03,'#FCD116'],['star',0.15,0.42,0.025,'#FCD116'],['star',0.28,0.85,0.03,'#FCD116'],['star',0.42,0.75,0.022,'#FCD116']]},
+        {id:'ws', name:'Samoa', region:'Oceania', layers:[['bg','#CE1126'],['rect',0,0,0.5,0.5,'#002B7F'],['star',0.10,0.10,0.035,'#FFFFFF'],['star',0.32,0.06,0.025,'#FFFFFF'],['star',0.40,0.22,0.035,'#FFFFFF'],['star',0.20,0.36,0.03,'#FFFFFF'],['star',0.30,0.15,0.02,'#FFFFFF']]},
+        {id:'pw', name:'Palau', region:'Oceania', layers:[['bg','#4AADD6'],['circle',0.42,0.5,0.2,'#FFDE00']]},
+        {id:'to', name:'Tonga', region:'Oceania', layers:[['bg','#C10000'],['rect',0,0,0.42,0.55,'#FFFFFF'],['rect',0.155,0,0.11,0.55,'#C10000'],['rect',0,0.215,0.42,0.12,'#C10000']]},
+    ];
+    const FLAG_BY_ID = {};
+    FLAGS.forEach(f => FLAG_BY_ID[f.id] = f);
+
+    // ── Low-level canvas primitives (absolute pixel coordinates) ───────────
+    function absStar(ctx, cx, cy, rOuter, color, points, rotDeg, innerRatio) {
+        points = points || 5;
+        rotDeg = (rotDeg === undefined) ? -90 : rotDeg;
+        innerRatio = (innerRatio === undefined) ? 0.5 : innerRatio;
+        const rot = rotDeg * Math.PI / 180;
+        const rInner = rOuter * innerRatio;
+        ctx.beginPath();
+        for (let i = 0; i < points * 2; i++) {
+            const r = (i % 2 === 0) ? rOuter : rInner;
+            const a = rot + i * Math.PI / points;
+            const px = cx + r * Math.cos(a), py = cy + r * Math.sin(a);
+            if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        }
+        ctx.closePath();
+        ctx.fillStyle = color;
+        ctx.fill();
+    }
+
+    function drawSun(ctx, X, Y, R, color, rays) {
+        ctx.fillStyle = color;
+        ctx.beginPath(); ctx.arc(X, Y, R, 0, Math.PI * 2); ctx.fill();
+        const rayLen = R * 0.9, rayW = R * 0.32;
+        for (let i = 0; i < rays; i++) {
+            const a = i * (Math.PI * 2 / rays);
+            ctx.save();
+            ctx.translate(X, Y); ctx.rotate(a);
+            ctx.beginPath();
+            ctx.moveTo(R * 0.85, -rayW / 2);
+            ctx.lineTo(R + rayLen, 0);
+            ctx.lineTo(R * 0.85, rayW / 2);
+            ctx.closePath(); ctx.fill();
+            ctx.restore();
+        }
+    }
+
+    function drawUnionPattern(ctx, X, Y, W, H) {
+        ctx.save();
+        ctx.beginPath(); ctx.rect(X, Y, W, H); ctx.clip();
+        ctx.fillStyle = '#00247D'; ctx.fillRect(X, Y, W, H);
+        ctx.lineCap = 'butt';
+        ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = H * 0.22;
+        ctx.beginPath(); ctx.moveTo(X, Y); ctx.lineTo(X + W, Y + H); ctx.moveTo(X + W, Y); ctx.lineTo(X, Y + H); ctx.stroke();
+        ctx.strokeStyle = '#CF142B'; ctx.lineWidth = H * 0.09;
+        ctx.beginPath(); ctx.moveTo(X, Y); ctx.lineTo(X + W, Y + H); ctx.moveTo(X + W, Y); ctx.lineTo(X, Y + H); ctx.stroke();
+        ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = H * 0.34;
+        ctx.beginPath(); ctx.moveTo(X + W / 2, Y); ctx.lineTo(X + W / 2, Y + H); ctx.moveTo(X, Y + H / 2); ctx.lineTo(X + W, Y + H / 2); ctx.stroke();
+        ctx.strokeStyle = '#CF142B'; ctx.lineWidth = H * 0.14;
+        ctx.beginPath(); ctx.moveTo(X + W / 2, Y); ctx.lineTo(X + W / 2, Y + H); ctx.moveTo(X, Y + H / 2); ctx.lineTo(X + W, Y + H / 2); ctx.stroke();
+        ctx.restore();
+    }
+
+    function drawTaegeuk(ctx, X, Y, R) {
+        ctx.save();
+        ctx.beginPath(); ctx.arc(X, Y, R, 0, Math.PI * 2); ctx.clip();
+        const k = R * 1.6;
+        ctx.save();
+        ctx.translate(X, Y); ctx.rotate(Math.PI / 4);
+        ctx.fillStyle = '#0047A0'; ctx.fillRect(-k, -k, k * 2, k);
+        ctx.fillStyle = '#CD2E3A'; ctx.fillRect(-k, 0, k * 2, k);
+        ctx.restore();
+        const off = R * 0.3536;
+        ctx.fillStyle = '#CD2E3A';
+        ctx.beginPath(); ctx.arc(X + off, Y - off, R * 0.5, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#0047A0';
+        ctx.beginPath(); ctx.arc(X - off, Y + off, R * 0.5, 0, Math.PI * 2); ctx.fill();
+        ctx.restore();
+    }
+
+    function drawUSA(ctx, x, y, w, h) {
+        const stripes = 13, bandH = h / stripes;
+        for (let i = 0; i < stripes; i++) {
+            ctx.fillStyle = (i % 2 === 0) ? '#B31942' : '#FFFFFF';
+            ctx.fillRect(x, y + i * bandH, w, bandH);
+        }
+        const cw = w * 0.42, ch = bandH * 7;
+        ctx.fillStyle = '#0A3161'; ctx.fillRect(x, y, cw, ch);
+        const rows = 5, cols = 6;
+        const marginX = cw * 0.12, marginY = ch * 0.12;
+        const availW = cw - 2 * marginX, availH = ch - 2 * marginY;
+        const starR = Math.min(availW / cols, availH / rows) * 0.36;
+        for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < cols; c++) {
+                const sx = x + marginX + (c + 0.5) * (availW / cols);
+                const sy = y + marginY + (r + 0.5) * (availH / rows);
+                absStar(ctx, sx, sy, starR, '#FFFFFF', 5, -90, 0.5);
+            }
+        }
+    }
+
+    // ── Flag layer interpreter (normalized 0..1 coords → absolute pixels) ──
+    function drawFlagLayers(ctx, flag, x, y, w, h) {
+        function abs(fx, fy) { return [x + fx * w, y + fy * h]; }
+        flag.layers.forEach(layer => {
+            const verb = layer[0], a = layer.slice(1);
+            switch (verb) {
+                case 'bg':
+                    ctx.fillStyle = a[0]; ctx.fillRect(x, y, w, h);
+                    break;
+                case 'hstripes': {
+                    const colors = a[0], weights = a[1] || colors.map(() => 1);
+                    const total = weights.reduce((s, v) => s + v, 0);
+                    let cy = y;
+                    colors.forEach((c, i) => { const bh = h * weights[i] / total; ctx.fillStyle = c; ctx.fillRect(x, cy, w, bh); cy += bh; });
+                    break;
+                }
+                case 'vstripes': {
+                    const colors = a[0], weights = a[1] || colors.map(() => 1);
+                    const total = weights.reduce((s, v) => s + v, 0);
+                    let cx2 = x;
+                    colors.forEach((c, i) => { const bw = w * weights[i] / total; ctx.fillStyle = c; ctx.fillRect(cx2, y, bw, h); cx2 += bw; });
+                    break;
+                }
+                case 'rect': {
+                    const [fx, fy, fw, fh, c] = a;
+                    ctx.fillStyle = c; ctx.fillRect(x + fx * w, y + fy * h, fw * w, fh * h);
+                    break;
+                }
+                case 'tri': {
+                    const [pts, c] = a;
+                    ctx.beginPath();
+                    pts.forEach((p, i) => { const [ax, ay] = abs(p[0], p[1]); if (i === 0) ctx.moveTo(ax, ay); else ctx.lineTo(ax, ay); });
+                    ctx.closePath(); ctx.fillStyle = c; ctx.fill();
+                    break;
+                }
+                case 'circle': {
+                    const [cx2, cy2, r, c] = a;
+                    ctx.beginPath(); ctx.arc(x + cx2 * w, y + cy2 * h, r * h, 0, Math.PI * 2); ctx.fillStyle = c; ctx.fill();
+                    break;
+                }
+                case 'ring': {
+                    const [cx2, cy2, r, lw, c] = a;
+                    ctx.beginPath(); ctx.arc(x + cx2 * w, y + cy2 * h, r * h, 0, Math.PI * 2); ctx.strokeStyle = c; ctx.lineWidth = lw * h; ctx.stroke();
+                    break;
+                }
+                case 'star': {
+                    const [cx2, cy2, r, c, points, rot, inner] = a;
+                    absStar(ctx, x + cx2 * w, y + cy2 * h, r * h, c, points, rot, inner);
+                    break;
+                }
+                case 'cross': {
+                    const [c, vFrac, thick] = a;
+                    const bar = thick * h;
+                    ctx.fillStyle = c;
+                    ctx.fillRect(x + vFrac * w - bar / 2, y, bar, h);
+                    ctx.fillRect(x, y + h / 2 - bar / 2, w, bar);
+                    break;
+                }
+                case 'swiss': {
+                    const armT = h * 0.20, armL = h * 0.62;
+                    const ccx = x + w / 2, ccy = y + h / 2;
+                    ctx.fillStyle = a[0];
+                    ctx.fillRect(ccx - armT / 2, ccy - armL / 2, armT, armL);
+                    ctx.fillRect(ccx - armL / 2, ccy - armT / 2, armL, armT);
+                    break;
+                }
+                case 'crescent': {
+                    const [cx2, cy2, r, offset, c] = a;
+                    const X = x + cx2 * w, Y = y + cy2 * h, R = r * h;
+                    ctx.beginPath(); ctx.arc(X, Y, R, 0, Math.PI * 2); ctx.fillStyle = c; ctx.fill();
+                    ctx.save();
+                    ctx.globalCompositeOperation = 'destination-out';
+                    ctx.beginPath(); ctx.arc(X + offset * h, Y, R * 0.82, 0, Math.PI * 2); ctx.fill();
+                    ctx.restore();
+                    break;
+                }
+                case 'sun': {
+                    const [cx2, cy2, r, c, rays] = a;
+                    drawSun(ctx, x + cx2 * w, y + cy2 * h, r * h, c, rays || 16);
+                    break;
+                }
+                case 'unionjack':
+                    drawUnionPattern(ctx, x, y, w, h);
+                    break;
+                case 'unionjackcanton': {
+                    const [bx, by, bw, bh] = a;
+                    drawUnionPattern(ctx, x + bx * w, y + by * h, bw * w, bh * h);
+                    break;
+                }
+                case 'taegeuk': {
+                    const [cx2, cy2, r] = a;
+                    drawTaegeuk(ctx, x + cx2 * w, y + cy2 * h, r * h);
+                    break;
+                }
+                case 'usa':
+                    drawUSA(ctx, x, y, w, h);
+                    break;
+            }
+        });
+    }
+
+    // ── Pixelation reveal renderer ───────────────────────────────────────
+    // Each round the flag is drawn once at full detail onto an offscreen
+    // "source" canvas. Every frame we resample that source down to a tiny
+    // canvas (a handful of cells) and blow it back up with smoothing off —
+    // the classic mosaic-pixelate trick — then shrink the cell count over
+    // time until it matches source resolution, i.e. crisp.
+    const SRC_W = 180, SRC_H = 120;
+    const sourceCanvas = document.createElement('canvas');
+    sourceCanvas.width = SRC_W; sourceCanvas.height = SRC_H;
+    const sourceCtx = sourceCanvas.getContext('2d');
+    const tinyCanvas = document.createElement('canvas');
+    const tinyCtx = tinyCanvas.getContext('2d');
+
+    const flagCanvas = wrapper.querySelector('#flag-canvas');
+    const flagCtx = flagCanvas.getContext('2d');
+
+    function loadFlagSource(country) {
+        sourceCtx.clearRect(0, 0, SRC_W, SRC_H);
+        drawFlagLayers(sourceCtx, country, 0, 0, SRC_W, SRC_H);
+    }
+
+    function renderPixelFrame(progress) {
+        const eased = progress * progress; // easeInQuad — stays blocky early, resolves faster near the end
+        let cells = Math.max(4, Math.round(4 + eased * (SRC_W - 4)));
+        if (progress >= 1) cells = SRC_W;
+        flagCtx.clearRect(0, 0, flagCanvas.width, flagCanvas.height);
+        if (cells >= SRC_W) {
+            flagCtx.imageSmoothingEnabled = true;
+            flagCtx.drawImage(sourceCanvas, 0, 0, flagCanvas.width, flagCanvas.height);
+        } else {
+            const cellsY = Math.max(2, Math.round(cells * (SRC_H / SRC_W)));
+            tinyCanvas.width = cells; tinyCanvas.height = cellsY;
+            tinyCtx.imageSmoothingEnabled = true;
+            tinyCtx.drawImage(sourceCanvas, 0, 0, SRC_W, SRC_H, 0, 0, cells, cellsY);
+            flagCtx.imageSmoothingEnabled = false;
+            flagCtx.drawImage(tinyCanvas, 0, 0, cells, cellsY, 0, 0, flagCanvas.width, flagCanvas.height);
+        }
+    }
+
+    // ── Audio ─────────────────────────────────────────────────────────────
+    let audioCtx = null, soundEnabled = true;
+    function initAudio() {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+    }
+    const SND = {
+        click:      ['triangle', 500, 320, 0.08, 0.05],
+        tick:       ['sine', 800, 800, 0.05, 0.028],
+        tickUrgent: ['square', 1000, 1000, 0.06, 0.05],
+        correct:    ['sine', 500, 1200, 0.22, 0.14],
+        buzz:       ['sawtooth', 220, 90, 0.25, 0.16],
+        streak:     ['triangle', 700, 1400, 0.3, 0.12],
+        timeout:    ['sawtooth', 300, 120, 0.35, 0.14],
+    };
+    function playSound(type) {
+        if (!audioCtx || !soundEnabled) return;
+        const p = SND[type];
+        if (!p) return;
+        const now = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.type = p[0];
+        osc.frequency.setValueAtTime(p[1], now);
+        osc.frequency.exponentialRampToValueAtTime(Math.max(40, p[2]), now + p[3]);
+        gain.gain.setValueAtTime(p[4], now);
+        gain.gain.linearRampToValueAtTime(0, now + p[3]);
+        osc.start(now); osc.stop(now + p[3]);
+    }
+    function playFanfare(good) {
+        if (!audioCtx || !soundEnabled) return;
+        const now = audioCtx.currentTime;
+        const notes = good ? [523.25, 659.25, 784.0, 1046.5, 784.0, 1046.5, 1318.5] : [523.25, 659.25, 784.0];
+        notes.forEach((freq, i) => {
+            const t0 = now + i * 0.12;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(freq, t0);
+            gain.gain.setValueAtTime(0.16, t0);
+            gain.gain.linearRampToValueAtTime(0, t0 + 0.32);
+            osc.start(t0); osc.stop(t0 + 0.32);
+        });
+    }
+
+    // ── Utilities ─────────────────────────────────────────────────────────
+    function shuffleArr(a, rng) {
+        rng = rng || Math.random;
+        for (let i = a.length - 1; i > 0; i--) {
+            const j = Math.floor(rng() * (i + 1));
+            const t = a[i]; a[i] = a[j]; a[j] = t;
+        }
+        return a;
+    }
+    function mulberry32(seed) {
+        return function () {
+            seed |= 0; seed = (seed + 0x6D2B79F5) | 0;
+            let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+            t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+            return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+        };
+    }
+    function seedFromDateStr(str) {
+        let h = 0;
+        for (let i = 0; i < str.length; i++) h = (Math.imul(31, h) + str.charCodeAt(i)) | 0;
+        return h >>> 0;
+    }
+    function pad2(n) { return String(n).padStart(2, '0'); }
+    function dateStr(d) { return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
+    function todayStr() { return dateStr(new Date()); }
+    function yesterdayStr() { const d = new Date(); d.setDate(d.getDate() - 1); return dateStr(d); }
+
+    function normalizeGuess(str) {
+        return String(str || '')
+            .toLowerCase()
+            .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+            .replace(/[^a-z ]/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim()
+            .replace(/^the /, '');
+    }
+    function matchesCountry(normGuess, country) {
+        if (!normGuess) return false;
+        if (normGuess === normalizeGuess(country.name)) return true;
+        return (country.aliases || []).some(a => normalizeGuess(a) === normGuess);
+    }
+
+    function lsGet(key, fallback) {
+        try { const v = localStorage.getItem(key); return v === null ? fallback : JSON.parse(v); }
+        catch (e) { return fallback; }
+    }
+    function lsSet(key, val) {
+        try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) {}
+    }
+    function hsKey(mode, region) { return 'pixelPassport_hs_' + mode + '_' + region; }
+    function getHighScore(key) { return lsGet(key, 0); }
+    function setHighScore(key, val) { lsSet(key, val); }
+    function dailyKey(date) { return 'pixelPassport_daily_' + date; }
+    function getDailyResult(date) { return lsGet(dailyKey(date), null); }
+    function setDailyResult(date, score) { lsSet(dailyKey(date), { score: score, ts: Date.now() }); }
+    const STREAK_KEY = 'pixelPassport_dailyStreak';
+    function getStreakData() { return lsGet(STREAK_KEY, { current: 0, best: 0, last: null }); }
+    function setStreakData(d) { lsSet(STREAK_KEY, d); }
+    const SETTINGS_KEY = 'pixelPassport_settings';
+    function loadSettings() { return lsGet(SETTINGS_KEY, { answerMode: 'mc', region: 'World' }); }
+    function saveSettings() { lsSet(SETTINGS_KEY, settings); }
+
+    // ── Scoring constants ────────────────────────────────────────────────
+    const REVEAL_MS = 9000, GRACE_MS = 3000;
+    const TYPE_MAX = 1000, TYPE_MIN = 200, TYPE_PENALTY_CAP = 400;
+    const MC_MAX = 600, MC_MIN = 120, MC_PENALTY_CAP = 250;
+
+    function poolFor(regionKey) {
+        return regionKey === 'World' ? FLAGS.slice() : FLAGS.filter(f => f.region === regionKey);
+    }
+    function pickMCOptions(correct, pool) {
+        let candidates = pool.filter(c => c.id !== correct.id);
+        if (candidates.length < 3) candidates = FLAGS.filter(c => c.id !== correct.id);
+        shuffleArr(candidates);
+        const opts = [correct].concat(candidates.slice(0, 3));
+        shuffleArr(opts);
+        return opts;
+    }
+
+    // ── State ─────────────────────────────────────────────────────────────
+    let settings = loadSettings();
+    let gameState = 'MENU'; // MENU | INSTRUCTIONS | PLAY | PAUSE | WIN
+    let pausedAt = 0;
+    let session = null;
+    let currentPool = [];
+    let lastTickSecond = -1;
+
+    // ── UI helpers ────────────────────────────────────────────────────────
+    const getUI = id => wrapper.querySelector('#' + id);
+    const ALL_LAYERS = ['menu-main', 'menu-inst', 'menu-pause', 'menu-win', 'game-screen'];
+    function showUI(id) {
+        ALL_LAYERS.forEach(l => getUI(l).classList.toggle('hidden', l !== id));
+    }
+
+    const pipsEl = getUI('pips');
+    const hudScoreEl = getUI('hud-score');
+    const hudStreakEl = getUI('hud-streak');
+    const mcAnswerEl = getUI('mc-answer');
+    const typeFormEl = getUI('type-answer');
+    const typeInputEl = getUI('type-input');
+    const revealFillEl = getUI('reveal-fill');
+    const countdownChipEl = getUI('countdown-chip');
+    const resultBannerEl = getUI('result-banner');
+    const resultIconEl = getUI('result-icon');
+    const resultTitleEl = getUI('result-title');
+    const resultSubEl = getUI('result-sub');
+    const resultPointsEl = getUI('result-points');
+
+    // Populate the free-type autocomplete list once — every country name.
+    getUI('country-list').innerHTML = FLAGS.map(f => '<option value="' + f.name + '">').join('');
+
+    function generatePips(n) {
+        pipsEl.innerHTML = '';
+        for (let i = 0; i < n; i++) {
+            const d = document.createElement('div');
+            d.className = 'pp-pip';
+            pipsEl.appendChild(d);
+        }
+    }
+    function updatePips() {
+        const pips = pipsEl.children;
+        session.rounds.forEach((c, i) => {
+            const el = pips[i];
+            if (!el) return;
+            el.classList.toggle('current', i === session.idx && !session.answered);
+            const r = session.results[i];
+            el.classList.toggle('correct', !!r && r.correct);
+            el.classList.toggle('missed', !!r && !r.correct);
+        });
+    }
+    function updateHUD() {
+        hudScoreEl.textContent = session.score.toLocaleString();
+        const mult = 1 + Math.min(4, Math.floor(session.streak / 3)) * 0.25;
+        hudStreakEl.textContent = session.streak > 0 ? ('streak ' + session.streak + (mult > 1 ? ' · ' + mult.toFixed(2) + '×' : '')) : '';
+    }
+
+    function refreshMenuHighScore() {
+        const key = hsKey(settings.answerMode, settings.region);
+        const best = getHighScore(key);
+        getUI('hs-line').innerHTML = 'Best score (' + (settings.answerMode === 'type' ? 'Type It Out' : 'Multiple Choice') + ' · ' + settings.region + '): <b>' + best.toLocaleString() + '</b>';
+        const pool = poolFor(settings.region);
+        getUI('round-count-label').textContent = Math.min(10, pool.length);
+    }
+    function refreshDailyBadges() {
+        const today = todayStr();
+        const played = getDailyResult(today);
+        const streakData = getStreakData();
+        const badges = [];
+        if (played) badges.push('<span class="pp-badge">Today: ' + played.score.toLocaleString() + ' pts</span>');
+        if (streakData.current > 0) badges.push('<span class="pp-badge">&#128293; ' + streakData.current + '-day streak</span>');
+        getUI('daily-badges').innerHTML = badges.join('');
+    }
+
+    function setActiveChips() {
+        wrapper.querySelectorAll('#answer-mode-toggle .pp-chip').forEach(b => b.classList.toggle('active', b.dataset.mode === settings.answerMode));
+        wrapper.querySelectorAll('#region-toggle .pp-chip').forEach(b => b.classList.toggle('active', b.dataset.region === settings.region));
+    }
+
+    // ── Round flow ────────────────────────────────────────────────────────
+    function buildAnswerUI(country) {
+        const mode = session.answerModeForRun;
+        if (mode === 'mc') {
+            mcAnswerEl.style.display = 'grid';
+            typeFormEl.style.display = 'none';
+            const opts = pickMCOptions(country, currentPool);
+            mcAnswerEl.innerHTML = '';
+            opts.forEach((c, i) => {
+                const b = document.createElement('button');
+                b.className = 'pp-mc-btn';
+                b.type = 'button';
+                b.textContent = (i + 1) + '. ' + c.name;
+                b.dataset.id = c.id;
+                b.onclick = () => handleMCGuess(c, b);
+                mcAnswerEl.appendChild(b);
+            });
+        } else {
+            mcAnswerEl.style.display = 'none';
+            typeFormEl.style.display = 'flex';
+            typeInputEl.value = '';
+            typeInputEl.disabled = false;
+            typeInputEl.classList.remove('shake');
+            setTimeout(() => typeInputEl.focus(), 30);
+        }
+    }
+
+    function startRound() {
+        const country = session.rounds[session.idx];
+        loadFlagSource(country);
+        session.revealStart = performance.now();
+        session.answered = false;
+        session.wrongCount = 0;
+        lastTickSecond = -1;
+        resultBannerEl.classList.remove('show');
+        renderPixelFrame(0);
+        updateRevealBar(0);
+        buildAnswerUI(country);
+        updatePips();
+        updateHUD();
+    }
+
+    function updateRevealBar(progress) {
+        revealFillEl.style.width = (Math.min(1, progress) * 100) + '%';
+    }
+
+    function handleMCGuess(country, btnEl) {
+        if (session.answered) return;
+        const current = session.rounds[session.idx];
+        if (country.id === current.id) {
+            btnEl.classList.add('correct');
+            Array.from(mcAnswerEl.children).forEach(b => b.disabled = true);
+            resolveRound(true, performance.now() - session.revealStart);
+        } else {
+            btnEl.classList.add('wrong');
+            btnEl.disabled = true;
+            session.wrongCount++;
+            playSound('buzz');
+        }
+    }
+
+    typeFormEl.addEventListener('submit', e => {
+        e.preventDefault();
+        if (session.answered || gameState !== 'PLAY') return;
+        const current = session.rounds[session.idx];
+        const norm = normalizeGuess(typeInputEl.value);
+        if (matchesCountry(norm, current)) {
+            resolveRound(true, performance.now() - session.revealStart);
+        } else {
+            session.wrongCount++;
+            playSound('buzz');
+            typeInputEl.classList.remove('shake'); void typeInputEl.offsetWidth; typeInputEl.classList.add('shake');
+            typeInputEl.value = '';
+        }
+    });
+
+    function resolveRound(correct, elapsedMs) {
+        if (session.answered) return;
+        session.answered = true;
+        renderPixelFrame(1);
+        updateRevealBar(1);
+        const country = session.rounds[session.idx];
+        const mode = session.answerModeForRun;
+        let points = 0;
+        if (correct) {
+            const maxP = mode === 'type' ? TYPE_MAX : MC_MAX;
+            const minP = mode === 'type' ? TYPE_MIN : MC_MIN;
+            const capP = mode === 'type' ? TYPE_PENALTY_CAP : MC_PENALTY_CAP;
+            const t = Math.min(elapsedMs, REVEAL_MS);
+            let base = Math.round(minP + (maxP - minP) * (1 - t / REVEAL_MS));
+            if (session.wrongCount > 0) base = Math.min(base, capP);
+            const prevMult = 1 + Math.min(4, Math.floor(session.streak / 3)) * 0.25;
+            session.streak++;
+            session.bestStreak = Math.max(session.bestStreak, session.streak);
+            const mult = 1 + Math.min(4, Math.floor(session.streak / 3)) * 0.25;
+            points = Math.round(base * mult);
+            session.score += points;
+            session.correctCount++;
+            session.speedSamples.push(t / REVEAL_MS);
+            playSound('correct');
+            if (mult > prevMult) setTimeout(() => playSound('streak'), 160);
+        } else {
+            session.streak = 0;
+            playSound('timeout');
+        }
+        session.results[session.idx] = { id: country.id, correct: correct, points: points };
+        updatePips();
+        updateHUD();
+        showResultBanner(correct, country, points);
+        clearTimeout(session.advanceTimer);
+        session.advanceTimer = setTimeout(nextRoundOrEnd, 1900);
+    }
+
+    function showResultBanner(correct, country, points) {
+        resultIconEl.innerHTML = correct ? '&#10003;' : '&#10007;';
+        resultIconEl.style.color = correct ? '#3DDC84' : '#FF4D4D';
+        resultTitleEl.textContent = correct ? 'Correct!' : "Time's up";
+        resultTitleEl.style.color = correct ? '#3DDC84' : '#FF4D4D';
+        resultSubEl.textContent = country.name;
+        resultPointsEl.textContent = correct ? ('+' + points.toLocaleString()) : '+0';
+        resultPointsEl.style.color = correct ? '#F2B84B' : '#8a86a0';
+        resultBannerEl.classList.add('show');
+    }
+
+    getUI('btn-next').addEventListener('click', () => { clearTimeout(session.advanceTimer); nextRoundOrEnd(); });
+
+    function nextRoundOrEnd() {
+        clearTimeout(session.advanceTimer);
+        session.idx++;
+        if (session.idx >= session.rounds.length) endGame();
+        else startRound();
+    }
+
+    function maybeTick(secLeftTotal) {
+        if (secLeftTotal !== lastTickSecond && secLeftTotal <= 5 && secLeftTotal >= 0) {
+            lastTickSecond = secLeftTotal;
+            if (secLeftTotal > 0) playSound(secLeftTotal <= 3 ? 'tickUrgent' : 'tick');
+        }
+    }
+
+    // ── Session lifecycle ────────────────────────────────────────────────
+    function startSession(mode) {
+        initAudio();
+        session = {
+            mode: mode, idx: 0, score: 0, streak: 0, bestStreak: 0, correctCount: 0,
+            results: [], rounds: [], revealStart: 0, answered: false, wrongCount: 0,
+            speedSamples: [], advanceTimer: null, answerModeForRun: 'mc'
+        };
+        if (mode === 'classic') {
+            currentPool = poolFor(settings.region);
+            const n = Math.min(10, currentPool.length);
+            const shuffled = shuffleArr(currentPool.slice());
+            session.rounds = shuffled.slice(0, n);
+            session.answerModeForRun = settings.answerMode;
+        } else {
+            currentPool = FLAGS.slice();
+            const rng = mulberry32(seedFromDateStr(todayStr()));
+            const shuffled = shuffleArr(currentPool.slice(), rng);
+            session.rounds = shuffled.slice(0, 10);
+            session.answerModeForRun = 'mc';
+        }
+        gameState = 'PLAY';
+        generatePips(session.rounds.length);
+        showUI('game-screen');
+        startRound();
+    }
+
+    function endGame() {
+        gameState = 'WIN';
+        const total = session.rounds.length;
+        const avgSpeed = session.speedSamples.length
+            ? Math.round((1 - session.speedSamples.reduce((a, b) => a + b, 0) / session.speedSamples.length) * 100)
+            : 0;
+        getUI('win-total').textContent = session.score.toLocaleString();
+        getUI('win-acc').textContent = session.correctCount + '/' + total;
+        getUI('win-streak').textContent = session.bestStreak;
+        getUI('win-avg').textContent = session.speedSamples.length ? (avgSpeed + '% clarity') : '—';
+
+        let note = '', titleText = 'Passport Stamped!', noteClass = '';
+        if (session.mode === 'classic') {
+            const key = hsKey(session.answerModeForRun, settings.region);
+            const prevBest = getHighScore(key);
+            const isNew = session.score > prevBest;
+            if (isNew) setHighScore(key, session.score);
+            note = isNew
+                ? 'New high score for ' + (session.answerModeForRun === 'type' ? 'Type It Out' : 'Multiple Choice') + ' · ' + settings.region + '! Previous best: ' + prevBest.toLocaleString() + '.'
+                : 'High score for this mode: ' + Math.max(prevBest, session.score).toLocaleString() + '.';
+            noteClass = isNew ? 'new-best' : '';
+        } else {
+            const today = todayStr();
+            const already = getDailyResult(today);
+            if (!already) {
+                setDailyResult(today, session.score);
+                const data = getStreakData();
+                const y = yesterdayStr();
+                if (data.last === y) data.current += 1;
+                else if (data.last !== today) data.current = 1;
+                data.best = Math.max(data.best, data.current);
+                data.last = today;
+                setStreakData(data);
+                titleText = 'Daily Passport Stamped!';
+                note = '&#128293; ' + data.current + '-day streak. Come back tomorrow for a new set of 10.';
+            } else {
+                titleText = 'Daily Passport';
+                note = "Already recorded today's score (" + already.score.toLocaleString() + '). This run was just for practice.';
+            }
+        }
+        getUI('win-title').textContent = titleText;
+        getUI('win-note').innerHTML = note;
+        getUI('win-note').className = 'pp-win-note ' + noteClass;
+
+        refreshMenuHighScore();
+        refreshDailyBadges();
+        playFanfare(session.correctCount === total);
+        showUI('menu-win');
+    }
+
+    // ── Main loop ─────────────────────────────────────────────────────────
+    function frame(now) {
+        requestAnimationFrame(frame);
+        if (gameState !== 'PLAY' || !session) return;
+        const elapsed = now - session.revealStart;
+        if (!session.answered) {
+            const clamped = Math.min(elapsed, REVEAL_MS);
+            const progress = clamped / REVEAL_MS;
+            renderPixelFrame(progress);
+            updateRevealBar(progress);
+            const secLeftTotal = Math.max(0, Math.ceil((REVEAL_MS + GRACE_MS - elapsed) / 1000));
+            countdownChipEl.textContent = secLeftTotal + 's';
+            maybeTick(secLeftTotal);
+            if (elapsed >= REVEAL_MS + GRACE_MS) resolveRound(false, REVEAL_MS);
+        }
+    }
+    requestAnimationFrame(frame);
+
+    // ── Pause ─────────────────────────────────────────────────────────────
+    function openPause() {
+        if (gameState !== 'PLAY') return;
+        pausedAt = performance.now();
+        gameState = 'PAUSE';
+        showUI('menu-pause');
+    }
+    function resumeGame() {
+        const delta = performance.now() - pausedAt;
+        if (session) session.revealStart += delta;
+        gameState = 'PLAY';
+        showUI('game-screen');
+    }
+
+    // ── Menu wiring ───────────────────────────────────────────────────────
+    setActiveChips();
+    refreshMenuHighScore();
+    refreshDailyBadges();
+
+    wrapper.querySelectorAll('#answer-mode-toggle .pp-chip').forEach(btn => {
+        btn.addEventListener('click', () => {
+            playSound('click');
+            settings.answerMode = btn.dataset.mode;
+            saveSettings(); setActiveChips(); refreshMenuHighScore();
+        });
+    });
+    wrapper.querySelectorAll('#region-toggle .pp-chip').forEach(btn => {
+        btn.addEventListener('click', () => {
+            playSound('click');
+            settings.region = btn.dataset.region;
+            saveSettings(); setActiveChips(); refreshMenuHighScore();
+        });
+    });
+
+    getUI('btn-play').addEventListener('click', () => startSession('classic'));
+    getUI('btn-daily').addEventListener('click', () => startSession('daily'));
+    getUI('btn-inst').addEventListener('click', () => { gameState = 'INSTRUCTIONS'; showUI('menu-inst'); });
+    getUI('btn-inst-back').addEventListener('click', () => { gameState = 'MENU'; showUI('menu-main'); });
+    getUI('btn-pause-open').addEventListener('click', openPause);
+    getUI('btn-resume').addEventListener('click', resumeGame);
+    getUI('btn-pause-restart').addEventListener('click', () => { startSession(session.mode); });
+    getUI('btn-pause-quit').addEventListener('click', () => { gameState = 'MENU'; showUI('menu-main'); refreshMenuHighScore(); refreshDailyBadges(); });
+    getUI('btn-play-again').addEventListener('click', () => startSession(session.mode));
+    getUI('btn-win-menu').addEventListener('click', () => { gameState = 'MENU'; showUI('menu-main'); });
+
+    function toggleSound() {
+        soundEnabled = !soundEnabled;
+        initAudio();
+        getUI('btn-sound-main').innerHTML = soundEnabled ? '&#128266;' : '&#128263;';
+    }
+    getUI('btn-sound-main').addEventListener('click', toggleSound);
+
+    // ── Keyboard ──────────────────────────────────────────────────────────
+    wrapper.addEventListener('keydown', e => {
+        if (e.key === 'Escape') {
+            if (gameState === 'PLAY') openPause();
+            else if (gameState === 'PAUSE') resumeGame();
+            return;
+        }
+        if (gameState === 'PLAY' && session && session.answerModeForRun === 'mc' && !session.answered) {
+            const n = parseInt(e.key, 10);
+            if (n >= 1 && n <= mcAnswerEl.children.length) {
+                const btn = mcAnswerEl.children[n - 1];
+                if (!btn.disabled) btn.click();
+            }
+        }
+    });
+    wrapper.addEventListener('click', () => wrapper.focus());
+})();
+</script>
+
+</body>
+</html>
