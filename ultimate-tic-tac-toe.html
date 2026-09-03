@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Ultimate Tic-Tac-Toe | Mini Games Planet</title>
+    <title>Ultimate Tic-Tac-Toe | 10-Bit Games</title>
     <meta name="description" content="Play Ultimate Tic-Tac-Toe, a bigger and more strategic twist on the classic game. Win 3 small boards in a row to claim the large grid — but every move you make decides which board your opponent must play in next.">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -21,10 +21,13 @@
     </style>
 </head>
 <body class="min-h-screen bg-slate-900 text-slate-100 font-sans flex flex-col items-center py-3 px-4 m-0 overflow-x-hidden">
+    <link rel="icon" href="assets/favicon-192.png" type="image/png">
+    <link rel="icon" href="favicon.ico" sizes="any">
+    <link rel="apple-touch-icon" href="assets/favicon-apple-touch.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Bungee+Shade&family=Karla:wght@700&display=swap" rel="stylesheet">
     <style>
-      .mgp-topbar {
+      .tbg-topbar {
         display: flex;
         align-items: center;
         gap: 0.75rem;
@@ -35,7 +38,7 @@
         margin: -0.75rem -1rem 0.75rem;
       }
 
-      .mgp-topbar a {
+      .tbg-topbar a {
         display: inline-flex;
         align-items: center;
         gap: 0.35rem;
@@ -49,18 +52,18 @@
         border-radius: 999px;
       }
 
-      .mgp-topbar a:hover,
-      .mgp-topbar a:focus-visible {
+      .tbg-topbar a:hover,
+      .tbg-topbar a:focus-visible {
         border-color: #FBF7FF;
       }
 
-      .mgp-topbar a svg {
+      .tbg-topbar a svg {
         width: 14px;
         height: 14px;
         flex-shrink: 0;
       }
 
-      .mgp-topbar .mgp-site-name {
+      .tbg-topbar .tbg-site-name {
         font-family: 'Bungee Shade', 'Karla', Arial, sans-serif;
         color: #FF3EA5;
         font-size: 1.05rem;
@@ -68,14 +71,14 @@
       }
     </style>
 
-    <div class="mgp-topbar">
+    <div class="tbg-topbar">
       <a href="index.html">
         <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <path d="M15 5 L8 12 L15 19" stroke="#FBF7FF" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
         All games
       </a>
-      <span class="mgp-site-name">Mini Games Planet</span>
+      <span class="tbg-site-name">10-Bit Games</span>
     </div>
 
     <header class="max-w-2xl w-full text-center mb-2">
