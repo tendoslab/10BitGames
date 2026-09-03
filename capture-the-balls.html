@@ -428,7 +428,7 @@ function updateMech(){
 
 function updateHUD(){
   scoreVal.textContent=score;
-  let h='';for(let i=0;i<3;i++)h+=i<lives?'&#10084;':'&#128420;';
+  let h='';for(let i=0;i<3;i++)h+=`<span style="color:${i<lives?'#FF4D6D':'rgba(255,255,255,0.25)'}">&#9829;</span>`;
   livesRow.innerHTML=h;
 }
 
