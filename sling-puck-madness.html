@@ -55,6 +55,14 @@
         color: #FF3EA5;
         font-size: 1.05rem;
         text-shadow: 0 0 6px rgba(255, 62, 165, 0.5);
+        text-decoration: none;
+        border: none;
+        padding: 0;
+      }
+
+      .tbg-topbar .tbg-site-name:hover,
+      .tbg-topbar .tbg-site-name:focus-visible {
+        text-decoration: underline;
       }
     </style>
 
@@ -65,7 +73,7 @@
         </svg>
         All games
       </a>
-      <span class="tbg-site-name">10-Bit Games</span>
+      <a class="tbg-site-name" href="index.html">10-Bit Games</a>
     </div>
 
     <header class="max-w-2xl w-full text-center mb-2">
@@ -157,6 +165,17 @@
   z-index:10;background:rgba(8,8,20,.91);backdrop-filter:blur(7px);
   overflow-y:auto;padding:16px;
 }
+#sp-scroll-fade {
+  position:absolute;left:0;right:0;bottom:0;height:54px;
+  background:linear-gradient(to bottom, rgba(8,8,20,0), rgba(8,8,20,.9) 75%);
+  pointer-events:none;z-index:11;opacity:0;transition:opacity .25s ease;
+}
+#sp-scroll-fade::before {
+  content:'';position:absolute;left:50%;bottom:11px;transform:translateX(-50%);
+  width:28px;height:3px;border-radius:2px;
+  background:linear-gradient(90deg,#e53935,#ffd54f);opacity:.65;
+}
+#sp-scroll-fade.show { opacity:1; }
 .sp-panel {
   background:linear-gradient(155deg,#181832,#0d0d1e);
   border:1px solid rgba(229,57,53,.28);border-radius:20px;
@@ -386,6 +405,7 @@
       </div>
     </div>
 
+    <div id="sp-scroll-fade" aria-hidden="true"></div>
   </div>
 </div>
 
@@ -457,6 +477,31 @@ var ctx    = canvas.getContext('2d');
 var CW=480, CH=620;
 canvas.width=CW; canvas.height=CH;
 canvas.style.width='100%'; canvas.style.height='auto';
+
+/* Keep the whole board on-screen: cap #sp-game's width so its total
+   rendered height (fixed-height chrome + aspect-ratio'd canvas) never
+   exceeds the visible viewport height, in addition to the existing
+   max-width cap. Recomputed on load/resize so mobile is unaffected
+   (there's normally plenty of vertical room there already). */
+var spGame = document.getElementById('sp-game');
+function fitGameSize(){
+  var topbar = document.getElementById('sp-topbar');
+  var scorebar = document.getElementById('sp-scorebar');
+  var raceBar = document.getElementById('sp-race-bar');
+  var modeBadge = document.getElementById('sp-mode-badge');
+  spGame.style.maxWidth = '';
+  var chromeH = topbar.offsetHeight + scorebar.offsetHeight + modeBadge.offsetHeight +
+    (raceBar.offsetParent!==null ? raceBar.offsetHeight : 0) + 4;
+  var rect = spGame.getBoundingClientRect();
+  var availH = window.innerHeight - rect.top - 14;
+  var maxCanvasH = availH - chromeH;
+  var byHeight = maxCanvasH>0 ? maxCanvasH*(CW/CH) : 620;
+  var byViewportWidth = document.documentElement.clientWidth - 32;
+  var finalW = Math.max(260, Math.min(620, byHeight, byViewportWidth));
+  spGame.style.maxWidth = finalW+'px';
+}
+window.addEventListener('resize', fitGameSize);
+window.addEventListener('orientationchange', fitGameSize);
 
 var WALL=15, PR=19, MID=CH/2, GAP=58;
 var GX1=(CW-GAP)/2, GX2=(CW+GAP)/2, DIV_H=8;
@@ -663,7 +708,8 @@ function drawSling(){
     var pwr=Math.min(d/120,1);
     var tvx=(dx/d)*pwr*MAXSLG*.05*.5, tvy=(dy/d)*pwr*MAXSLG*.05*.5;
     var tx=p.x, ty=p.y;
-    ctx.strokeStyle='rgba(255,213,79,.45)';ctx.lineWidth=1.5;ctx.setLineDash([3,5]);
+    ctx.globalAlpha=1;
+    ctx.strokeStyle='rgba(255,213,79,.55)';ctx.lineWidth=2;ctx.setLineDash([4,5]);
     ctx.beginPath();ctx.moveTo(tx,ty);
     for(var s=0;s<22;s++){tx+=tvx;ty+=tvy;tvx*=.99;tvy*=.99;ctx.lineTo(tx,ty);}
     ctx.stroke();ctx.setLineDash([]);
@@ -841,6 +887,7 @@ function startGame(){
   document.getElementById('sp-mode-badge').textContent=vLabel+' Mode — '+pLabel;
   var rb=document.getElementById('sp-race-bar');
   if(variant==='race'){ rb.classList.add('show'); } else { rb.classList.remove('show'); }
+  fitGameSize();
   refreshDots(); refreshRaceBar(); refreshTurnUI(); showBanner();
   lastT=performance.now();
   if(rafId) cancelAnimationFrame(rafId);
@@ -868,7 +915,7 @@ function hideAllOv(){
 }
 
 window.SPG={
-  init: function(){ setPlayers(1); setVariant('classic'); setDiff('easy'); previewDraw(); },
+  init: function(){ setPlayers(1); setVariant('classic'); setDiff('easy'); fitGameSize(); previewDraw(); },
   startGame: startGame,
   showMenu:  showMenu,
   resume:    resume,
@@ -923,6 +970,32 @@ document.getElementById('sp-helpbtn').addEventListener('click',function(){
   if(rafId){ cancelAnimationFrame(rafId); rafId=null; }
   document.getElementById('ov-help').style.display = 'flex';
 });
+
+/* Subtle "there's more below" fade on the scrollable overlay panels
+   (setup/how-to-play/win screens) so overflow content isn't a silent cliff. */
+(function(){
+  var fade = document.getElementById('sp-scroll-fade');
+  var ovs = Array.prototype.slice.call(document.querySelectorAll('.sp-ov'));
+  function visibleOv(){
+    for(var i=0;i<ovs.length;i++){ if(ovs[i].style.display!=='none') return ovs[i]; }
+    return null;
+  }
+  function updateFade(){
+    var ov=visibleOv();
+    if(!ov){ fade.classList.remove('show'); return; }
+    var overflowing = ov.scrollHeight-ov.clientHeight>6;
+    var atBottom = ov.scrollTop+ov.clientHeight >= ov.scrollHeight-6;
+    fade.classList.toggle('show', overflowing&&!atBottom);
+  }
+  ovs.forEach(function(ov){
+    ov.addEventListener('scroll',updateFade);
+    new MutationObserver(function(){
+      if(ov.style.display!=='none') requestAnimationFrame(updateFade);
+    }).observe(ov,{attributes:true,attributeFilter:['style']});
+  });
+  window.addEventListener('resize',function(){ requestAnimationFrame(updateFade); });
+  requestAnimationFrame(updateFade);
+})();
 
 window.SPG.init();
 

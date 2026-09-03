@@ -64,6 +64,14 @@
         color: #FF3EA5;
         font-size: 1.05rem;
         text-shadow: 0 0 6px rgba(255, 62, 165, 0.5);
+        text-decoration: none;
+        border: none;
+        padding: 0;
+    }
+
+    .tbg-topbar .tbg-site-name:hover,
+    .tbg-topbar .tbg-site-name:focus-visible {
+        text-decoration: underline;
     }
 
     .intro {
@@ -128,7 +136,7 @@
     </svg>
     All games
   </a>
-  <span class="tbg-site-name">10-Bit Games</span>
+  <a class="tbg-site-name" href="index.html">10-Bit Games</a>
 </div>
 
 <div class="intro">
@@ -148,10 +156,10 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
 <title>Capture The Balls</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Orbitron:wght@500;700;800;900&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{--gold:#FFD700;--cyan:#00FFFF;--ui-bg:rgba(0,0,0,0.65);--ui-border:rgba(255,255,255,0.28);--fh:'Fredoka One',cursive;--fb:'Nunito',sans-serif}
+:root{--gold:#FFD700;--cyan:#00FFFF;--ui-bg:rgba(0,0,0,0.65);--ui-border:rgba(255,255,255,0.28);--fh:'Orbitron',sans-serif;--fb:'Nunito',sans-serif}
 html,body{width:100%;height:100%;overflow:hidden;font-family:var(--fb);background:#5DADE2;transition:background 3s ease;touch-action:none;user-select:none;-webkit-user-select:none}
 canvas{display:block;position:absolute;top:0;left:0}
 
@@ -160,7 +168,7 @@ canvas{display:block;position:absolute;top:0;left:0}
 .hud-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;width:100%;pointer-events:none}
 .hud-card{background:var(--ui-bg);border:1.5px solid var(--ui-border);border-radius:14px;padding:7px 12px;color:#fff;text-align:center;min-width:66px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 4px 16px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.14)}
 .hud-card .lbl{font-size:9px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,0.6);margin-bottom:2px}
-#score-val{font-family:var(--fh);font-size:clamp(22px,5vw,34px);line-height:1;color:#fff;transition:color .15s,transform .15s}
+#score-val{font-family:var(--fh);font-weight:800;font-size:clamp(22px,5vw,34px);line-height:1;color:#fff;transition:color .15s,transform .15s}
 #score-val.pop{color:var(--gold);transform:scale(1.4)}
 #lives-row{display:flex;justify-content:center;gap:2px;font-size:clamp(14px,3vw,19px);flex-wrap:nowrap;line-height:1.1}
 .hud-center{display:flex;flex-direction:column;align-items:center;gap:5px;flex:1;pointer-events:none}
@@ -176,32 +184,34 @@ canvas{display:block;position:absolute;top:0;left:0}
 
 /* Powerup bar */
 #pu-wrap{position:absolute;bottom:60px;left:50%;transform:translateX(-50%);width:min(300px,76vw);display:none;flex-direction:column;align-items:center;gap:4px;pointer-events:none}
-#pu-label{font-family:var(--fh);font-size:13px;color:var(--cyan);text-shadow:0 0 10px var(--cyan);letter-spacing:1px}
+#pu-label{font-family:var(--fh);font-weight:700;font-size:12px;color:var(--cyan);text-shadow:-1.5px -1.5px 0 #001318,1.5px -1.5px 0 #001318,-1.5px 1.5px 0 #001318,1.5px 1.5px 0 #001318,0 0 10px var(--cyan);letter-spacing:1px;background:rgba(0,0,0,0.45);padding:3px 12px;border-radius:999px}
 #pu-track{width:100%;height:8px;background:rgba(0,0,0,0.4);border-radius:999px;overflow:hidden;border:1px solid rgba(0,255,255,0.3)}
 #pu-fill{height:100%;width:100%;background:linear-gradient(90deg,#00FFFF,#00BFFF);border-radius:999px;transform-origin:left;box-shadow:0 0 8px var(--cyan);transition:transform .1s linear}
-#pu-alert{position:absolute;top:28%;left:50%;transform:translateX(-50%);font-family:var(--fh);font-size:clamp(20px,6vw,42px);color:var(--cyan);text-shadow:0 0 20px var(--cyan),0 0 40px var(--cyan);letter-spacing:2px;pointer-events:none;opacity:0;transition:opacity .3s;white-space:nowrap}
+#pu-alert{position:absolute;top:28%;left:50%;transform:translateX(-50%);font-family:var(--fh);font-weight:800;font-size:clamp(20px,6vw,42px);color:var(--cyan);text-shadow:-2px -2px 0 #001318,2px -2px 0 #001318,-2px 2px 0 #001318,2px 2px 0 #001318,0 0 20px var(--cyan),0 0 40px var(--cyan);letter-spacing:2px;pointer-events:none;opacity:0;transition:opacity .3s;white-space:nowrap;background:rgba(0,0,0,0.35);padding:6px 18px;border-radius:14px}
 #flash{position:absolute;inset:0;pointer-events:none;z-index:15;opacity:0;transition:opacity .08s}
 
 /* Overlays */
 .ov{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:20;background:rgba(0,0,0,0.68);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
 .ov.hidden{display:none}
-.panel{background:rgba(255,255,255,0.09);border:1.5px solid rgba(255,255,255,0.22);border-radius:22px;padding:clamp(14px,3vw,26px);width:min(92vw,350px);max-height:96vh;overflow-y:auto;box-shadow:0 16px 50px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.12);color:#fff;text-align:center}
-.panel h1{font-family:var(--fh);font-size:clamp(26px,6vw,42px);line-height:1.1;margin-bottom:4px;text-shadow:0 2px 10px rgba(0,0,0,0.4)}
+.panel{position:relative;background:rgba(255,255,255,0.09);border:1.5px solid rgba(255,255,255,0.22);border-radius:22px;padding:clamp(14px,3vw,26px);width:min(92vw,350px);max-height:96vh;overflow-y:auto;box-shadow:0 16px 50px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.12);color:#fff;text-align:center}
+.panel::after{content:'';position:absolute;left:0;right:0;bottom:0;height:34px;border-radius:0 0 22px 22px;background:linear-gradient(rgba(20,10,40,0),rgba(12,6,26,0.55));opacity:0;transition:opacity .25s ease;pointer-events:none}
+.panel.has-more::after{opacity:1}
+.panel h1{font-family:var(--fh);font-weight:800;font-size:clamp(26px,6vw,42px);line-height:1.1;margin-bottom:4px;text-shadow:0 2px 10px rgba(0,0,0,0.4)}
 .panel h1 span{color:#FFD050}
 .sub{font-size:12px;font-weight:600;color:rgba(255,255,255,0.52);margin-bottom:13px}
 .legend{background:rgba(0,0,0,0.38);border:1px solid rgba(255,255,255,0.09);border-radius:13px;padding:11px 13px;margin-bottom:13px;text-align:left;display:flex;flex-direction:column;gap:7px}
 .lr{display:flex;align-items:center;gap:10px;font-size:11px;font-weight:700;color:rgba(255,255,255,0.88)}
 .li{width:24px;height:24px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:17px}
 .li.pu{background:var(--cyan);border-radius:6px;font-size:11px;font-weight:900;color:#000;box-shadow:0 0 8px var(--cyan)}
-#best-display{font-family:var(--fh);font-size:16px;color:var(--gold);margin-bottom:11px;display:none}
-.btn-p{width:100%;padding:clamp(10px,2.5vw,14px);border:none;border-radius:12px;background:linear-gradient(155deg,#3B82F6,#1D4ED8);color:#fff;font-family:var(--fh);font-size:clamp(14px,3.5vw,17px);letter-spacing:.8px;cursor:pointer;box-shadow:0 5px 18px rgba(29,78,216,0.45),inset 0 1px 0 rgba(255,255,255,0.2);transition:transform .1s;-webkit-tap-highlight-color:transparent}
+#best-display{font-family:var(--fh);font-weight:700;font-size:16px;color:var(--gold);margin-bottom:11px;display:none}
+.btn-p{width:100%;padding:clamp(10px,2.5vw,14px);border:none;border-radius:12px;background:linear-gradient(155deg,#3B82F6,#1D4ED8);color:#fff;font-family:var(--fh);font-weight:700;font-size:clamp(14px,3.5vw,17px);letter-spacing:.8px;cursor:pointer;box-shadow:0 5px 18px rgba(29,78,216,0.45),inset 0 1px 0 rgba(255,255,255,0.2);transition:transform .1s;-webkit-tap-highlight-color:transparent}
 .btn-p:active{transform:scale(0.96)}
 .btn-p.red{background:linear-gradient(155deg,#EF4444,#B91C1C);box-shadow:0 5px 18px rgba(185,28,28,0.45),inset 0 1px 0 rgba(255,255,255,0.2)}
 .btn-s{width:100%;padding:8px;margin-top:7px;border:1.5px solid rgba(255,255,255,0.3);border-radius:10px;background:rgba(255,255,255,0.11);color:rgba(255,255,255,0.9);font-family:var(--fb);font-size:13px;font-weight:700;cursor:pointer;transition:background .18s;-webkit-tap-highlight-color:transparent}
 .btn-s:hover{background:rgba(255,255,255,0.2)}
 #go-sb{background:rgba(0,0,0,0.42);border:1px solid rgba(255,255,255,0.1);border-radius:15px;padding:14px;margin:11px 0 15px}
 #go-sb .lbl{font-size:10px;font-weight:800;letter-spacing:2px;color:rgba(255,255,255,0.4);text-transform:uppercase}
-#go-sv{font-family:var(--fh);font-size:clamp(44px,11vw,64px);line-height:1;color:#fff}
+#go-sv{font-family:var(--fh);font-weight:800;font-size:clamp(44px,11vw,64px);line-height:1;color:#fff}
 #go-best{font-size:12px;color:var(--gold);font-weight:700;margin-top:3px}
 .pb{display:flex;flex-direction:column;gap:8px}
 .sr{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.08);font-size:13px;font-weight:700;color:rgba(255,255,255,0.88)}
@@ -213,7 +223,7 @@ canvas{display:block;position:absolute;top:0;left:0}
 .tog-th{position:absolute;top:3px;left:3px;width:18px;height:18px;background:#fff;border-radius:50%;transition:transform .3s;box-shadow:0 2px 5px rgba(0,0,0,0.3)}
 .tog input:checked~.tog-th{transform:translateX(20px)}
 #is .panel{text-align:left}
-#is h2{font-family:var(--fh);font-size:22px;text-align:center;margin-bottom:11px;color:var(--gold)}
+#is h2{font-family:var(--fh);font-weight:700;font-size:22px;text-align:center;margin-bottom:11px;color:var(--gold)}
 .ib{margin-bottom:9px}
 .ib h3{font-size:9px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,0.42);margin-bottom:4px}
 .ib p,.ib li{font-size:12px;font-weight:600;color:rgba(255,255,255,0.82);line-height:1.5}
@@ -291,7 +301,7 @@ canvas{display:block;position:absolute;top:0;left:0}
     <div class="sr"><span>Sound Effects</span><label class="tog"><input type="checkbox" id="tog-sfx" checked><span class="tog-t"></span><span class="tog-th"></span></label></div>
     <div class="sr"><span>Music</span><label class="tog"><input type="checkbox" id="tog-music"><span class="tog-t"></span><span class="tog-th"></span></label></div>
     <div class="sr"><span>Particles</span><label class="tog"><input type="checkbox" id="tog-particles" checked><span class="tog-t"></span><span class="tog-th"></span></label></div>
-    <div class="sr"><span>High Score</span><span id="settings-best" style="color:var(--gold);font-size:16px;font-family:var(--fh)">0</span></div>
+    <div class="sr"><span>High Score</span><span id="settings-best" style="color:var(--gold);font-size:16px;font-family:var(--fh);font-weight:700">0</span></div>
     <button class="btn-s" id="btn-reset-hs" style="color:#EF4444;border-color:rgba(239,68,68,0.3);font-size:12px">Reset High Score</button>
     <button class="btn-p" id="btn-sts-close" style="margin-top:10px">Done</button>
   </div>
@@ -497,7 +507,7 @@ function drawPU(o){
 
   ctx.fillStyle='#00FFFF';
   ctx.beginPath();ctx.roundRect(-16,-11,32,22,11);ctx.fill();
-  ctx.fillStyle='#003333';ctx.font='bold 13px Fredoka One,Arial';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('W',0,0);
+  ctx.fillStyle='#003333';ctx.font='bold 13px Orbitron,Arial';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('W',0,0);
   ctx.restore();
 }
 
@@ -568,7 +578,7 @@ function loop(ts=0){
     const f=floats[i];f.y+=f.vy;f.life-=0.022;
     if(f.life<=0){floats.splice(i,1);continue;}
     ctx.globalAlpha=f.life;
-    ctx.font='bold 19px Fredoka One,cursive';ctx.textAlign='center';
+    ctx.font='bold 19px Orbitron,sans-serif';ctx.textAlign='center';
     ctx.fillStyle='#000';ctx.fillText(f.t,f.x+1.5,f.y+1.5);
     ctx.fillStyle=f.c;ctx.fillText(f.t,f.x,f.y);
     ctx.globalAlpha=1;
@@ -620,6 +630,26 @@ D('btn-instr').addEventListener('click',()=>{if(playing&&!paused)pauseG();isc.cl
 D('btn-start-instr').addEventListener('click',()=>isc.classList.remove('hidden'));
 D('btn-ps-instr').addEventListener('click',()=>{ps.classList.add('hidden');isc.classList.remove('hidden');});
 D('btn-is-close').addEventListener('click',()=>{isc.classList.add('hidden');if(playing&&paused)ps.classList.remove('hidden');else if(!playing)ss.classList.remove('hidden');});
+
+// Scroll-fade affordance: shows a bottom fade on any .panel that has more
+// content below the fold, hides it once scrolled near the bottom. Works for
+// every overlay (start, instructions, pause, settings, game over) since they
+// all share the .panel class.
+(function initPanelScrollFades(){
+  function update(el){
+    const has=el.scrollHeight-el.scrollTop-el.clientHeight>3;
+    el.classList.toggle('has-more',has);
+  }
+  document.querySelectorAll('.panel').forEach(p=>{
+    p.addEventListener('scroll',()=>update(p),{passive:true});
+    if('ResizeObserver' in window){
+      new ResizeObserver(()=>update(p)).observe(p);
+    }else{
+      update(p);
+      window.addEventListener('resize',()=>update(p));
+    }
+  });
+})();
 
 // Initial idle draw
 (function(){

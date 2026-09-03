@@ -55,6 +55,14 @@
         color: #FF3EA5;
         font-size: 1.05rem;
         text-shadow: 0 0 6px rgba(255, 62, 165, 0.5);
+        text-decoration: none;
+        border: none;
+        padding: 0;
+      }
+
+      .tbg-topbar .tbg-site-name:hover,
+      .tbg-topbar .tbg-site-name:focus-visible {
+        text-decoration: underline;
       }
     </style>
 
@@ -65,7 +73,7 @@
         </svg>
         All games
       </a>
-      <span class="tbg-site-name">10-Bit Games</span>
+      <a class="tbg-site-name" href="index.html">10-Bit Games</a>
     </div>
 
     <header class="max-w-2xl w-full text-center mb-2">
@@ -102,13 +110,16 @@
       --radius:    12px;
 
       font-family: var(--font-mono); background: var(--c-bg); color: var(--c-text);
-      min-height: 560px; max-width: 720px; margin: 24px auto; border: 2px solid var(--c-border);
+      height: 640px; max-width: 720px; margin: 24px auto; border: 2px solid var(--c-border);
       border-radius: 16px; overflow: hidden; position: relative; user-select: none;
       transition: box-shadow 0.2s;
     }
 
-    /* ── SCREENS ── */
-    .hpb-screen { display: none; flex-direction: column; align-items: center; justify-content: center; min-height: 560px; padding: 32px 24px; animation: hpb-fadein .35s ease; }
+    /* ── SCREENS ──
+       All screens share the shell's fixed height so switching screens (e.g. Play Tournament,
+       round-end, tournament-end) never resizes/reflows the container. A screen whose content is
+       taller than the shell (e.g. Setup with 6 players) scrolls internally instead. */
+    .hpb-screen { display: none; flex-direction: column; align-items: center; justify-content: center; height: 100%; width: 100%; padding: 32px 24px; overflow-y: auto; animation: hpb-fadein .35s ease; }
     .hpb-screen.active { display: flex; }
     @keyframes hpb-fadein { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }
 
@@ -134,7 +145,7 @@
     .hpb-divider { width: 100%; height: 1px; background: var(--c-border); margin: 18px 0; }
 
     /* ── SETUP SCREEN ── */
-    #hpb-setup { gap: 0; } #hpb-setup .hpb-title { margin-bottom: 4px; } #hpb-setup .hpb-panel { margin-top: 20px; }
+    #hpb-setup { gap: 0; } #hpb-setup .hpb-title { margin-bottom: 4px; } #hpb-setup .hpb-panel { margin-top: 20px; max-width: 480px; width: 100%; }
     .hpb-players-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 4px; }
     .hpb-player-slot { background: var(--c-bg); border: 1px solid var(--c-border); border-radius: 8px; padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; }
     .hpb-player-slot .slot-key { font-size: .72rem; color: var(--c-muted); letter-spacing: .1em; }
@@ -153,7 +164,7 @@
     .hpb-toggle input:checked + .hpb-toggle-track::before { transform: translateX(18px); }
 
     /* ── GAME SCREEN ── */
-    #hpb-game { justify-content: flex-start; padding: 16px 20px; gap: 12px; min-height: 560px; }
+    #hpb-game { justify-content: flex-start; padding: 16px 20px; gap: 12px; }
     .hpb-topbar { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 
     /* BOMB & TIMER */
@@ -223,25 +234,116 @@
     .hpb-lb-wins { color: var(--c-green); font-family: var(--font-head); font-size: .75rem; }
 
     /* MODALS */
-    .hpb-modal-backdrop { display: none; position: absolute; inset: 0; align-items: center; justify-content: center; z-index: 70; background: rgba(7,7,26,.92); padding: 24px; overflow-y: auto; }
+    .hpb-modal-backdrop { display: none; position: absolute; inset: 0; align-items: center; justify-content: center; z-index: 70; background: rgba(7,7,26,.92); padding: 24px; }
     .hpb-modal-backdrop.show { display: flex; }
-    .hpb-modal { background: var(--c-panel); border: 1px solid var(--c-border); border-radius: var(--radius); padding: 24px; width: 100%; max-width: 420px; margin: auto; }
+    .hpb-modal { background: var(--c-panel); border: 1px solid var(--c-border); border-radius: var(--radius); padding: 24px; width: 100%; max-width: 420px; max-height: 100%; overflow-y: auto; margin: auto; position: relative; }
     .hpb-modal h3 { font-family: var(--font-head); font-size: 1rem; letter-spacing: .18em; color: var(--c-accent); margin-bottom: 14px; text-transform: uppercase; }
     .hpb-modal p, .hpb-modal li { font-size: .82rem; line-height: 1.65; color: var(--c-text); margin-bottom: 6px; overflow-wrap: break-word; }
     .hpb-modal ul { padding-left: 22px; list-style-position: outside; }
 
+    /* Scroll affordance: subtle bottom fade, shown only while the modal has more content
+       below the fold and hidden once the user has scrolled near the bottom. */
+    .hpb-modal-scroll-fade {
+      position: absolute; left: 50%; bottom: 24px; transform: translateX(-50%);
+      width: 100%; max-width: 420px; height: 44px;
+      background: linear-gradient(to bottom, transparent, var(--c-panel) 75%);
+      border-radius: 0 0 var(--radius) var(--radius);
+      pointer-events: none; opacity: 0; transition: opacity .2s ease; z-index: 2;
+    }
+    .hpb-modal-scroll-fade.show { opacity: 1; }
+    .hpb-modal-scroll-fade::after {
+      content: ''; position: absolute; left: 50%; bottom: 8px; transform: translateX(-50%);
+      width: 22px; height: 3px; border-radius: 2px; background: var(--c-accent);
+      opacity: .55; box-shadow: 0 0 8px #f0c02066;
+    }
+
     @keyframes hpb-float { 0% { transform: translateY(0) rotate(0deg); opacity:1; } 100% { transform: translateY(-80px) rotate(360deg); opacity:0; } }
     .hpb-star { position: absolute; font-size: 1.2rem; animation: hpb-float 1.2s ease-out forwards; pointer-events: none; z-index: 100; }
 
+    /* ── DESKTOP / WIDE VIEWPORTS ──
+       Mobile keeps the tight, thumb-friendly spacing above; wider viewports get room to breathe
+       instead of reusing the same cramped mobile gaps. */
+    @media (min-width: 700px) {
+      #HPB_SHELL { max-width: 880px; height: 680px; }
+      .hpb-screen { padding: 44px 60px; }
+      .hpb-panel { padding: 26px 32px; }
+      #hpb-setup .hpb-panel { max-width: 560px; margin-top: 28px; }
+      .hpb-players-grid { gap: 16px; }
+      .hpb-divider { margin: 22px 0; }
+      .hpb-btn-row { gap: 20px; margin-top: 24px; }
+      #hpb-game { padding: 28px 48px; gap: 20px; }
+      .hpb-players-bar { gap: 16px; }
+      .hpb-player-chip { padding: 14px 22px; }
+      .hpb-holder-label { margin-top: 22px; }
+      .hpb-lb-row { padding: 10px 14px; }
+    }
+
+    /* ── MOBILE: CIRCULAR PLAYER LAYOUT ──
+       Instead of stacking every player button in a row above the bomb, arrange them radially
+       around the bomb so each player can reach in from their own side of a shared device.
+       The nth-child(N):nth-last-child(M) pairs below detect the total player count (2-6) with
+       pure CSS so the arrangement adapts without touching the JS that renders the buttons. */
+    @media (max-width: 640px) {
+      #hpb-game { position: relative; padding: 12px 12px 16px; gap: 8px; }
+      .hpb-topbar { position: relative; z-index: 20; }
+
+      .hpb-players-bar {
+        position: absolute; top: 54px; left: 0; right: 0; bottom: 0;
+        display: block; gap: 0; z-index: 15; pointer-events: none;
+      }
+      .hpb-bomb-wrap { position: relative; z-index: 5; }
+
+      .hpb-player-chip {
+        position: absolute; pointer-events: auto;
+        flex-direction: column; justify-content: center; align-items: center; gap: 2px;
+        width: 66px; height: 66px; min-height: 66px; padding: 4px;
+        border-radius: 50%; text-align: center;
+      }
+      .hpb-player-chip.holder { transform: scale(1.08); }
+      .hpb-player-chip:active { transform: scale(0.92); }
+      .hpb-player-chip.holder:active { transform: scale(0.98); }
+      .hpb-player-chip .pip { width: 11px; height: 11px; }
+      .hpb-player-chip > span:not(.pip) { font-size: .62rem; line-height: 1.05; max-width: 56px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .hpb-player-chip > span:last-child { display: none; } /* key badge: not needed for touch play */
+
+      /* 2 players: opposite sides, like a face-off across the device */
+      .hpb-player-chip:nth-child(1):nth-last-child(2) { top: 50%; left: 2%; transform: translateY(-50%); }
+      .hpb-player-chip:nth-child(2):nth-last-child(1) { top: 50%; right: 2%; transform: translateY(-50%); }
+
+      /* 3 players: two top corners + bottom center */
+      .hpb-player-chip:nth-child(1):nth-last-child(3) { top: 4%; left: 3%; }
+      .hpb-player-chip:nth-child(2):nth-last-child(2) { top: 4%; right: 3%; }
+      .hpb-player-chip:nth-child(3):nth-last-child(1) { bottom: 4%; left: 50%; transform: translateX(-50%); }
+
+      /* 4 players: four corners */
+      .hpb-player-chip:nth-child(1):nth-last-child(4) { top: 4%; left: 3%; }
+      .hpb-player-chip:nth-child(2):nth-last-child(3) { top: 4%; right: 3%; }
+      .hpb-player-chip:nth-child(3):nth-last-child(2) { bottom: 4%; left: 3%; }
+      .hpb-player-chip:nth-child(4):nth-last-child(1) { bottom: 4%; right: 3%; }
+
+      /* 5 players: four corners + mid-left */
+      .hpb-player-chip:nth-child(1):nth-last-child(5) { top: 4%; left: 3%; }
+      .hpb-player-chip:nth-child(2):nth-last-child(4) { top: 4%; right: 3%; }
+      .hpb-player-chip:nth-child(3):nth-last-child(3) { bottom: 4%; left: 3%; }
+      .hpb-player-chip:nth-child(4):nth-last-child(2) { bottom: 4%; right: 3%; }
+      .hpb-player-chip:nth-child(5):nth-last-child(1) { top: 44%; left: 1%; transform: translateY(-50%); }
+
+      /* 6 players: four corners + mid-left + mid-right */
+      .hpb-player-chip:nth-child(1):nth-last-child(6) { top: 4%; left: 3%; }
+      .hpb-player-chip:nth-child(2):nth-last-child(5) { top: 4%; right: 3%; }
+      .hpb-player-chip:nth-child(3):nth-last-child(4) { bottom: 4%; left: 3%; }
+      .hpb-player-chip:nth-child(4):nth-last-child(3) { bottom: 4%; right: 3%; }
+      .hpb-player-chip:nth-child(5):nth-last-child(2) { top: 44%; left: 1%; transform: translateY(-50%); }
+      .hpb-player-chip:nth-child(6):nth-last-child(1) { top: 44%; right: 1%; transform: translateY(-50%); }
+    }
+
     @media (max-width: 480px) {
-      #HPB_SHELL { margin: 8px auto; }
+      #HPB_SHELL { margin: 8px auto; height: 600px; }
       .hpb-players-grid { grid-template-columns: 1fr; }
-      .hpb-players-bar { gap: 12px; }
-      .hpb-player-chip { padding: 14px 18px; min-height: 50px; font-size: 1rem; flex: 1 1 40%; justify-content: center; }
-      .hpb-player-chip .pip { width: 14px; height: 14px; }
       .hpb-btn { padding: 14px 22px; }
       .hpb-btn-row { gap: 14px; }
       .hpb-modal { padding: 20px; }
+      .hpb-player-chip { width: 60px; height: 60px; min-height: 60px; }
     }
   `;
 
@@ -267,7 +369,7 @@
       <div class="hpb-title" style="font-size:1.6rem;">TOURNAMENT SETUP</div>
       <div class="hpb-subtitle">First to 3 Wins takes the Crown!</div>
 
-      <div class="hpb-panel" style="margin-top:18px; max-width:480px; width:100%;">
+      <div class="hpb-panel" style="margin-top:18px;">
         <label class="hpb-label">Number of Players</label>
         <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;">
           <input type="range" class="hpb-slider" id="hpb-count-slider" min="2" max="6" value="3" step="1">
@@ -384,6 +486,7 @@
           <button class="hpb-btn small" id="hpb-howto-close">CLOSE</button>
         </div>
       </div>
+      <div class="hpb-modal-scroll-fade" id="hpb-howto-fade"></div>
     </div>
 
   </div>`;
@@ -730,8 +833,29 @@
     }
   }
 
-  function showModal(id) { const m = $(id); if(m) m.classList.add('show'); }
+  function showModal(id) {
+    const m = $(id); if(!m) return;
+    m.classList.add('show');
+    if (m.__updateScrollFade) requestAnimationFrame(m.__updateScrollFade);
+  }
   function hideModal(id) { const m = $(id); if(m) m.classList.remove('show'); }
+
+  /* Scroll affordance: shows a subtle bottom fade on a modal only while it has more content
+     below the fold, hiding it once the user scrolls near the bottom. */
+  function initScrollFade(backdropId) {
+    const backdrop = $(backdropId); if (!backdrop) return;
+    const modalEl = backdrop.querySelector('.hpb-modal');
+    const fadeEl = backdrop.querySelector('.hpb-modal-scroll-fade');
+    if (!modalEl || !fadeEl) return;
+    const update = () => {
+      const hasOverflow = modalEl.scrollHeight - modalEl.clientHeight > 4;
+      const nearBottom = modalEl.scrollHeight - modalEl.scrollTop - modalEl.clientHeight < 4;
+      fadeEl.classList.toggle('show', hasOverflow && !nearBottom);
+    };
+    modalEl.addEventListener('scroll', update);
+    window.addEventListener('resize', update);
+    backdrop.__updateScrollFade = update;
+  }
 
   /* ── 11. WIRE UP EVENTS ── */
   function wire() {
@@ -764,6 +888,8 @@
         const key = chip.getAttribute('data-key');
         if (key) handlePlayerAction(key);
     });
+
+    initScrollFade('hpb-howto-modal');
   }
 
   wire();
