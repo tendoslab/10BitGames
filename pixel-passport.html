@@ -201,7 +201,9 @@ if (window._gzIsMobile) {
         }
         ${isMobile ? `
         #game-wrapper { width: 100%; height: 100%; max-width: 480px; max-height: 100dvh; margin: 0 auto; border-radius: 0; border-width: 0 0 0 0; }
-        ` : ''}
+        ` : `
+        #game-wrapper { min-height: min(88vh, 600px); display: flex; flex-direction: column; justify-content: center; }
+        `}
         * { box-sizing: border-box; }
         h1.pp-title { font-family: 'Bungee', sans-serif; font-weight: 400; font-size: clamp(24px, 6vw, 32px); letter-spacing: 2px; color: #F2B84B; text-align: center; margin: 4px 0 4px; text-shadow: 0 0 18px rgba(242,184,75,0.4); }
         .pp-sub { text-align: center; color: #8a86a0; font-size: 13px; margin: 0 0 18px; letter-spacing: 0.3px; }
@@ -390,6 +392,7 @@ if (window._gzIsMobile) {
             </div>
             <p class="pp-win-note" id="win-note"></p>
             <button class="pp-btn" id="btn-play-again">Play Again</button>
+            <button class="pp-btn secondary" id="btn-share" style="display:none;">Share Result</button>
             <button class="pp-btn ghost" id="btn-win-menu" style="margin-top:14px;">Change Settings</button>
         </div>
 
@@ -400,6 +403,7 @@ if (window._gzIsMobile) {
                     <div class="pp-score" id="hud-score">0</div>
                     <div class="pp-streak" id="hud-streak"></div>
                 </div>
+                <button class="pp-hud-btn" id="btn-sound-game" title="Toggle sound">&#128266;</button>
                 <button class="pp-hud-btn" id="btn-pause-open">&#9612;&#9612;</button>
             </div>
             <div class="pp-flag-frame" id="flag-frame">
@@ -418,10 +422,9 @@ if (window._gzIsMobile) {
             <div class="pp-reveal-track"><div class="pp-reveal-fill" id="reveal-fill"></div></div>
             <div id="mc-answer" class="pp-mc-grid"></div>
             <form id="type-answer" class="pp-type-form" style="display:none;">
-                <input class="pp-type-input" id="type-input" type="text" placeholder="Type the country…" autocomplete="off" list="country-list">
+                <input class="pp-type-input" id="type-input" type="text" placeholder="Type the country…" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
                 <button class="pp-type-submit" type="submit">Guess</button>
             </form>
-            <datalist id="country-list"></datalist>
         </div>
     `;
     shadow.appendChild(wrapper);
@@ -691,6 +694,26 @@ if (window._gzIsMobile) {
         drawFlagLayers(sourceCtx, country, 0, 0, SRC_W, SRC_H);
     }
 
+    // At low progress a coarse mosaic still keeps every color in its correct
+    // spot, so a flag with bold stripes (France, Italy…) stays obviously
+    // identifiable even at 4 cells wide. To actually read as "scrambled
+    // static" early on, we jumble a fraction of the tiny canvas's pixels —
+    // that fraction fades to zero by NOISE_FADE_END so the final reveal is
+    // always pixel-accurate.
+    const NOISE_FADE_END = 0.6;
+    function scramblePixels(imgData, amount) {
+        const data = imgData.data;
+        const pixelCount = data.length / 4;
+        const swaps = Math.floor(pixelCount * amount * 1.5);
+        for (let i = 0; i < swaps; i++) {
+            const ai = ((Math.random() * pixelCount) | 0) * 4;
+            const bi = ((Math.random() * pixelCount) | 0) * 4;
+            for (let k = 0; k < 4; k++) {
+                const t = data[ai + k]; data[ai + k] = data[bi + k]; data[bi + k] = t;
+            }
+        }
+    }
+
     function renderPixelFrame(progress) {
         const eased = progress * progress; // easeInQuad — stays blocky early, resolves faster near the end
         let cells = Math.max(4, Math.round(4 + eased * (SRC_W - 4)));
@@ -704,6 +727,12 @@ if (window._gzIsMobile) {
             tinyCanvas.width = cells; tinyCanvas.height = cellsY;
             tinyCtx.imageSmoothingEnabled = true;
             tinyCtx.drawImage(sourceCanvas, 0, 0, SRC_W, SRC_H, 0, 0, cells, cellsY);
+            const noiseAmount = Math.max(0, 1 - progress / NOISE_FADE_END);
+            if (noiseAmount > 0) {
+                const imgData = tinyCtx.getImageData(0, 0, cells, cellsY);
+                scramblePixels(imgData, noiseAmount);
+                tinyCtx.putImageData(imgData, 0, 0);
+            }
             flagCtx.imageSmoothingEnabled = false;
             flagCtx.drawImage(tinyCanvas, 0, 0, cells, cellsY, 0, 0, flagCanvas.width, flagCanvas.height);
         }
@@ -848,6 +877,7 @@ if (window._gzIsMobile) {
     const ALL_LAYERS = ['menu-main', 'menu-inst', 'menu-pause', 'menu-win', 'game-screen'];
     function showUI(id) {
         ALL_LAYERS.forEach(l => getUI(l).classList.toggle('hidden', l !== id));
+        getUI('btn-sound-main').style.display = (id === 'game-screen') ? 'none' : 'flex';
     }
 
     const pipsEl = getUI('pips');
@@ -863,9 +893,6 @@ if (window._gzIsMobile) {
     const resultTitleEl = getUI('result-title');
     const resultSubEl = getUI('result-sub');
     const resultPointsEl = getUI('result-points');
-
-    // Populate the free-type autocomplete list once — every country name.
-    getUI('country-list').innerHTML = FLAGS.map(f => '<option value="' + f.name + '">').join('');
 
     function generatePips(n) {
         pipsEl.innerHTML = '';
@@ -1125,10 +1152,50 @@ if (window._gzIsMobile) {
         getUI('win-note').innerHTML = note;
         getUI('win-note').className = 'pp-win-note ' + noteClass;
 
+        getUI('btn-share').style.display = (session.mode === 'daily') ? 'block' : 'none';
+        getUI('btn-share').textContent = 'Share Result';
+
         refreshMenuHighScore();
         refreshDailyBadges();
         playFanfare(session.correctCount === total);
         showUI('menu-win');
+    }
+
+    // ── Share (Daily Passport) ───────────────────────────────────────────
+    function buildShareText() {
+        const maxP = session.answerModeForRun === 'type' ? TYPE_MAX : MC_MAX;
+        const rows = [];
+        for (let i = 0; i < session.results.length; i += 5) {
+            rows.push(session.results.slice(i, i + 5).map(r => {
+                if (!r || !r.correct) return '⬛';
+                return r.points >= maxP * 0.66 ? '🟩' : '🟨';
+            }).join(''));
+        }
+        const streak = getStreakData().current;
+        const streakBit = streak > 1 ? (' · 🔥' + streak + 'd') : '';
+        return 'Pixel Passport — Daily #' + todayStr() + '\n' +
+            session.correctCount + '/' + session.rounds.length + ' correct · ' +
+            session.score.toLocaleString() + ' pts' + streakBit + '\n\n' +
+            rows.join('\n') + '\n\n' +
+            'Play: ' + location.href.split('#')[0].split('?')[0];
+    }
+    async function shareResult() {
+        const text = buildShareText();
+        const btn = getUI('btn-share');
+        try {
+            if (navigator.share) {
+                await navigator.share({ text: text });
+                return;
+            }
+        } catch (e) { return; }
+        try {
+            await navigator.clipboard.writeText(text);
+            btn.textContent = 'Copied!';
+            setTimeout(() => { btn.textContent = 'Share Result'; }, 1600);
+        } catch (e) {
+            btn.textContent = 'Copy failed';
+            setTimeout(() => { btn.textContent = 'Share Result'; }, 1600);
+        }
     }
 
     // ── Main loop ─────────────────────────────────────────────────────────
@@ -1193,13 +1260,17 @@ if (window._gzIsMobile) {
     getUI('btn-pause-quit').addEventListener('click', () => { gameState = 'MENU'; showUI('menu-main'); refreshMenuHighScore(); refreshDailyBadges(); });
     getUI('btn-play-again').addEventListener('click', () => startSession(session.mode));
     getUI('btn-win-menu').addEventListener('click', () => { gameState = 'MENU'; showUI('menu-main'); });
+    getUI('btn-share').addEventListener('click', shareResult);
 
     function toggleSound() {
         soundEnabled = !soundEnabled;
         initAudio();
-        getUI('btn-sound-main').innerHTML = soundEnabled ? '&#128266;' : '&#128263;';
+        const icon = soundEnabled ? '&#128266;' : '&#128263;';
+        getUI('btn-sound-main').innerHTML = icon;
+        getUI('btn-sound-game').innerHTML = icon;
     }
     getUI('btn-sound-main').addEventListener('click', toggleSound);
+    getUI('btn-sound-game').addEventListener('click', toggleSound);
 
     // ── Keyboard ──────────────────────────────────────────────────────────
     wrapper.addEventListener('keydown', e => {
