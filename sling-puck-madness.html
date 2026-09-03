@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sling Puck Madness | 10-Bit Games</title>
+<meta name="description" content="Sling Puck Madness is a wood-table puck battle. Flick your pucks through the centre gap to clear your side or race them across — play solo against the CPU or pass-and-play with a friend.">
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="icon" href="assets/favicon-192.png?v=2" type="image/png">
+<link rel="icon" href="favicon.ico?v=2" sizes="any">
+<link rel="apple-touch-icon" href="assets/favicon-apple-touch.png?v=2">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Karla:wght@400;500;700&family=Bungee+Shade&display=swap" rel="stylesheet">
+</head>
+<body class="min-h-screen bg-slate-900 text-slate-100 font-sans flex flex-col items-center py-3 px-4 m-0 overflow-x-hidden">
+    <style>
+      .tbg-topbar {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+        background: #150F22;
+        border-bottom: 2px solid #3B2C58;
+        width: 100%;
+        margin: -0.75rem -1rem 0.75rem;
+      }
+
+      .tbg-topbar a {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        color: #FBF7FF;
+        text-decoration: none;
+        font-family: 'Karla', Arial, sans-serif;
+        font-weight: 700;
+        font-size: 0.9rem;
+        border: 2px solid #3B2C58;
+        padding: 0.35rem 0.7rem 0.35rem 0.55rem;
+        border-radius: 999px;
+      }
+
+      .tbg-topbar a:hover,
+      .tbg-topbar a:focus-visible {
+        border-color: #FBF7FF;
+      }
+
+      .tbg-topbar a svg {
+        width: 14px;
+        height: 14px;
+        flex-shrink: 0;
+      }
+
+      .tbg-topbar .tbg-site-name {
+        font-family: 'Bungee Shade', 'Karla', Arial, sans-serif;
+        color: #FF3EA5;
+        font-size: 1.05rem;
+        text-shadow: 0 0 6px rgba(255, 62, 165, 0.5);
+      }
+    </style>
+
+    <div class="tbg-topbar">
+      <a href="index.html">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M15 5 L8 12 L15 19" stroke="#FBF7FF" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        All games
+      </a>
+      <span class="tbg-site-name">10-Bit Games</span>
+    </div>
+
+    <header class="max-w-2xl w-full text-center mb-2">
+        <h1 class="text-2xl font-black tracking-tight">Sling Puck Madness</h1>
+        <p class="text-slate-400 text-sm mt-1">The classic wood-table battle. Sling your pucks through the centre gap and clear your side before your opponent — play solo against the CPU or pass-and-play with a friend.</p>
+    </header>
+
+<div id="slingpuck-root">
+
+<style>
+#slingpuck-root {
+  display: block;
+  font-family: 'Segoe UI', Tahoma, sans-serif;
+  box-sizing: border-box;
+  width: 100%;
+}
+#slingpuck-root * { box-sizing: border-box; }
+
+#sp-game {
+  background:#0a0a18;border-radius:18px;overflow:hidden;
+  width: 100%; max-width:620px; margin:0 auto;
+  border:2px solid rgba(229,57,53,.25);
+  box-shadow:0 8px 48px rgba(0,0,0,.75);
+}
+#sp-topbar {
+  background:linear-gradient(90deg,#0d0d22,#181830);
+  padding:9px 14px;display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid rgba(229,57,53,.18);
+}
+.sp-logo {
+  font-size:.95rem;font-weight:900;letter-spacing:3px;text-transform:uppercase;
+  background:linear-gradient(90deg,#e53935,#ff8a65);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.sp-topbtns { display:flex;gap:7px; }
+.sp-topbtn {
+  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.11);
+  color:rgba(255,255,255,.65);border-radius:7px;width:34px;height:34px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:.8rem;font-weight:700;transition:all .15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.sp-topbtn:hover { background:rgba(229,57,53,.22);color:#fff;border-color:rgba(229,57,53,.4); }
+#sp-scorebar {
+  display:flex;align-items:center;background:rgba(0,0,0,.28);padding:7px 14px;
+}
+.sp-pscore { flex:1;text-align:center;padding:4px;min-width:0; }
+.sp-pname-label { font-size:.6rem;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.38);white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+.sp-puck-dots { display:flex;justify-content:center;gap:3px;margin-top:4px; }
+.sp-puck-dots span {
+  width:10px;height:10px;border-radius:50%;opacity:.22;transition:opacity .3s, transform .3s;flex-shrink:0;
+}
+.sp-puck-dots span.on { opacity:1;transform:scale(1.1); }
+.sp-pscore.p1 .sp-puck-dots span { background:radial-gradient(circle at 35% 35%,#ff8a80,#c62828); }
+.sp-pscore.p2 .sp-puck-dots span { background:radial-gradient(circle at 35% 35%,#82b1ff,#1565c0); }
+.sp-turn-mid { padding:4px 12px;text-align:center;flex-shrink:0; }
+.sp-turn-lbl { font-size:.56rem;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.32); }
+.sp-turn-who { font-size:.78rem;font-weight:800;letter-spacing:1px;margin-top:1px;transition:color .3s; }
+#sp-mode-badge {
+  text-align:center;padding:4px 0 3px;
+  font-size:.6rem;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,.25);
+  background:rgba(0,0,0,.15);border-top:1px solid rgba(255,255,255,.04);
+}
+#sp-canvas-wrap { position:relative; }
+#sp-canvas {
+  display:block;width:100%;height:auto;
+  touch-action: none;
+}
+#sp-banner {
+  position:absolute;top:50%;left:50%;
+  transform:translate(-50%,-50%) scale(.6);
+  opacity:0;pointer-events:none;
+  background:rgba(8,8,22,.95);border:2px solid rgba(229,57,53,.5);
+  border-radius:12px;padding:11px 26px;
+  color:#fff;font-size:.95rem;font-weight:900;letter-spacing:3px;text-transform:uppercase;
+  white-space:nowrap;z-index:8;transition:all .22s cubic-bezier(.34,1.56,.64,1);
+}
+#sp-banner.show { opacity:1;transform:translate(-50%,-50%) scale(1); }
+#sp-pass {
+  position:absolute;bottom:10px;left:50%;transform:translateX(-50%);
+  background:rgba(21,101,192,.88);color:#fff;font-size:.62rem;
+  letter-spacing:2px;text-transform:uppercase;padding:5px 16px;
+  border-radius:20px;pointer-events:none;z-index:7;
+  opacity:0;transition:opacity .3s;font-weight:700;
+}
+#sp-pass.show { opacity:1; }
+.sp-ov {
+  position:absolute;inset:0;align-items:center;justify-content:center;
+  z-index:10;background:rgba(8,8,20,.91);backdrop-filter:blur(7px);
+  overflow-y:auto;padding:16px;
+}
+.sp-panel {
+  background:linear-gradient(155deg,#181832,#0d0d1e);
+  border:1px solid rgba(229,57,53,.28);border-radius:20px;
+  padding:28px 26px;width:92%;max-width:330px;text-align:center;
+  box-shadow:0 20px 60px rgba(0,0,0,.65),0 0 0 1px rgba(255,255,255,.04);
+  margin:auto;
+}
+.sp-panel h2 { font-size:1.2rem;font-weight:900;letter-spacing:3px;text-transform:uppercase;color:#fff;margin-bottom:5px; }
+.sp-panel-sub { font-size:.68rem;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.32);margin-bottom:20px; }
+.sp-divider { width:36px;height:2px;background:linear-gradient(90deg,#e53935,transparent);margin:0 auto 18px; }
+.sp-btn {
+  display:block;width:100%;padding:12px;border-radius:9px;
+  font-size:.8rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;
+  cursor:pointer;border:none;margin-bottom:9px;transition:all .15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.sp-btn-primary { background:linear-gradient(135deg,#e53935,#b71c1c);color:#fff;box-shadow:0 4px 16px rgba(229,57,53,.38); }
+.sp-btn-primary:hover { transform:translateY(-1px);box-shadow:0 6px 22px rgba(229,57,53,.6); }
+.sp-btn-secondary { background:rgba(255,255,255,.06);color:rgba(255,255,255,.72);border:1px solid rgba(255,255,255,.1); }
+.sp-btn-secondary:hover { background:rgba(255,255,255,.12);color:#fff; }
+.sp-mode-row { display:flex;gap:9px;margin-bottom:16px; }
+.sp-modebt {
+  flex:1;padding:14px 6px;border-radius:11px;
+  border:2px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);
+  color:rgba(255,255,255,.55);cursor:pointer;
+  font-size:.7rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;transition:all .15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.sp-modebt.on { border-color:#e53935;background:rgba(229,57,53,.14);color:#fff; }
+.sp-modeico { font-size:1.4rem;display:block;margin-bottom:4px; }
+.sp-var-row { display:flex;gap:9px;margin-bottom:16px; }
+.sp-varbt {
+  flex:1;padding:10px 6px;border-radius:10px;
+  border:2px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);
+  color:rgba(255,255,255,.5);cursor:pointer;
+  font-size:.67rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;transition:all .15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.sp-varbt.on { border-color:#ffd54f;background:rgba(255,213,79,.1);color:#ffd54f; }
+.sp-varbt-ico { font-size:1.1rem;display:block;margin-bottom:3px; }
+#diff-wrap { transition: opacity .15s; }
+#diff-wrap.disabled { opacity: .35; pointer-events: none; }
+.sp-diff-row { display:flex;gap:6px;margin-bottom:16px; }
+.sp-diffbt {
+  flex:1;padding:9px 3px;border-radius:8px;
+  border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);
+  color:rgba(255,255,255,.45);cursor:pointer;
+  font-size:.68rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;transition:all .15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.sp-diffbt.on { border-color:#ffd54f;background:rgba(255,213,79,.1);color:#ffd54f; }
+.sp-set-row {
+  display:flex;align-items:center;justify-content:space-between;
+  padding:9px 0;border-bottom:1px solid rgba(255,255,255,.06);
+  color:rgba(255,255,255,.68);font-size:.8rem;letter-spacing:.4px;
+}
+.sp-tog {
+  width:38px;height:20px;background:rgba(255,255,255,.1);border-radius:10px;
+  position:relative;cursor:pointer;transition:background .2s;border:none;
+}
+.sp-tog.on { background:#e53935; }
+.sp-tog::after {
+  content:'';position:absolute;width:14px;height:14px;background:#fff;
+  border-radius:50%;top:3px;left:3px;transition:transform .2s;box-shadow:0 1px 4px rgba(0,0,0,.3);
+}
+.sp-tog.on::after { transform:translateX(18px); }
+.sp-instbody { text-align:left;color:rgba(255,255,255,.68);font-size:.8rem;line-height:1.7; }
+.sp-rule { margin-bottom:11px;padding-left:13px;position:relative; }
+.sp-rule::before { content:'';position:absolute;left:0;top:9px;width:5px;height:5px;border-radius:50%;background:#e53935; }
+.sp-rule.gold::before { background:#ffd54f; }
+.sp-win-ico { font-size:2.8rem;display:block;margin-bottom:10px;animation:sp-pop .5s ease infinite alternate; }
+@keyframes sp-pop { from{transform:scale(1)} to{transform:scale(1.12)} }
+.sp-hs { display:inline-block;background:linear-gradient(90deg,#ffd54f,#ff8a65);color:#000;
+  font-size:.62rem;font-weight:900;letter-spacing:2px;text-transform:uppercase;
+  padding:4px 12px;border-radius:20px;margin-bottom:14px; }
+.sp-win-stat { color:rgba(255,255,255,.45);font-size:.72rem;letter-spacing:.8px;margin-bottom:18px; }
+#sp-race-bar {
+  display:none;background:rgba(0,0,0,.25);padding:5px 14px;
+  border-top:1px solid rgba(255,255,255,.05);
+}
+#sp-race-bar.show { display:flex;gap:10px;align-items:center; }
+.sp-rbar-wrap { flex:1;height:6px;background:rgba(255,255,255,.1);border-radius:3px;overflow:hidden; }
+.sp-rbar-fill { height:100%;border-radius:3px;transition:width .4s; }
+.sp-rbar-lbl { font-size:.58rem;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.35);white-space:nowrap; }
+
+@media (max-width: 480px) {
+  .sp-topbtn { width:38px; height:38px; font-size:.85rem; }
+  .sp-modebt, .sp-varbt { padding: 15px 6px; }
+  .sp-diffbt { padding: 11px 4px; }
+  .sp-panel { padding: 24px 18px; }
+  .sp-pname-label { font-size:.55rem; }
+  .sp-turn-who { font-size:.72rem; }
+  .sp-scorebar, #sp-scorebar { padding: 7px 8px; }
+}
+</style>
+
+<div id="sp-game">
+  <div id="sp-topbar">
+    <div class="sp-logo">Sling Puck</div>
+    <div class="sp-topbtns">
+      <button class="sp-topbtn" id="sp-pausebtn" title="Pause" aria-label="Pause">II</button>
+      <button class="sp-topbtn" id="sp-setbtn"   title="Settings" aria-label="Settings">S</button>
+      <button class="sp-topbtn" id="sp-helpbtn"   title="How to Play" aria-label="How to play">?</button>
+    </div>
+  </div>
+
+  <div id="sp-scorebar">
+    <div class="sp-pscore p1">
+      <div class="sp-pname-label" id="sp-label1">Player 1</div>
+      <div class="sp-puck-dots" id="sp-dots1">
+        <span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span>
+      </div>
+    </div>
+    <div class="sp-turn-mid">
+      <div class="sp-turn-lbl">Turn</div>
+      <div class="sp-turn-who" id="sp-turnwho" style="color:#ff8a80">P1</div>
+    </div>
+    <div class="sp-pscore p2">
+      <div class="sp-pname-label" id="sp-label2">Player 2</div>
+      <div class="sp-puck-dots" id="sp-dots2">
+        <span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span>
+      </div>
+    </div>
+  </div>
+
+  <div id="sp-race-bar">
+    <div class="sp-rbar-lbl" id="sp-rb-lbl1">P1 0/5</div>
+    <div class="sp-rbar-wrap"><div class="sp-rbar-fill" id="sp-rb1" style="width:0%;background:linear-gradient(90deg,#c62828,#ff8a65)"></div></div>
+    <div class="sp-rbar-lbl">vs</div>
+    <div class="sp-rbar-wrap"><div class="sp-rbar-fill" id="sp-rb2" style="width:0%;background:linear-gradient(90deg,#1565c0,#64b5f6)"></div></div>
+    <div class="sp-rbar-lbl" id="sp-rb-lbl2">P2 0/5</div>
+  </div>
+
+  <div id="sp-mode-badge">Classic Mode &mdash; 1 vs CPU</div>
+
+  <div id="sp-canvas-wrap">
+    <canvas id="sp-canvas"></canvas>
+    <div id="sp-banner">Player 1's Turn</div>
+    <div id="sp-pass">Pass to other player</div>
+
+    <div class="sp-ov" id="ov-menu" style="display: flex;">
+      <div class="sp-panel">
+        <h2>Sling Puck</h2>
+        <div class="sp-panel-sub">Choose mode &amp; style</div>
+        <div class="sp-divider"></div>
+
+        <div style="font-size:.62rem;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.3);margin-bottom:8px;">Players</div>
+        <div class="sp-mode-row">
+          <button class="sp-modebt on" id="mb-1p" onclick="window.SPG.setPlayers(1)">
+            <span class="sp-modeico">&#129302;</span>vs CPU
+          </button>
+          <button class="sp-modebt" id="mb-2p" onclick="window.SPG.setPlayers(2)">
+            <span class="sp-modeico">&#129485;</span>2 Player
+          </button>
+        </div>
+
+        <div style="font-size:.62rem;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.3);margin-bottom:8px;">Game Mode</div>
+        <div class="sp-var-row">
+          <button class="sp-varbt on" id="vb-classic" onclick="window.SPG.setVariant('classic')">
+            <span class="sp-varbt-ico">&#127955;</span>Classic<br><span style="font-size:.6rem;opacity:.6;font-weight:400;letter-spacing:0">Clear your side</span>
+          </button>
+          <button class="sp-varbt" id="vb-race" onclick="window.SPG.setVariant('race')">
+            <span class="sp-varbt-ico">&#127942;</span>Race<br><span style="font-size:.6rem;opacity:.6;font-weight:400;letter-spacing:0">Push all across</span>
+          </button>
+        </div>
+
+        <div id="diff-wrap">
+          <div style="font-size:.62rem;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.3);margin-bottom:8px;">CPU Difficulty</div>
+          <div class="sp-diff-row">
+            <button class="sp-diffbt on" onclick="window.SPG.setDiff('easy')">Easy</button>
+            <button class="sp-diffbt"    onclick="window.SPG.setDiff('medium')">Med</button>
+            <button class="sp-diffbt"    onclick="window.SPG.setDiff('hard')">Hard</button>
+          </div>
+        </div>
+
+        <button class="sp-btn sp-btn-primary" onclick="window.SPG.startGame()">Start Game</button>
+      </div>
+    </div>
+
+    <div class="sp-ov" id="ov-pause" style="display: none;">
+      <div class="sp-panel">
+        <h2>Paused</h2><div class="sp-panel-sub">Game on hold</div>
+        <div class="sp-divider"></div>
+        <button class="sp-btn sp-btn-primary"   onclick="window.SPG.resume()">Resume</button>
+        <button class="sp-btn sp-btn-secondary" onclick="window.SPG.showMenu()">Main Menu</button>
+      </div>
+    </div>
+
+    <div class="sp-ov" id="ov-settings" style="display: none;">
+      <div class="sp-panel">
+        <h2>Settings</h2><div class="sp-panel-sub">Customise</div>
+        <div class="sp-divider"></div>
+        <div class="sp-set-row"><span>Sound Effects</span><button class="sp-tog on" id="tog-snd" onclick="window.SPG.togSnd()"></button></div>
+        <div class="sp-set-row"><span>Show Trajectory</span><button class="sp-tog on" id="tog-traj" onclick="window.SPG.togTraj()"></button></div>
+        <br>
+        <button class="sp-btn sp-btn-primary" onclick="window.SPG.closeOv('ov-settings')">Done</button>
+      </div>
+    </div>
+
+    <div class="sp-ov" id="ov-help" style="display: none;">
+      <div class="sp-panel">
+        <h2>How to Play</h2><div class="sp-panel-sub">Master the sling</div>
+        <div class="sp-divider"></div>
+        <div class="sp-instbody">
+          <div class="sp-rule">Tap/click a puck on <strong style="color:#ff8a80">your side</strong> to select it.</div>
+          <div class="sp-rule">Drag back, then <strong style="color:#ffd54f">release</strong> to sling it toward the gap in the centre wall.</div>
+          <div class="sp-rule">Pucks bounce off <strong>walls</strong> and can knock <strong>other pucks</strong>.</div>
+          <div class="sp-rule gold"><strong style="color:#ffd54f">Classic:</strong> First player to clear all pucks from their own side wins.</div>
+          <div class="sp-rule gold"><strong style="color:#ffd54f">Race:</strong> First to push all 5 of your pucks to the opponent's side wins. Be careful — opponents can knock your pucks back!</div>
+          <div class="sp-rule">In 2P mode the board <strong>rotates 180&deg;</strong> each turn so you always face your pucks.</div>
+        </div>
+        <br>
+        <button class="sp-btn sp-btn-primary" onclick="window.SPG.closeOv('ov-help')">Got It</button>
+      </div>
+    </div>
+
+    <div class="sp-ov" id="ov-win" style="display: none;">
+      <div class="sp-panel">
+        <span class="sp-win-ico" id="win-ico">&#127942;</span>
+        <h2 id="win-title">You Win!</h2>
+        <div class="sp-panel-sub" id="win-sub">Great shot!</div>
+        <div class="sp-divider"></div>
+        <div id="win-hs" class="sp-hs" style="display: none;">New High Score!</div>
+        <div class="sp-win-stat" id="win-stat"></div>
+        <button class="sp-btn sp-btn-primary"   onclick="window.SPG.startGame()">Play Again</button>
+        <button class="sp-btn sp-btn-secondary" onclick="window.SPG.showMenu()">Main Menu</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</div>
+
+    <div class="mt-6 max-w-2xl w-full bg-slate-800/20 p-6 rounded-3xl border border-slate-700/30 text-sm text-slate-400 mb-6">
+        <h3 class="font-black text-slate-100 mb-4 flex items-center gap-2 uppercase tracking-widest text-xs">How to play</h3>
+        <ul class="space-y-4">
+            <li class="flex gap-4"><span class="text-rose-400 font-black">01</span><span>Tap or click a puck on <strong class="text-slate-200">your side</strong> to select it, then drag back and release to sling it toward the gap in the centre wall.</span></li>
+            <li class="flex gap-4"><span class="text-rose-400 font-black">02</span><span>Pucks bounce off the walls and can knock into other pucks — line up your shots carefully.</span></li>
+            <li class="flex gap-4"><span class="text-amber-400 font-black">03</span><span><strong class="text-slate-200">Classic mode:</strong> be the first to clear every puck off your own side.</span></li>
+            <li class="flex gap-4"><span class="text-amber-400 font-black">04</span><span><strong class="text-slate-200">Race mode:</strong> push all 5 of your pucks across to the opponent's side first — but they can knock yours back.</span></li>
+            <li class="flex gap-4"><span class="text-slate-300 font-black">05</span><span class="text-slate-300">Play solo against the CPU (three difficulty levels) or pass-and-play 2 Player, where the board flips 180&deg; each turn so you always face your own pucks.</span></li>
+        </ul>
+    </div>
+
+<script>
+(function(){
+'use strict';
+
+/* ══════════════════ AUDIO ══════════════════ */
+var AC = null;
+function ac(){ if(!AC){ try{ AC=new(window.AudioContext||window.webkitAudioContext)(); }catch(e){} } return AC; }
+function tone(freq,type,dur,gain){
+  try{
+    var a=ac(); if(!a) return;
+    if(a.state==='suspended') a.resume();
+    var o=a.createOscillator(), g=a.createGain();
+    o.connect(g); g.connect(a.destination);
+    o.type=type||'sine'; o.frequency.value=freq;
+    g.gain.setValueAtTime(gain||0.25,a.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001,a.currentTime+dur);
+    o.start(); o.stop(a.currentTime+dur);
+  }catch(e){}
+}
+function noise(dur,gain){
+  try{
+    var a=ac(); if(!a) return;
+    if(a.state==='suspended') a.resume();
+    var buf=a.createBuffer(1,a.sampleRate*dur,a.sampleRate);
+    var d=buf.getChannelData(0);
+    for(var i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*0.5;
+    var s=a.createBufferSource(), g=a.createGain();
+    s.buffer=buf; s.connect(g); g.connect(a.destination);
+    g.gain.setValueAtTime(gain||0.15,a.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001,a.currentTime+dur);
+    s.start(); s.stop(a.currentTime+dur);
+  }catch(e){}
+}
+var SFX={
+  select:  function(){ tone(480,'sine',.1,.18); },
+  sling:   function(){ tone(160,'sawtooth',.07,.28); setTimeout(function(){tone(380,'sine',.12,.15);},55); },
+  wall:    function(){ noise(.06,.18); tone(160,'square',.07,.12); },
+  hit:     function(){ noise(.05,.22); tone(280,'triangle',.1,.18); },
+  score:   function(){ [480,580,700,850].forEach(function(f,i){ setTimeout(function(){tone(f,'sine',.12,.22);},i*55); }); },
+  win:     function(){ [380,480,580,700,850,1050].forEach(function(f,i){ setTimeout(function(){tone(f,'sine',.16,.26);},i*75); }); },
+  turn:    function(){ tone(330,'sine',.13,.18); }
+};
+
+var Cfg = { snd:true, traj:true };
+function sfx(k){ if(Cfg.snd && SFX[k]) SFX[k](); }
+
+function hsKey(v,d){ return 'sp2_hs_'+v+'_'+d; }
+function getHS(v,d){ try{ return parseInt(localStorage.getItem(hsKey(v,d))||'0'); }catch(e){ return 0; } }
+function setHS(v,d,val){ try{ localStorage.setItem(hsKey(v,d),val); }catch(e){} }
+
+var canvas = document.getElementById('sp-canvas');
+var ctx    = canvas.getContext('2d');
+var CW=480, CH=620;
+canvas.width=CW; canvas.height=CH;
+canvas.style.width='100%'; canvas.style.height='auto';
+
+var WALL=15, PR=19, MID=CH/2, GAP=58;
+var GX1=(CW-GAP)/2, GX2=(CW+GAP)/2, DIV_H=8;
+var FRIC=0.984, BNC=0.70, MINSPD=0.15, MAXSLG=340;
+
+var numPlayers=1, variant='classic', diff='easy';
+var pucks=[], cur=1, turnN=0;
+var selPuck=null, dragging=false, dragS={x:0,y:0}, dragC={x:0,y:0};
+var running=false, paused=false, animating=false, won=false;
+var boardFlipped=false, rotAnim=false, rotT=1;
+var cpuPending=false;
+var lastT=0, rafId=null;
+
+function initPucks(){
+  pucks=[];
+  var xs=[CW*.16, CW*.32, CW*.5, CW*.68, CW*.84];
+  xs.forEach(function(x,i){
+    pucks.push({ id:'r'+i, owner:1, alive:true,
+      x:x, y:CH*.80, vx:0, vy:0, home:1, crossed:false,
+      col:'#c62828', hl:'#ff8a80', shd:'rgba(198,40,40,.45)' });
+    pucks.push({ id:'b'+i, owner:2, alive:true,
+      x:x, y:CH*.20, vx:0, vy:0, home:2, crossed:false,
+      col:'#1565c0', hl:'#82b1ff', shd:'rgba(21,101,192,.45)' });
+  });
+}
+
+function physics(dt){
+  var anyMoving=false;
+  for(var i=0;i<pucks.length;i++){
+    var p=pucks[i];
+    if(!p.alive) continue;
+    var spd=Math.sqrt(p.vx*p.vx+p.vy*p.vy);
+    if(spd<MINSPD){ p.vx=0;p.vy=0; continue; }
+    anyMoving=true;
+    var nx=p.x+p.vx*dt;
+    var ny=p.y+p.vy*dt;
+
+    if (isNaN(nx) || isNaN(ny)) continue;
+
+    if(nx-PR<WALL){   nx=WALL+PR;   p.vx=Math.abs(p.vx)*BNC; sfx('wall'); }
+    if(nx+PR>CW-WALL){nx=CW-WALL-PR;p.vx=-Math.abs(p.vx)*BNC;sfx('wall'); }
+    if(ny-PR<WALL){   ny=WALL+PR;   p.vy=Math.abs(p.vy)*BNC; sfx('wall'); }
+    if(ny+PR>CH-WALL){ny=CH-WALL-PR;p.vy=-Math.abs(p.vy)*BNC;sfx('wall'); }
+    var effTop=MID-DIV_H-PR, effBot=MID+DIV_H+PR;
+    var goingDown=p.y<=effTop&&ny>effTop;
+    var goingUp=p.y>=effBot&&ny<effBot;
+    if(goingDown||goingUp){
+      var wallY=goingDown?effTop:effBot;
+      var frac=Math.abs((wallY-p.y)/(ny-p.y+0.0001));
+      var hitX=p.x+p.vx*dt*frac;
+      var inGap=hitX>GX1+PR*0.4&&hitX<GX2-PR*0.4;
+      if(!inGap){ ny=wallY; p.vy=-p.vy*BNC; sfx('wall'); }
+    }
+    if(ny>MID-DIV_H-PR*0.6&&ny<MID+DIV_H+PR*0.6){
+      if(nx-PR<GX1){ nx=GX1+PR; p.vx=Math.abs(p.vx)*BNC; sfx('wall'); }
+      else if(nx+PR>GX2){ nx=GX2-PR; p.vx=-Math.abs(p.vx)*BNC; sfx('wall'); }
+    }
+    p.x=nx; p.y=ny;
+    p.vx*=Math.pow(FRIC,dt*60);
+    p.vy*=Math.pow(FRIC,dt*60);
+    if(variant==='race'){
+      var isNowCrossed=(p.owner===1&&ny<MID-PR)||(p.owner===2&&ny>MID+PR);
+      if(p.crossed!==isNowCrossed){
+        p.crossed=isNowCrossed;
+        if(p.crossed) sfx('score');
+        refreshDots(); refreshRaceBar(); checkWin();
+      }
+    } else {
+      if(!p.crossed){
+        if((p.owner===1&&ny<MID-PR)||(p.owner===2&&ny>MID+PR)){
+          p.crossed=true; handleCross(p);
+        }
+      }
+    }
+  }
+  for(var i=0;i<pucks.length-1;i++){
+    for(var j=i+1;j<pucks.length;j++){
+      var a=pucks[i], b=pucks[j];
+      if(!a.alive||!b.alive) continue;
+      var dx=b.x-a.x, dy=b.y-a.y;
+      var d=Math.sqrt(dx*dx+dy*dy);
+      if(d<PR*2&&d>0.01){
+        var nx2=dx/d, ny2=dy/d;
+        var ov=PR*2-d;
+        a.x-=nx2*ov*.5; a.y-=ny2*ov*.5;
+        b.x+=nx2*ov*.5; b.y+=ny2*ov*.5;
+        var dvx=a.vx-b.vx, dvy=a.vy-b.vy;
+        var dot=dvx*nx2+dvy*ny2;
+        if(dot>0){ a.vx-=dot*nx2*BNC; a.vy-=dot*ny2*BNC; b.vx+=dot*nx2*BNC; b.vy+=dot*ny2*BNC; sfx('hit'); }
+      }
+    }
+  }
+  return anyMoving;
+}
+
+function handleCross(p){
+  sfx('score');
+  if(variant==='classic'){
+    setTimeout(function(){ p.alive=false; refreshDots(); checkWin(); },350);
+  }
+}
+
+function checkWin(){
+  if(variant==='classic'){
+    var p1alive=pucks.filter(function(p){return p.alive&&p.owner===1;}).length;
+    var p2alive=pucks.filter(function(p){return p.alive&&p.owner===2;}).length;
+    if(p1alive===0&&p2alive===0) triggerWin(0);
+    else if(p1alive===0) triggerWin(1);
+    else if(p2alive===0) triggerWin(2);
+  } else {
+    var p1crossed=pucks.filter(function(p){return p.owner===1&&p.crossed;}).length;
+    var p2crossed=pucks.filter(function(p){return p.owner===2&&p.crossed;}).length;
+    if(p1crossed>=5&&p2crossed>=5) triggerWin(0);
+    else if(p1crossed>=5) triggerWin(1);
+    else if(p2crossed>=5) triggerWin(2);
+  }
+}
+
+function triggerWin(w){ won=true; setTimeout(function(){ showWin(w); },550); }
+
+function loop(now){
+  if(!running||paused) return;
+  var dt=Math.min((now-lastT)/1000,0.05);
+  lastT=now;
+  if(rotAnim){ rotT+=dt*3; if(rotT>=1){ rotT=1; rotAnim=false; } }
+  ctx.clearRect(0,0,CW,CH);
+  ctx.save();
+  if(boardFlipped){
+    var ease=rotT<1?(rotT*rotT*(3-2*rotT)):1;
+    ctx.translate(CW/2,CH/2);
+    ctx.rotate(Math.PI*ease);
+    ctx.translate(-CW/2,-CH/2);
+  }
+  drawBoard(); drawPucks();
+  if(dragging&&selPuck&&!animating&&!rotAnim&&Cfg.traj) drawSling();
+  ctx.restore();
+  if(animating){ var still=physics(dt); if(!still){ animating=false; onRest(); } }
+  rafId=requestAnimationFrame(loop);
+}
+
+function drawBoard(){
+  var bg=ctx.createLinearGradient(0,0,CW,CH);
+  bg.addColorStop(0,'#f0e0b0');bg.addColorStop(.5,'#e8d498');bg.addColorStop(1,'#d4bb80');
+  ctx.fillStyle=bg; ctx.fillRect(0,0,CW,CH);
+  ctx.strokeStyle='rgba(160,120,50,.13)';ctx.lineWidth=1;
+  for(var g=0;g<18;g++){var gy=g*(CH/18);ctx.beginPath();ctx.moveTo(0,gy);ctx.lineTo(CW,gy+10);ctx.stroke();}
+  ctx.fillStyle='#4e342e';
+  ctx.fillRect(0,0,WALL,CH);ctx.fillRect(CW-WALL,0,WALL,CH);
+  ctx.fillRect(0,0,CW,WALL);ctx.fillRect(0,CH-WALL,CW,WALL);
+  ctx.strokeStyle='rgba(255,210,120,.25)';ctx.lineWidth=2;
+  ctx.strokeRect(WALL+1,WALL+1,CW-WALL*2-2,CH-WALL*2-2);
+  ctx.fillStyle='#3e2723';
+  ctx.fillRect(WALL,MID-DIV_H,GX1-WALL,DIV_H*2);
+  ctx.fillRect(GX2,MID-DIV_H,CW-WALL-GX2,DIV_H*2);
+  ctx.strokeStyle='rgba(255,210,120,.45)';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(GX1,MID-DIV_H);ctx.lineTo(GX1,MID+DIV_H);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(GX2,MID-DIV_H);ctx.lineTo(GX2,MID+DIV_H);ctx.stroke();
+  ctx.strokeStyle='rgba(100,70,30,.18)';ctx.lineWidth=1;
+  [CW*.25,CW*.5,CW*.75].forEach(function(lx){
+    ctx.beginPath();ctx.moveTo(lx,WALL);ctx.lineTo(lx,MID-DIV_H-2);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(lx,MID+DIV_H+2);ctx.lineTo(lx,CH-WALL);ctx.stroke();
+  });
+  ctx.save();ctx.textAlign='center';ctx.font='bold 10px monospace';
+  ctx.fillStyle='rgba(198,40,40,.22)';ctx.fillText('PLAYER 1',CW/2,CH-WALL-10);
+  ctx.fillStyle='rgba(21,101,192,.22)';ctx.fillText('PLAYER 2',CW/2,WALL+18);
+  ctx.restore();
+}
+
+function drawPucks(){
+  pucks.forEach(function(p){
+    if(!p.alive) return;
+    var isSel=selPuck&&selPuck.id===p.id;
+    var isOwn=p.owner===cur;
+    var alpha=(variant==='race'&&p.crossed)?0.45:1.0;
+    ctx.save();
+    ctx.globalAlpha=alpha;
+    ctx.shadowColor=p.shd;ctx.shadowBlur=isSel?22:10;ctx.shadowOffsetY=3;
+    var grd=ctx.createRadialGradient(p.x-PR*.3,p.y-PR*.3,PR*.1,p.x,p.y,PR);
+    grd.addColorStop(0,p.hl);grd.addColorStop(1,p.col);
+    ctx.fillStyle=grd;ctx.beginPath();ctx.arc(p.x,p.y,PR,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle=isSel?'rgba(255,255,255,.9)':'rgba(255,255,255,.22)';
+    ctx.lineWidth=isSel?2.5:1.5;
+    ctx.beginPath();ctx.arc(p.x,p.y,PR,0,Math.PI*2);ctx.stroke();
+    var sh=ctx.createRadialGradient(p.x-PR*.35,p.y-PR*.4,1,p.x-PR*.2,p.y-PR*.3,PR*.55);
+    sh.addColorStop(0,'rgba(255,255,255,.42)');sh.addColorStop(1,'rgba(255,255,255,0)');
+    ctx.fillStyle=sh;ctx.beginPath();ctx.arc(p.x,p.y,PR,0,Math.PI*2);ctx.fill();
+    if(isSel){ctx.strokeStyle='rgba(255,255,255,.6)';ctx.lineWidth=1;ctx.setLineDash([4,4]);ctx.beginPath();ctx.arc(p.x,p.y,PR+6,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);}
+    if(isOwn&&!animating&&!isSel&&!rotAnim&&!(variant==='race'&&p.crossed)){ctx.strokeStyle='rgba(255,255,255,.18)';ctx.lineWidth=1;ctx.setLineDash([3,5]);ctx.beginPath();ctx.arc(p.x,p.y,PR+5,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);}
+    if(variant==='race'&&p.crossed){ctx.beginPath();ctx.moveTo(p.x-4,p.y+1);ctx.lineTo(p.x-1,p.y+5);ctx.lineTo(p.x+6,p.y-4);ctx.lineWidth=2.5;ctx.lineCap='round';ctx.lineJoin='round';ctx.strokeStyle='rgba(255,255,255,.8)';ctx.stroke();}
+    ctx.restore();
+  });
+}
+
+function drawSling(){
+  var p=selPuck;
+  var dx=dragS.x-dragC.x, dy=dragS.y-dragC.y;
+  var d=Math.sqrt(dx*dx+dy*dy);
+  if(d<6) return;
+  ctx.save();
+  ctx.globalAlpha=.55;ctx.strokeStyle='#ffd54f';ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(p.x-10,p.y);ctx.lineTo(dragC.x,dragC.y);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(p.x+10,p.y);ctx.lineTo(dragC.x,dragC.y);ctx.stroke();
+  if(Cfg.traj){
+    var pwr=Math.min(d/120,1);
+    var tvx=(dx/d)*pwr*MAXSLG*.05*.5, tvy=(dy/d)*pwr*MAXSLG*.05*.5;
+    var tx=p.x, ty=p.y;
+    ctx.strokeStyle='rgba(255,213,79,.45)';ctx.lineWidth=1.5;ctx.setLineDash([3,5]);
+    ctx.beginPath();ctx.moveTo(tx,ty);
+    for(var s=0;s<22;s++){tx+=tvx;ty+=tvy;tvx*=.99;tvy*=.99;ctx.lineTo(tx,ty);}
+    ctx.stroke();ctx.setLineDash([]);
+  }
+  var pc=Math.min(d/120,1);
+  var bw=76,bh=7,bx=p.x-bw/2,by=p.y+PR+14;
+  ctx.globalAlpha=.82;
+  ctx.fillStyle='rgba(0,0,0,.45)';ctx.beginPath();rrect(ctx,bx,by,bw,bh,3);ctx.fill();
+  ctx.fillStyle=pc<.5?'#76ff03':pc<.8?'#ffd54f':'#ff1744';
+  ctx.beginPath();rrect(ctx,bx,by,bw*pc,bh,3);ctx.fill();
+  ctx.restore();
+}
+
+function rrect(c,x,y,w,h,r){
+  c.moveTo(x+r,y);c.lineTo(x+w-r,y);c.arcTo(x+w,y,x+w,y+r,r);
+  c.lineTo(x+w,y+h-r);c.arcTo(x+w,y+h,x+w-r,y+h,r);
+  c.lineTo(x+r,y+h);c.arcTo(x,y+h,x,y+h-r,r);
+  c.lineTo(x,y+r);c.arcTo(x,y,x+r,y,r);
+}
+
+function canvasPos(e){
+  var rect=canvas.getBoundingClientRect();
+  var sx=CW/rect.width, sy=CH/rect.height;
+  var cl=e.touches?e.touches[0].clientX:e.clientX;
+  var ct=e.touches?e.touches[0].clientY:e.clientY;
+  var lx=(cl-rect.left)*sx, ly=(ct-rect.top)*sy;
+  if(boardFlipped){ lx=CW-lx; ly=CH-ly; }
+  return {x:lx,y:ly};
+}
+
+canvas.addEventListener('mousedown',onDown);
+canvas.addEventListener('touchstart',function(e){e.preventDefault();onDown(e);},{passive:false});
+canvas.addEventListener('mousemove',onMove);
+canvas.addEventListener('touchmove',function(e){e.preventDefault();onMove(e);},{passive:false});
+canvas.addEventListener('mouseup',onUp);
+canvas.addEventListener('touchend',function(e){e.preventDefault();onUp(e);},{passive:false});
+
+function onDown(e){
+  if(!running||paused||animating||rotAnim||won) return;
+  if(numPlayers===1&&cur===2) return;
+  var pos=canvasPos(e);
+  var found=null;
+  for(var i=pucks.length-1;i>=0;i--){
+    var p=pucks[i];
+    if(!p.alive||p.owner!==cur) continue;
+    if(variant==='race'&&p.crossed) continue;
+    var dx=pos.x-p.x, dy=pos.y-p.y;
+    if(Math.sqrt(dx*dx+dy*dy)<=PR+5){ found=p; break; }
+  }
+  if(found){ selPuck=found; dragging=true; dragS={x:found.x,y:found.y}; dragC={x:pos.x,y:pos.y}; sfx('select'); }
+}
+
+function onMove(e){ if(!dragging||!selPuck) return; dragC=canvasPos(e); }
+
+function onUp(e){
+  if(!dragging||!selPuck) return;
+  var dx=dragS.x-dragC.x, dy=dragS.y-dragC.y;
+  var d=Math.sqrt(dx*dx+dy*dy);
+  if(d>8){ var pwr=Math.min(d/120,1); var spd=pwr*MAXSLG; selPuck.vx=(dx/d)*spd; selPuck.vy=(dy/d)*spd; animating=true; sfx('sling'); }
+  dragging=false; selPuck=null;
+}
+
+function onRest(){ refreshDots(); refreshRaceBar(); checkWin(); if(!won) nextTurn(); }
+
+function nextTurn(){
+  cur=cur===1?2:1; turnN++;
+  refreshTurnUI(); showBanner();
+  if(numPlayers===2){ boardFlipped=!boardFlipped; rotT=0; rotAnim=true; showPass(); }
+  else if(cur===2){ cpuPending=true; setTimeout(doCPU,850+Math.random()*550); }
+}
+
+function doCPU(){
+  if(!running||won){ cpuPending=false; return; }
+  cpuPending=false;
+  var mine=pucks.filter(function(p){ return p.alive&&p.owner===2&&!(variant==='race'&&p.crossed); });
+  if(!mine.length) return;
+  var target,spread;
+  if(diff==='easy'){ target=mine[Math.floor(Math.random()*mine.length)]; spread=(Math.random()-.5)*90; fire(target,0.38+Math.random()*0.38,spread); }
+  else if(diff==='medium'){ target=mine[Math.floor(Math.random()*mine.length)]; spread=(Math.random()-.5)*40; fire(target,0.58+Math.random()*0.22,spread); }
+  else { mine.sort(function(a,b){ return Math.abs(a.x-CW/2)-Math.abs(b.x-CW/2); }); target=mine[0]; spread=(Math.random()-.5)*18; fire(target,0.72+Math.random()*0.22,spread); }
+}
+
+function fire(p,pwr,spread){
+  var aimX=CW/2+spread, aimY=MID+PR*2;
+  var dx=p.x-aimX, dy=p.y-aimY;
+  var d=Math.sqrt(dx*dx+dy*dy);
+  var spd=pwr*MAXSLG;
+  p.vx=(dx/d)*spd*-1; p.vy=(dy/d)*spd*-1;
+  sfx('sling'); animating=true;
+}
+
+function refreshDots(){
+  if(variant==='classic'){
+    setDots('sp-dots1',pucks.filter(function(p){return p.alive&&p.owner===1;}).length,5);
+    setDots('sp-dots2',pucks.filter(function(p){return p.alive&&p.owner===2;}).length,5);
+  } else {
+    setDots('sp-dots1',pucks.filter(function(p){return p.owner===1&&!p.crossed;}).length,5);
+    setDots('sp-dots2',pucks.filter(function(p){return p.owner===2&&!p.crossed;}).length,5);
+  }
+}
+
+function setDots(id,count,total){
+  var el=document.getElementById(id);
+  var spans=el.querySelectorAll('span');
+  spans.forEach(function(s,i){ s.className=i<count?'on':''; });
+}
+
+function refreshRaceBar(){
+  if(variant!=='race') return;
+  var c1=pucks.filter(function(p){return p.owner===1&&p.crossed;}).length;
+  var c2=pucks.filter(function(p){return p.owner===2&&p.crossed;}).length;
+  document.getElementById('sp-rb1').style.width=(c1/5*100)+'%';
+  document.getElementById('sp-rb2').style.width=(c2/5*100)+'%';
+  var n1=numPlayers===1?'You':'P1', n2=numPlayers===1?'CPU':'P2';
+  document.getElementById('sp-rb-lbl1').textContent=n1+' '+c1+'/5';
+  document.getElementById('sp-rb-lbl2').textContent=n2+' '+c2+'/5';
+}
+
+function refreshTurnUI(){
+  var n1=numPlayers===1?'You':'P1', n2=numPlayers===1?'CPU':'P2';
+  var el=document.getElementById('sp-turnwho');
+  el.textContent=cur===1?n1:n2;
+  el.style.color=cur===1?'#ff8a80':'#82b1ff';
+}
+
+function showBanner(){
+  var b=document.getElementById('sp-banner');
+  var n1=numPlayers===1?'Your Turn':'P1 Turn', n2=numPlayers===1?'CPU Turn':'P2 Turn';
+  b.textContent=cur===1?n1:n2;
+  b.classList.add('show'); sfx('turn');
+  setTimeout(function(){ b.classList.remove('show'); },1100);
+}
+
+function showPass(){
+  var el=document.getElementById('sp-pass');
+  el.classList.add('show');
+  setTimeout(function(){ el.classList.remove('show'); },2000);
+}
+
+function showWin(w){
+  var ico=document.getElementById('win-ico');
+  var ttl=document.getElementById('win-title');
+  var sub=document.getElementById('win-sub');
+  var stat=document.getElementById('win-stat');
+  var hsBdg=document.getElementById('win-hs');
+
+  hsBdg.style.display = 'none';
+
+  var n1=numPlayers===1?'You Win':'P1 Wins', n2=numPlayers===1?'CPU Wins':'P2 Wins';
+  if(w===0){ ico.textContent='\u{1F91D}'; ttl.textContent="It's a Draw!"; sub.textContent="What a match!"; }
+  else {
+    ico.textContent='\u{1F3C6}';
+    ttl.textContent=(w===1?n1:n2)+'!';
+    sub.textContent=w===1?(numPlayers===1?'Excellent shooting!':'Great game P1!'):(numPlayers===1?'Better luck next time!':'Great game P2!');
+    if(numPlayers===1&&w===1){
+      var key=variant+'_'+diff;
+      var prev=getHS('v2',key);
+      if(turnN<prev||prev===0){ setHS('v2',key,turnN); hsBdg.style.display = 'inline-block'; }
+      stat.textContent='Turns: '+turnN+'  |  Best: '+getHS('v2',key);
+    } else { stat.textContent='Turns taken: '+turnN; }
+  }
+  document.getElementById('ov-win').style.display = 'flex';
+  sfx('win');
+}
+
+function startGame(){
+  hideAllOv(); initPucks();
+  cur=1; turnN=0; running=true; paused=false; won=false;
+  animating=false; selPuck=null; dragging=false;
+  boardFlipped=false; rotT=1; rotAnim=false; cpuPending=false;
+  var n1=numPlayers===1?'Player':'Player 1', n2=numPlayers===1?'CPU':'Player 2';
+  document.getElementById('sp-label1').textContent=n1;
+  document.getElementById('sp-label2').textContent=n2;
+  var vLabel=variant==='classic'?'Classic':'Race', pLabel=numPlayers===1?'1P vs CPU':'2 Player';
+  document.getElementById('sp-mode-badge').textContent=vLabel+' Mode — '+pLabel;
+  var rb=document.getElementById('sp-race-bar');
+  if(variant==='race'){ rb.classList.add('show'); } else { rb.classList.remove('show'); }
+  refreshDots(); refreshRaceBar(); refreshTurnUI(); showBanner();
+  lastT=performance.now();
+  if(rafId) cancelAnimationFrame(rafId);
+  rafId=requestAnimationFrame(loop);
+}
+
+function showMenu(){
+  running=false; paused=false; won=false;
+  if(rafId){ cancelAnimationFrame(rafId); rafId=null; }
+  hideAllOv();
+  document.getElementById('ov-menu').style.display = 'flex';
+}
+
+function resume(){
+  paused=false;
+  document.getElementById('ov-pause').style.display = 'none';
+  lastT=performance.now();
+  rafId=requestAnimationFrame(loop);
+}
+
+function hideAllOv(){
+  ['ov-menu','ov-pause','ov-settings','ov-help','ov-win'].forEach(function(id){
+    document.getElementById(id).style.display = 'none';
+  });
+}
+
+window.SPG={
+  init: function(){ setPlayers(1); setVariant('classic'); setDiff('easy'); previewDraw(); },
+  startGame: startGame,
+  showMenu:  showMenu,
+  resume:    resume,
+  setPlayers: setPlayers,
+  setVariant: setVariant,
+  setDiff:    setDiff,
+  togSnd:  function(){ Cfg.snd=!Cfg.snd;  document.getElementById('tog-snd').classList.toggle('on',Cfg.snd); },
+  togTraj: function(){ Cfg.traj=!Cfg.traj;document.getElementById('tog-traj').classList.toggle('on',Cfg.traj); },
+  closeOv: function(id){
+    document.getElementById(id).style.display = 'none';
+    if(running&&!paused&&!won){ lastT=performance.now(); rafId=requestAnimationFrame(loop); }
+    else if(!running){ document.getElementById('ov-menu').style.display = 'flex'; }
+  }
+};
+
+function previewDraw(){
+  initPucks();
+  ctx.clearRect(0,0,CW,CH);
+  drawBoard(); drawPucks();
+}
+
+function setPlayers(n){
+  numPlayers=n;
+  document.getElementById('mb-1p').classList.toggle('on',n===1);
+  document.getElementById('mb-2p').classList.toggle('on',n===2);
+  document.getElementById('diff-wrap').classList.toggle('disabled', n!==1);
+}
+function setVariant(v){
+  variant=v;
+  document.getElementById('vb-classic').classList.toggle('on',v==='classic');
+  document.getElementById('vb-race').classList.toggle('on',v==='race');
+}
+function setDiff(d){
+  diff=d;
+  document.querySelectorAll('.sp-diffbt').forEach(function(b){
+    b.classList.toggle('on',b.textContent.toLowerCase().startsWith(d.charAt(0)));
+  });
+}
+
+document.getElementById('sp-pausebtn').addEventListener('click',function(){
+  if(!running||won) return;
+  if(paused){ resume(); return; }
+  paused=true;
+  if(rafId){ cancelAnimationFrame(rafId); rafId=null; }
+  document.getElementById('ov-pause').style.display = 'flex';
+});
+document.getElementById('sp-setbtn').addEventListener('click',function(){
+  if(rafId){ cancelAnimationFrame(rafId); rafId=null; }
+  document.getElementById('ov-settings').style.display = 'flex';
+});
+document.getElementById('sp-helpbtn').addEventListener('click',function(){
+  if(rafId){ cancelAnimationFrame(rafId); rafId=null; }
+  document.getElementById('ov-help').style.display = 'flex';
+});
+
+window.SPG.init();
+
+})();
+</script>
+</body>
+</html>
