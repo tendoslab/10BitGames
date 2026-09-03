@@ -66,6 +66,7 @@
     text-shadow: 0 0 8px rgba(255, 62, 165, 0.55), 0 0 22px rgba(255, 62, 165, 0.3);
   }
 
+
   /* --- hero + decorative background shapes --- */
   .hero-section {
     position: relative;
@@ -577,14 +578,26 @@ function cardHtml(game, index) {
   var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var canHover = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 
+  // Skip past the game's title/start screen so the hover preview shows
+  // actual gameplay instead of a static splash frame.
+  var PREVIEW_SKIP_SECONDS = 1.5;
+
   document.querySelectorAll('.thumb-wrap').forEach(function (wrap) {
     var card = wrap.closest('.cabinet');
     var video = wrap.querySelector('.thumb-video');
     var src = wrap.getAttribute('data-video');
     var loaded = false;
 
+    function skipIntro() {
+      var target = PREVIEW_SKIP_SECONDS;
+      if (video.duration && video.duration > target + 0.5) {
+        video.currentTime = target;
+      }
+    }
+
     function ensureLoaded() {
       if (!loaded && src) {
+        video.addEventListener('loadedmetadata', skipIntro, { once: true });
         video.src = src;
         loaded = true;
       }
@@ -594,6 +607,7 @@ function cardHtml(game, index) {
       card.classList.add('is-active');
       if (reduceMotion) return;
       ensureLoaded();
+      if (video.readyState >= 1 && video.currentTime < PREVIEW_SKIP_SECONDS) skipIntro();
       wrap.classList.add('previewing');
       video.play().catch(function () { /* file not added yet, ignore */ });
     }
@@ -602,7 +616,7 @@ function cardHtml(game, index) {
       card.classList.remove('is-active');
       wrap.classList.remove('previewing');
       video.pause();
-      video.currentTime = 0;
+      skipIntro();
     }
 
     if (canHover) {
