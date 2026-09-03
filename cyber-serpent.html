@@ -112,6 +112,11 @@
     }
     .cys-icon-btn:hover { background: rgba(0,243,255,0.2); }
     .cys-icon-btn:active { transform: scale(0.9); }
+    /* All HUD/D-pad glyphs share one inline-SVG line-icon set (see markup below) so
+       pause/help/settings and the four direction arrows render with identical
+       stroke weight everywhere, instead of relying on inconsistent platform emoji fonts. */
+    .cys-icon-btn svg { width: 16px; height: 16px; }
+    .cys-dpad-btn svg { width: 20px; height: 20px; }
 
     /* ── Overlay UI layer ──────────────────────────────────────────────── */
     #cys-ui {
@@ -339,16 +344,15 @@
     .cys-newbest { color: var(--cys-yellow) !important; text-shadow: 0 0 8px rgba(255,230,0,0.6); }
 
     /* ── Mobile D-pad ──────────────────────────────────────────────────── */
+    /* Sits below the grid as a normal-flow sibling of #cys-shell, not layered on
+       top of it, so it never blocks the view of the arena on touch devices. */
     #cys-dpad {
-        position: absolute;
-        bottom: 10px; left: 0; right: 0;
+        width: min(94vw, 520px);
+        margin: 12px auto 4px;
         display: none;
         justify-content: center;
-        z-index: 6;
-        pointer-events: none;
     }
     .cys-dpad-grid {
-        pointer-events: auto;
         display: grid;
         grid-template-columns: repeat(3, 46px);
         grid-template-rows: repeat(3, 46px);
@@ -372,6 +376,10 @@
     #cys-dpad-down { grid-column: 2; grid-row: 3; }
 
     body.cys-is-mobile #cys-dpad { display: flex; }
+    /* Hidden while any menu/pause/game-over panel is on screen, since #cys-ui
+       floats fixed above the whole viewport on mobile and would otherwise
+       leave the d-pad peeking out beneath it. */
+    #cys-dpad.cys-hidden { display: none !important; }
 
     @media (max-width: 600px) {
         .cys-intro { padding-top: 8px; }
@@ -488,18 +496,9 @@
             <div class="cys-hud-best" id="cys-hud-best">BEST: 0</div>
         </div>
         <div class="cys-hud-right">
-            <button class="cys-icon-btn" id="cys-btn-pause" title="Pause" aria-label="Pause">&#9208;</button>
-            <button class="cys-icon-btn" id="cys-btn-howto-hud" title="How to play" aria-label="How to play">?</button>
-            <button class="cys-icon-btn" id="cys-btn-settings-hud" title="Settings" aria-label="Settings">&#9881;</button>
-        </div>
-    </div>
-
-    <div id="cys-dpad">
-        <div class="cys-dpad-grid">
-            <div class="cys-dpad-btn" id="cys-dpad-up">&#9650;</div>
-            <div class="cys-dpad-btn" id="cys-dpad-left">&#9664;</div>
-            <div class="cys-dpad-btn" id="cys-dpad-right">&#9654;</div>
-            <div class="cys-dpad-btn" id="cys-dpad-down">&#9660;</div>
+            <button class="cys-icon-btn" id="cys-btn-pause" title="Pause" aria-label="Pause"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="7" y1="5" x2="7" y2="19"/><line x1="17" y1="5" x2="17" y2="19"/></svg></button>
+            <button class="cys-icon-btn" id="cys-btn-howto-hud" title="How to play" aria-label="How to play"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.1 9a2.9 2.9 0 1 1 4.4 2.5c-1.1.7-1.5 1.2-1.5 2.3"/><line x1="12" y1="17" x2="12" y2="17.01"/></svg></button>
+            <button class="cys-icon-btn" id="cys-btn-settings-hud" title="Settings" aria-label="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
         </div>
     </div>
 
@@ -586,6 +585,15 @@
             </div>
         </div>
 
+    </div>
+</div>
+
+<div id="cys-dpad" class="cys-hidden">
+    <div class="cys-dpad-grid">
+        <div class="cys-dpad-btn" id="cys-dpad-up"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg></div>
+        <div class="cys-dpad-btn" id="cys-dpad-left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></div>
+        <div class="cys-dpad-btn" id="cys-dpad-right"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>
+        <div class="cys-dpad-btn" id="cys-dpad-down"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>
     </div>
 </div>
 
@@ -698,6 +706,12 @@
     var panels = ['home', 'howto', 'settings', 'pause', 'over'];
     function hideAllPanels() {
         panels.forEach(function (p) { document.getElementById('cys-panel-' + p).style.display = 'none'; });
+    }
+    // Keeps the HUD and mobile d-pad in lockstep: both only make sense while
+    // actively playing, and both must hide behind any menu/pause/game-over panel.
+    function setPlayControlsVisible(visible) {
+        document.getElementById('cys-hud').style.display = visible ? 'flex' : 'none';
+        document.getElementById('cys-dpad').classList.toggle('cys-hidden', !visible);
     }
     var howtoReturnTo = 'home'; // 'home' | 'play' | 'pause'
     var settingsReturnTo = 'home';
@@ -816,7 +830,7 @@
         if (gameState !== 'PLAY') return;
         gameState = 'PAUSE';
         howtoReturnTo = 'play';
-        document.getElementById('cys-hud').style.display = 'none';
+        setPlayControlsVisible(false);
         showPanel('howto');
     });
     document.getElementById('cys-btn-settings-hud').addEventListener('click', function () {
@@ -824,7 +838,7 @@
         if (gameState !== 'PLAY') return;
         gameState = 'PAUSE';
         settingsReturnTo = 'play';
-        document.getElementById('cys-hud').style.display = 'none';
+        setPlayControlsVisible(false);
         showPanel('settings');
     });
     document.getElementById('cys-btn-pause-howto').addEventListener('click', function () {
@@ -835,7 +849,7 @@
     });
     function resumeFromOverlay() {
         hideAllPanels();
-        document.getElementById('cys-hud').style.display = 'flex';
+        setPlayControlsVisible(true);
         gameState = 'PLAY';
         lastTime = performance.now();
     }
@@ -844,7 +858,7 @@
         if (gameState !== 'PLAY') return;
         sfxClick();
         gameState = 'PAUSE';
-        document.getElementById('cys-hud').style.display = 'none';
+        setPlayControlsVisible(false);
         document.getElementById('cys-pause-mode').textContent = MODES[currentMode].label + ' · SCORE ' + score;
         showPanel('pause');
     });
@@ -856,7 +870,7 @@
     });
     function backToHome() {
         gameState = 'HOME';
-        document.getElementById('cys-hud').style.display = 'none';
+        setPlayControlsVisible(false);
         refreshBestLabels();
         showPanel('home');
         drawIdle();
@@ -1016,7 +1030,7 @@
         spawnApple();
 
         hideAllPanels();
-        document.getElementById('cys-hud').style.display = 'flex';
+        setPlayControlsVisible(true);
         document.getElementById('cys-hud-mode').textContent = MODES[mode].label;
         document.getElementById('cys-hud-mode').style.color = MODES[mode].color;
         document.getElementById('cys-hud-best').textContent = 'BEST ' + padScore(getHighScore(mode));
@@ -1201,7 +1215,7 @@
     function gameOver() {
         gameState = 'OVER';
         sfxOver();
-        document.getElementById('cys-hud').style.display = 'none';
+        setPlayControlsVisible(false);
         var best = getHighScore(currentMode);
         var isNew = score > best;
         if (isNew) { setHighScore(currentMode, score); best = score; }
