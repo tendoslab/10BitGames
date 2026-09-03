@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Hot Potato Bomb | 10-Bit Games</title>
+<meta name="description" content="Hot Potato Bomb is a frantic local multiplayer party game for 2-6 players. Pass the ticking bomb before it explodes, avoid misfire penalties, and be the last one standing.">
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="icon" href="assets/favicon-192.png?v=2" type="image/png">
+<link rel="icon" href="favicon.ico?v=2" sizes="any">
+<link rel="apple-touch-icon" href="assets/favicon-apple-touch.png?v=2">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Share+Tech+Mono&family=Karla:wght@700&family=Bungee+Shade&display=swap" rel="stylesheet">
+</head>
+<body class="min-h-screen bg-slate-900 text-slate-100 font-sans flex flex-col items-center py-3 px-4 m-0 overflow-x-hidden">
+    <style>
+      .tbg-topbar {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+        background: #150F22;
+        border-bottom: 2px solid #3B2C58;
+        width: 100%;
+        margin: -0.75rem -1rem 0.75rem;
+      }
+
+      .tbg-topbar a {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        color: #FBF7FF;
+        text-decoration: none;
+        font-family: 'Karla', Arial, sans-serif;
+        font-weight: 700;
+        font-size: 0.9rem;
+        border: 2px solid #3B2C58;
+        padding: 0.35rem 0.7rem 0.35rem 0.55rem;
+        border-radius: 999px;
+      }
+
+      .tbg-topbar a:hover,
+      .tbg-topbar a:focus-visible {
+        border-color: #FBF7FF;
+      }
+
+      .tbg-topbar a svg {
+        width: 14px;
+        height: 14px;
+        flex-shrink: 0;
+      }
+
+      .tbg-topbar .tbg-site-name {
+        font-family: 'Bungee Shade', 'Karla', Arial, sans-serif;
+        color: #FF3EA5;
+        font-size: 1.05rem;
+        text-shadow: 0 0 6px rgba(255, 62, 165, 0.5);
+      }
+    </style>
+
+    <div class="tbg-topbar">
+      <a href="index.html">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M15 5 L8 12 L15 19" stroke="#FBF7FF" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        All games
+      </a>
+      <span class="tbg-site-name">10-Bit Games</span>
+    </div>
+
+    <header class="max-w-2xl w-full text-center mb-2">
+        <h1 class="text-2xl font-black tracking-tight">Hot Potato Bomb</h1>
+        <p class="text-slate-400 text-sm mt-1">A frantic local multiplayer party game for 2-6 players. Pass the ticking bomb before it explodes — customisable timers, misfire penalties, and full touch-screen support.</p>
+    </header>
+
+    <div id="HPB_ROOT"></div>
+
+    <div class="mt-6 max-w-2xl w-full bg-slate-800/20 p-6 rounded-3xl border border-slate-700/30 text-sm text-slate-400 mb-6">
+        <h3 class="font-black text-slate-100 mb-4 flex items-center gap-2 uppercase tracking-widest text-xs">How to play</h3>
+        <ul class="space-y-4">
+            <li class="flex gap-4"><span class="text-amber-400 font-black">01</span><span>Gather <strong class="text-slate-200">2 to 6 players</strong> around one screen or keyboard, then set up names, keys, and a fuse duration in Tournament Setup.</span></li>
+            <li class="flex gap-4"><span class="text-amber-400 font-black">02</span><span>The player holding the bomb must <strong class="text-slate-200">tap their name</strong> (or press their assigned key) to pass it on before the timer runs out.</span></li>
+            <li class="flex gap-4"><span class="text-rose-400 font-black">03</span><span>If the timer hits <strong class="text-slate-200">zero</strong> while you're holding the bomb, you're eliminated. Last player standing wins the round — first to <strong class="text-slate-200">3 round wins</strong> takes the tournament.</span></li>
+            <li class="flex gap-4"><span class="text-yellow-400 font-black">04</span><span class="text-slate-300"><strong>Misfire penalty:</strong> tapping your name when you don't have the bomb yanks it to you instantly and knocks 1.5 seconds off the fuse. No button mashing!</span></li>
+        </ul>
+    </div>
+
+<script>
+(function() {
+  'use strict';
+
+  /* ── 1. INJECT SCOPED STYLES ── */
+  const STYLE = `
+    #HPB_SHELL * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    #HPB_SHELL {
+      --c-bg:      #07071a; --c-panel:   #0d0d2b; --c-border:  #2a2a6a;
+      --c-accent:  #f0c020; --c-red:     #ff3a3a; --c-green:   #30ff90;
+      --c-blue:    #40cfff; --c-purple:  #c050ff; --c-text:    #e0e0f0;
+      --c-muted:   #6060a0;
+      --font-head: 'Orbitron', monospace; --font-mono: 'Share Tech Mono', monospace;
+      --radius:    12px;
+
+      font-family: var(--font-mono); background: var(--c-bg); color: var(--c-text);
+      min-height: 560px; max-width: 720px; margin: 24px auto; border: 2px solid var(--c-border);
+      border-radius: 16px; overflow: hidden; position: relative; user-select: none;
+      transition: box-shadow 0.2s;
+    }
+
+    /* ── SCREENS ── */
+    .hpb-screen { display: none; flex-direction: column; align-items: center; justify-content: center; min-height: 560px; padding: 32px 24px; animation: hpb-fadein .35s ease; }
+    .hpb-screen.active { display: flex; }
+    @keyframes hpb-fadein { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }
+
+    /* ── TYPOGRAPHY & BUTTONS ── */
+    .hpb-title { font-family: var(--font-head); font-size: clamp(1.6rem, 5vw, 2.8rem); font-weight: 900; letter-spacing: .12em; color: var(--c-accent); text-shadow: 0 0 18px #f0c02080, 0 0 40px #f0c02040; text-align: center; line-height: 1.1; }
+    .hpb-subtitle { font-size: .85rem; color: var(--c-muted); letter-spacing: .25em; text-transform: uppercase; margin-top: 6px; text-align: center; }
+
+    .hpb-btn { display: inline-block; font-family: var(--font-head); font-size: .85rem; font-weight: 700; letter-spacing: .15em; text-transform: uppercase; padding: 12px 28px; border: 2px solid var(--c-accent); border-radius: var(--radius); background: transparent; color: var(--c-accent); cursor: pointer; transition: all .18s; position: relative; overflow: hidden; -webkit-tap-highlight-color: transparent; }
+    .hpb-btn:hover { background: var(--c-accent); color: var(--c-bg); box-shadow: 0 0 20px #f0c02066; transform: translateY(-1px); }
+    .hpb-btn:active { transform: scale(.97); }
+    .hpb-btn.red   { border-color: var(--c-red); color: var(--c-red); }
+    .hpb-btn.red:hover   { background: var(--c-red); color: #fff; box-shadow: 0 0 20px #ff3a3a66; }
+    .hpb-btn.green { border-color: var(--c-green); color: var(--c-green); }
+    .hpb-btn.green:hover { background: var(--c-green); color: #000; box-shadow: 0 0 20px #30ff9066; }
+    .hpb-btn.small { font-size: .72rem; padding: 8px 16px; }
+    .hpb-btn-row { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-top: 18px; }
+
+    /* ── FORMS & PANELS ── */
+    .hpb-input { background: var(--c-panel); border: 1px solid var(--c-border); border-radius: 8px; color: var(--c-text); font-family: var(--font-mono); font-size: .95rem; padding: 10px 14px; width: 100%; outline: none; transition: border-color .2s; }
+    .hpb-input:focus { border-color: var(--c-accent); }
+    .hpb-label { font-size: .72rem; letter-spacing: .18em; color: var(--c-muted); text-transform: uppercase; margin-bottom: 6px; display: block; }
+    .hpb-panel { background: var(--c-panel); border: 1px solid var(--c-border); border-radius: var(--radius); padding: 20px 24px; width: 100%; max-width: 440px; }
+    .hpb-divider { width: 100%; height: 1px; background: var(--c-border); margin: 18px 0; }
+
+    /* ── SETUP SCREEN ── */
+    #hpb-setup { gap: 0; } #hpb-setup .hpb-title { margin-bottom: 4px; } #hpb-setup .hpb-panel { margin-top: 20px; }
+    .hpb-players-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 4px; }
+    .hpb-player-slot { background: var(--c-bg); border: 1px solid var(--c-border); border-radius: 8px; padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; }
+    .hpb-player-slot .slot-key { font-size: .72rem; color: var(--c-muted); letter-spacing: .1em; }
+    .hpb-player-slot input { background: transparent; border: none; border-bottom: 1px solid var(--c-border); color: var(--c-text); font-family: var(--font-mono); font-size: .9rem; padding: 3px 0; outline: none; width: 100%; }
+    .hpb-player-slot input:focus { border-bottom-color: var(--c-accent); }
+    .hpb-player-slot .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+
+    .hpb-slider { -webkit-appearance: none; width: 100%; height: 6px; border-radius: 3px; background: var(--c-border); outline: none; cursor: pointer; }
+    .hpb-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--c-accent); cursor: pointer; box-shadow: 0 0 8px #f0c02066; }
+    .hpb-toggle-row { display: flex; align-items: center; justify-content: space-between; font-size: .82rem; color: var(--c-text); margin-bottom: 10px; }
+    .hpb-toggle { position: relative; width: 40px; height: 22px; }
+    .hpb-toggle input { opacity: 0; width:0; height:0; }
+    .hpb-toggle-track { position: absolute; inset: 0; background: var(--c-border); border-radius: 22px; cursor: pointer; transition: background .2s; }
+    .hpb-toggle input:checked + .hpb-toggle-track { background: var(--c-accent); }
+    .hpb-toggle-track::before { content: ''; position: absolute; width: 16px; height: 16px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: transform .2s; }
+    .hpb-toggle input:checked + .hpb-toggle-track::before { transform: translateX(18px); }
+
+    /* ── GAME SCREEN ── */
+    #hpb-game { justify-content: flex-start; padding: 16px 20px; gap: 12px; min-height: 560px; }
+    .hpb-topbar { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+
+    /* BOMB & TIMER */
+    .hpb-bomb-wrap { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; width: 100%; position: relative; pointer-events: none; }
+    .hpb-bomb { position: relative; width: 120px; height: 120px; transition: transform 0.1s; }
+    .hpb-bomb svg { width: 100%; height: 100%; }
+    .bomb-body { fill: #222; stroke: #555; stroke-width: 2; }
+    .bomb-fuse { stroke: var(--c-accent); stroke-width: 3; fill: none; }
+    .bomb-spark { fill: var(--c-accent); }
+    @keyframes hpb-spark { 0%,100% { opacity:1; transform: scale(1); } 50% { opacity:.4; transform: scale(.5); } }
+    .hpb-bomb.danger .bomb-body { fill: #3a0000; stroke: var(--c-red); }
+    .hpb-bomb.danger .bomb-fuse { stroke: var(--c-red); }
+    .hpb-bomb.danger .bomb-spark { fill: var(--c-red); animation: hpb-spark .25s infinite; }
+
+    .hpb-timer-ring { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 160px; height: 160px; transition: opacity 0.2s; }
+    .hpb-timer-ring circle { fill: none; stroke-width: 5; stroke-linecap: round; transform-origin: center; transform: rotate(-90deg); transition: stroke-dashoffset .1s linear, stroke .3s; }
+    .ring-bg  { stroke: var(--c-border); }
+    .ring-fg  { stroke: var(--c-green); }
+    .ring-fg.mid { stroke: var(--c-accent); }
+    .ring-fg.low { stroke: var(--c-red); }
+
+    .hpb-timer-text { font-family: var(--font-head); font-size: 1.5rem; color: var(--c-accent); text-align: center; margin-top: 8px; transition: color 0.2s; }
+    .hpb-timer-text.danger { color: var(--c-red); animation: hpb-pulse .3s infinite alternate; }
+    @keyframes hpb-pulse { from { opacity:1; } to { opacity:.5; } }
+
+    /* TOUCH-FRIENDLY PLAYERS BAR */
+    .hpb-holder-label { font-size: .7rem; letter-spacing: .2em; color: var(--c-muted); text-transform: uppercase; margin-top:16px;}
+    .hpb-holder-name { font-family: var(--font-head); font-size: 1.4rem; text-align: center; text-shadow: 0 0 12px currentColor; }
+    .hpb-pass-hint { font-size: .78rem; color: var(--c-muted); text-align: center; margin-top: 4px; }
+
+    .hpb-players-bar { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; width: 100%; z-index: 10; }
+    .hpb-player-chip {
+      display: flex; align-items: center; gap: 8px; background: var(--c-panel);
+      border: 2px solid var(--c-border); border-radius: 10px; padding: 12px 18px;
+      font-size: .9rem; transition: all .1s; cursor: pointer; user-select: none;
+      -webkit-tap-highlight-color: transparent; min-height: 46px;
+    }
+    .hpb-player-chip:active { transform: scale(0.92); }
+    .hpb-player-chip:hover { border-color: var(--c-muted); background: #1a1a3a; }
+    .hpb-player-chip.holder { border-color: var(--c-accent); box-shadow: 0 0 15px #f0c02040; transform: scale(1.05); background: #1a1a10; }
+    .hpb-player-chip.holder:active { transform: scale(0.98); }
+    .hpb-player-chip.eliminated { opacity: .25; text-decoration: line-through; filter: grayscale(1); pointer-events: none; }
+    .hpb-player-chip .pip { width: 13px; height: 13px; border-radius: 50%; flex-shrink: 0; box-shadow: 0 0 5px currentColor; }
+
+    /* EFFECTS */
+    #hpb-explosion { position: absolute; inset: 0; background: radial-gradient(circle at center, #ff6a00cc, #ff000099 50%, transparent 70%); display: none; align-items: center; justify-content: center; z-index: 50; animation: hpb-boom .5s ease forwards; border-radius: 16px; }
+    #hpb-explosion.show { display: flex; }
+    @keyframes hpb-boom { 0% { opacity:0; transform:scale(.5); } 30% { opacity:1; transform:scale(1.08); } 100% { opacity:0; transform:scale(1.2); } }
+    .boom-text { font-family: var(--font-head); font-size: clamp(2rem, 8vw, 4rem); font-weight: 900; color: #fff; text-shadow: 0 0 30px #ff6a00, 0 0 60px #ff0000; letter-spacing: .15em; }
+    #hpb-pause-overlay { position: absolute; inset: 0; background: rgba(7,7,26,.88); display: none; flex-direction: column; align-items: center; justify-content: center; gap: 18px; z-index: 60; border-radius: 16px; }
+    #hpb-pause-overlay.show { display: flex; }
+    #hpb-pause-overlay .hpb-title { font-size: 2rem; }
+
+    /* ── RESULTS & LEADERBOARD ── */
+    #hpb-result { gap: 16px; }
+    .hpb-winner-name { font-family: var(--font-head); font-size: clamp(1.8rem, 6vw, 3rem); font-weight: 900; text-align: center; text-shadow: 0 0 20px currentColor; }
+    .hpb-loser-name { font-size: .9rem; color: var(--c-red); text-align: center; }
+    .hpb-lb { width: 100%; max-width: 400px; margin-top: 4px; }
+    .hpb-lb-title { font-family: var(--font-head); font-size: .8rem; letter-spacing: .2em; color: var(--c-muted); text-transform: uppercase; margin-bottom: 10px; text-align: center; }
+    .hpb-lb-row { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-bottom: 1px solid var(--c-border); font-size: .82rem; }
+    .hpb-lb-row:last-child { border-bottom: none; }
+    .hpb-lb-rank { font-family: var(--font-head); color: var(--c-muted); width: 20px; text-align: center; }
+    .hpb-lb-rank.gold   { color: var(--c-accent); }
+    .hpb-lb-rank.silver { color: #aaa; }
+    .hpb-lb-rank.bronze { color: #cd7f32; }
+    .hpb-lb-name { flex: 1; }
+    .hpb-lb-wins { color: var(--c-green); font-family: var(--font-head); font-size: .75rem; }
+
+    /* MODALS */
+    .hpb-modal-backdrop { display: none; position: absolute; inset: 0; align-items: center; justify-content: center; z-index: 70; background: rgba(7,7,26,.92); padding: 24px; overflow-y: auto; }
+    .hpb-modal-backdrop.show { display: flex; }
+    .hpb-modal { background: var(--c-panel); border: 1px solid var(--c-border); border-radius: var(--radius); padding: 24px; width: 100%; max-width: 420px; margin: auto; }
+    .hpb-modal h3 { font-family: var(--font-head); font-size: 1rem; letter-spacing: .18em; color: var(--c-accent); margin-bottom: 14px; text-transform: uppercase; }
+    .hpb-modal p, .hpb-modal li { font-size: .82rem; line-height: 1.65; color: var(--c-text); margin-bottom: 6px; overflow-wrap: break-word; }
+    .hpb-modal ul { padding-left: 22px; list-style-position: outside; }
+
+    @keyframes hpb-float { 0% { transform: translateY(0) rotate(0deg); opacity:1; } 100% { transform: translateY(-80px) rotate(360deg); opacity:0; } }
+    .hpb-star { position: absolute; font-size: 1.2rem; animation: hpb-float 1.2s ease-out forwards; pointer-events: none; z-index: 100; }
+
+    @media (max-width: 480px) {
+      #HPB_SHELL { margin: 8px auto; }
+      .hpb-players-grid { grid-template-columns: 1fr; }
+      .hpb-players-bar { gap: 12px; }
+      .hpb-player-chip { padding: 14px 18px; min-height: 50px; font-size: 1rem; flex: 1 1 40%; justify-content: center; }
+      .hpb-player-chip .pip { width: 14px; height: 14px; }
+      .hpb-btn { padding: 14px 22px; }
+      .hpb-btn-row { gap: 14px; }
+      .hpb-modal { padding: 20px; }
+    }
+  `;
+
+  /* ── 2. BUILD HTML ── */
+  const PLAYER_COLORS = ['#40cfff','#30ff90','#f0c020','#c050ff','#ff6060','#ff9030'];
+  const PLAYER_KEYS   = ['Q','W','E','R','T','Y'];
+
+  const HTML = `
+  <style>${STYLE}</style>
+  <div id="HPB_SHELL">
+
+    <div id="hpb-menu" class="hpb-screen active">
+      <div class="hpb-title">HOT POTATO<br>BOMB</div>
+      <div class="hpb-subtitle">Local Party Tournament</div>
+      <div class="hpb-divider" style="max-width:300px;margin:22px auto;"></div>
+      <div class="hpb-btn-row">
+        <button class="hpb-btn green" id="hpb-menu-play">PLAY TOURNAMENT</button>
+        <button class="hpb-btn blue"  id="hpb-menu-howto">HOW TO PLAY</button>
+      </div>
+    </div>
+
+    <div id="hpb-setup" class="hpb-screen">
+      <div class="hpb-title" style="font-size:1.6rem;">TOURNAMENT SETUP</div>
+      <div class="hpb-subtitle">First to 3 Wins takes the Crown!</div>
+
+      <div class="hpb-panel" style="margin-top:18px; max-width:480px; width:100%;">
+        <label class="hpb-label">Number of Players</label>
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;">
+          <input type="range" class="hpb-slider" id="hpb-count-slider" min="2" max="6" value="3" step="1">
+          <span id="hpb-count-val" style="font-family:var(--font-head);color:var(--c-accent);font-size:1.1rem;width:20px;text-align:center;">3</span>
+        </div>
+
+        <label class="hpb-label">Player Names &amp; Keys</label>
+        <div class="hpb-players-grid" id="hpb-slots"></div>
+
+        <div class="hpb-divider"></div>
+
+        <label class="hpb-label">Base Fuse Duration</label>
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;">
+          <input type="range" class="hpb-slider" id="hpb-fuse-slider" min="5" max="30" value="12" step="1">
+          <span id="hpb-fuse-val" style="font-family:var(--font-head);color:var(--c-accent);font-size:1rem;width:40px;">12s</span>
+        </div>
+
+        <div class="hpb-toggle-row">
+          <span>Random fuse variation (+/-3s)</span>
+          <label class="hpb-toggle"><input type="checkbox" id="hpb-fuse-random" checked><span class="hpb-toggle-track"></span></label>
+        </div>
+        <div class="hpb-toggle-row">
+          <span>Sound effects</span>
+          <label class="hpb-toggle"><input type="checkbox" id="hpb-sound-toggle" checked><span class="hpb-toggle-track"></span></label>
+        </div>
+      </div>
+
+      <div class="hpb-btn-row">
+        <button class="hpb-btn red"   id="hpb-setup-back">BACK</button>
+        <button class="hpb-btn green" id="hpb-setup-start">START TOURNAMENT</button>
+      </div>
+    </div>
+
+    <div id="hpb-game" class="hpb-screen">
+      <div class="hpb-topbar">
+        <div style="font-family:var(--font-head);font-size:.7rem;letter-spacing:.15em;color:var(--c-muted);">
+          TOURNAMENT ROUND <span id="hpb-round-num">1</span>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="hpb-btn small" id="hpb-btn-pause">PAUSE</button>
+        </div>
+      </div>
+
+      <div class="hpb-players-bar" id="hpb-players-bar"></div>
+
+      <div class="hpb-bomb-wrap">
+        <div style="position:relative;display:flex;align-items:center;justify-content:center;">
+          <svg class="hpb-timer-ring" id="hpb-timer-svg" viewBox="0 0 160 160">
+            <circle class="ring-bg" cx="80" cy="80" r="70" stroke-dasharray="440" stroke-dashoffset="0"/>
+            <circle class="ring-fg" id="hpb-ring" cx="80" cy="80" r="70" stroke-dasharray="440" stroke-dashoffset="0"/>
+          </svg>
+          <div class="hpb-bomb" id="hpb-bomb">
+            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+              <path class="bomb-fuse" d="M55 20 Q70 5 80 18" stroke-linecap="round"/>
+              <circle class="bomb-spark" cx="80" cy="18" r="5" style="animation:hpb-spark .6s infinite;"/>
+              <circle class="bomb-body" cx="48" cy="58" r="32"/>
+              <ellipse cx="38" cy="44" rx="9" ry="6" fill="rgba(255,255,255,.08)" transform="rotate(-30,38,44)"/>
+            </svg>
+          </div>
+        </div>
+
+        <div class="hpb-timer-text" id="hpb-timer-text">12.0</div>
+
+        <div style="text-align:center;">
+          <div class="hpb-holder-label">HOLDING THE BOMB</div>
+          <div class="hpb-holder-name" id="hpb-holder-name" style="color:var(--c-blue);">Player 1</div>
+          <div class="hpb-pass-hint" id="hpb-pass-hint">
+            Tap your name or press your key to pass!
+          </div>
+        </div>
+      </div>
+
+      <div id="hpb-explosion"><span class="boom-text">BOOM!</span></div>
+
+      <div id="hpb-pause-overlay">
+        <div class="hpb-title">PAUSED</div>
+        <div class="hpb-btn-row">
+          <button class="hpb-btn green" id="hpb-resume-btn">RESUME</button>
+          <button class="hpb-btn red"   id="hpb-quit-btn">QUIT</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="hpb-result" class="hpb-screen">
+      <div class="hpb-subtitle" id="hpb-result-sub">ROUND WINNER</div>
+      <div class="hpb-winner-name" id="hpb-winner-name">Player 1</div>
+      <div class="hpb-loser-name" id="hpb-loser-name"></div>
+
+      <div class="hpb-panel hpb-lb" id="hpb-lb-panel">
+        <div class="hpb-lb-title">Tournament Standings</div>
+        <div id="hpb-lb-rows"></div>
+      </div>
+
+      <div class="hpb-btn-row" id="hpb-result-btns">
+        <button class="hpb-btn green" id="hpb-next-round">NEXT ROUND</button>
+      </div>
+    </div>
+
+    <div class="hpb-modal-backdrop" id="hpb-howto-modal">
+      <div class="hpb-modal">
+        <h3>How to Play</h3>
+        <p><b style="color:var(--c-accent)">2-6 players</b> around one screen or keyboard.</p>
+        <ul>
+          <li>The holder must <b>tap their name</b> (or press their assigned key) to pass the bomb.</li>
+          <li>If the timer hits <b>zero</b>, the holder is <span style="color:var(--c-red);">eliminated</span>.</li>
+          <li>Last player standing wins the round! First to <b>3 round wins</b> takes the tournament.</li>
+        </ul>
+        <div class="hpb-divider"></div>
+        <p style="color:var(--c-red);"><b>THE MISFIRE PENALTY</b></p>
+        <p>If you panic and tap your name when you <b>don't</b> have the bomb, the bomb jumps to you AND the fuse drops by 1.5 seconds! No button mashing!</p>
+        <div class="hpb-divider"></div>
+        <p style="color:var(--c-muted);">Tip: The timer speeds up as players are eliminated. Under 3 seconds, the timer goes blind. Good luck!</p>
+        <div class="hpb-btn-row" style="margin-top:12px;">
+          <button class="hpb-btn small" id="hpb-howto-close">CLOSE</button>
+        </div>
+      </div>
+    </div>
+
+  </div>`;
+
+  /* ── 3. MOUNT ── */
+  const root = document.getElementById('HPB_ROOT');
+  if (!root) return;
+  root.innerHTML = HTML;
+
+  /* ── 4. STATE ── */
+  let state = {
+    screen: 'menu', players: [], holderIdx: 0, fuseBase: 12, fuseRandom: true,
+    soundOn: true, fuseDuration: 12, timeLeft: 12, animId: null, round: 1, paused: false, tournamentGoal: 3
+  };
+
+  /* ── 5. HELPERS ── */
+  const $  = id => document.getElementById(id);
+
+  function showScreen(id) {
+    ['hpb-menu', 'hpb-setup', 'hpb-game', 'hpb-result'].forEach(s => {
+      const el = $(s); if (el) el.classList.remove('active');
+    });
+    const target = $(id); if (target) target.classList.add('active');
+    state.screen = id;
+  }
+
+  /* ── 6. AUDIO ── */
+  let audioCtx = null;
+  function getCtx() {
+    if (!audioCtx) try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e){}
+    return audioCtx;
+  }
+
+  function unlockAudio() {
+    try {
+        const ctx = getCtx();
+        if (!ctx) return;
+
+        if (ctx.state === 'suspended') {
+            const promise = ctx.resume();
+            if (promise !== undefined) {
+                promise.catch(() => {});
+            }
+        }
+
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        gain.gain.value = 0;
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(0);
+        osc.stop(ctx.currentTime + 0.1);
+    } catch(e) {}
+  }
+
+  function playTone(freq, type, dur, vol=0.3) {
+    if (!state.soundOn) return;
+    const ctx = getCtx(); if (!ctx || ctx.state !== 'running') return;
+    try {
+      const osc = ctx.createOscillator(); const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.type = type; osc.frequency.value = freq;
+      gain.gain.setValueAtTime(vol, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+      osc.start(); osc.stop(ctx.currentTime + dur);
+    } catch(e) {}
+  }
+
+  function sfxTick()    { playTone(440,'square',.08,.15); }
+  function sfxPass()    { playTone(660,'sine',.12,.2); }
+  function sfxPenalty() { playTone(150,'sawtooth',.3,.4); }
+  function sfxExplode() {
+    if (!state.soundOn) return;
+    const ctx = getCtx(); if (!ctx || ctx.state !== 'running') return;
+    try {
+      const buf = ctx.createBuffer(1,ctx.sampleRate*.4,ctx.sampleRate);
+      const d=buf.getChannelData(0);
+      for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1);
+      const src=ctx.createBufferSource(); const gain=ctx.createGain();
+      src.buffer=buf; src.connect(gain); gain.connect(ctx.destination);
+      gain.gain.setValueAtTime(.8,ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+.5);
+      src.start();
+    } catch(e){}
+  }
+  function sfxWin() { [523,659,784,1047].forEach((f,i)=>setTimeout(()=>playTone(f,'sine',.25,.25),i*120)); }
+
+  /* ── 7. LEADERBOARD ── */
+  function renderLB(containerEl) {
+    if (!containerEl) return;
+    const sorted = [...state.players].sort((a,b)=>b.wins-a.wins);
+    const ranks = ['gold','silver','bronze'];
+    containerEl.innerHTML = sorted.map((r,i)=>`
+      <div class="hpb-lb-row">
+        <span class="hpb-lb-rank ${ranks[i]||''}">${i+1}</span>
+        <span class="hpb-lb-name" style="color:${r.color}">${escHtml(r.name)}</span>
+        <span class="hpb-lb-wins">${r.wins} / ${state.tournamentGoal} WINS</span>
+      </div>
+    `).join('');
+  }
+  function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+  /* ── 8. SETUP ── */
+  let setupCount = 3;
+  function buildSlots(count) {
+    const grid = $('hpb-slots'); if(!grid) return;
+    grid.innerHTML = '';
+    for (let i=0;i<count;i++) {
+      const div = document.createElement('div');
+      div.className = 'hpb-player-slot';
+      div.innerHTML = `
+        <div class="slot-key"><span class="dot" style="background:${PLAYER_COLORS[i]}"></span> Key: <strong>${PLAYER_KEYS[i]}</strong></div>
+        <input type="text" maxlength="12" placeholder="Player ${i+1}" id="hpb-pname-${i}">
+      `;
+      grid.appendChild(div);
+    }
+  }
+
+  function initSetup() {
+    const slider = $('hpb-count-slider');
+    if (slider) {
+      slider.value = setupCount; $('hpb-count-val').textContent = setupCount; buildSlots(setupCount);
+      slider.addEventListener('input', function() { setupCount = parseInt(this.value); $('hpb-count-val').textContent = setupCount; buildSlots(setupCount); });
+    }
+    const fuseSlider = $('hpb-fuse-slider');
+    if (fuseSlider) fuseSlider.addEventListener('input', function() { $('hpb-fuse-val').textContent = this.value+'s'; });
+  }
+
+  /* ── 9. GAME LOGIC ── */
+  function startTournament() {
+    state.players = [];
+    for (let i=0;i<setupCount;i++) {
+      const inp = $(`hpb-pname-${i}`);
+      const name = (inp && inp.value.trim()) || `Player ${i+1}`;
+      state.players.push({ name, key: PLAYER_KEYS[i], color: PLAYER_COLORS[i], alive: true, wins: 0 });
+    }
+    state.fuseBase = parseInt($('hpb-fuse-slider')?.value || 12);
+    state.fuseRandom = $('hpb-fuse-random')?.checked ?? true;
+    state.soundOn = $('hpb-sound-toggle')?.checked ?? true;
+    state.round = 1;
+    startRound();
+  }
+
+  function alivePlayers() { return state.players.filter(p=>p.alive); }
+
+  function startRound() {
+    state.players.forEach(p => p.alive = true);
+
+    let fuse = state.fuseBase;
+    if (state.fuseRandom) fuse += (Math.random()*6 - 3);
+    fuse = Math.max(4, Math.round(fuse * 10) / 10);
+
+    state.fuseDuration = fuse;
+    state.timeLeft = fuse;
+    state.paused = false;
+
+    state.holderIdx = Math.floor(Math.random() * state.players.length);
+
+    $('hpb-round-num').textContent = state.round;
+    renderPlayersBar(); updateBombUI(); updateTimerRing();
+
+    cancelAnimationFrame(state.animId);
+    lastTs = null;
+    requestAnimationFrame(gameLoop);
+
+    showScreen('hpb-game');
+  }
+
+  let lastTs = null;
+  function gameLoop(ts) {
+    if (state.screen !== 'hpb-game') return;
+
+    if (state.paused) {
+        lastTs = ts;
+        state.animId = requestAnimationFrame(gameLoop);
+        return;
+    }
+
+    if (!lastTs) lastTs = ts;
+    let delta = (ts - lastTs) / 1000;
+
+    if (delta > 0.5) delta = 0.5;
+
+    lastTs = ts;
+
+    const prevTl = state.timeLeft;
+    state.timeLeft -= delta;
+    const tl = Math.max(0, state.timeLeft);
+
+    if (Math.floor(prevTl) !== Math.floor(tl) && tl > 0 && tl > 3) sfxTick();
+
+    updateTimerRing();
+
+    const timerEl = $('hpb-timer-text');
+    const ringEl = $('hpb-timer-svg');
+    const bomb = $('hpb-bomb');
+
+    if (tl <= 3 && tl > 0) {
+      if (timerEl) { timerEl.textContent = '?.?'; timerEl.className = 'hpb-timer-text danger'; }
+      if (ringEl) ringEl.style.opacity = '0';
+      if (bomb) bomb.className = 'hpb-bomb danger';
+    } else {
+      if (timerEl) { timerEl.textContent = tl.toFixed(1); timerEl.className = 'hpb-timer-text'; }
+      if (ringEl) ringEl.style.opacity = '1';
+      if (bomb) bomb.className = 'hpb-bomb';
+    }
+
+    if (tl <= 0) { explode(); return; }
+    state.animId = requestAnimationFrame(gameLoop);
+  }
+
+  function updateTimerRing() {
+    const ring = $('hpb-ring'); if(!ring) return;
+    const circ = 440;
+    const pct  = Math.max(0, state.timeLeft / state.fuseDuration);
+    ring.style.strokeDashoffset = circ * (1 - pct);
+
+    ring.setAttribute('class', 'ring-fg' + (pct < .25 ? ' low' : pct < .5 ? ' mid' : ''));
+  }
+
+  function updateBombUI() {
+    const h = state.players[state.holderIdx];
+    if (!h) return;
+    const nameEl = $('hpb-holder-name');
+    if (nameEl) { nameEl.textContent = h.name; nameEl.style.color = h.color; }
+    renderPlayersBar();
+  }
+
+  function renderPlayersBar() {
+    const bar = $('hpb-players-bar'); if(!bar) return;
+    bar.innerHTML = state.players.map((p,i)=>`
+      <div class="hpb-player-chip ${!p.alive?'eliminated':''} ${i===state.holderIdx&&p.alive?'holder':''}" data-key="${p.key}">
+        <span class="pip" style="background:${p.color}; box-shadow: 0 0 8px ${p.color};"></span>
+        <span style="font-weight:900; letter-spacing:1px;">${escHtml(p.name)}</span>
+        <span style="font-size:.65rem;color:var(--c-muted);font-family:var(--font-head); border: 1px solid var(--c-muted); padding: 1px 4px; border-radius: 4px;">${p.key}</span>
+      </div>
+    `).join('');
+  }
+
+  function explode() {
+    cancelAnimationFrame(state.animId);
+    sfxExplode();
+
+    const loser = state.players[state.holderIdx];
+    if (loser) loser.alive = false;
+
+    const boom = $('hpb-explosion');
+    if (boom) { boom.classList.add('show'); setTimeout(()=>boom.classList.remove('show'), 700); }
+
+    const shell = $('HPB_SHELL');
+    if (shell) { shell.style.boxShadow='0 0 60px #ff000088'; setTimeout(()=>shell.style.boxShadow='',600); }
+
+    const alive = alivePlayers();
+    if (alive.length > 1) {
+        state.fuseDuration = Math.max(4, state.fuseDuration * 0.85);
+        state.timeLeft = state.fuseDuration;
+
+        const next = alive[Math.floor(Math.random()*alive.length)];
+        state.holderIdx = state.players.indexOf(next);
+
+        setTimeout(()=>{
+            updateBombUI();
+            lastTs = null;
+            requestAnimationFrame(gameLoop);
+        }, 900);
+    } else {
+        setTimeout(() => endRound(), 900);
+    }
+  }
+
+  function endRound() {
+    const winner = alivePlayers()[0] || state.players[state.players.length-1];
+
+    let isTournamentOver = false;
+    if (winner) {
+      winner.wins++;
+      if (winner.wins >= state.tournamentGoal) isTournamentOver = true;
+
+      $('hpb-winner-name').textContent = winner.name;
+      $('hpb-winner-name').style.color = winner.color;
+      spawnStars($('hpb-result'));
+      sfxWin();
+    }
+
+    $('hpb-result-sub').textContent = isTournamentOver ? "TOURNAMENT CHAMPION" : "ROUND WINNER";
+
+    const btns = $('hpb-result-btns');
+    if (isTournamentOver) {
+        btns.innerHTML = `<button class="hpb-btn green" id="hpb-rematch-btn">NEW TOURNAMENT</button>`;
+        $('hpb-rematch-btn').addEventListener('click', () => showScreen('hpb-menu'));
+    } else {
+        btns.innerHTML = `<button class="hpb-btn green" id="hpb-next-round-btn">START ROUND ${state.round + 1}</button>`;
+        $('hpb-next-round-btn').addEventListener('click', () => { state.round++; startRound(); });
+    }
+
+    renderLB($('hpb-lb-rows'));
+    showScreen('hpb-result');
+  }
+
+  function spawnStars(parent) {
+    if (!parent) return;
+    ['*','*','*','*','*'].forEach((_,i)=>{
+      const star = document.createElement('div');
+      star.className = 'hpb-star'; star.textContent = '*';
+      star.style.cssText = `left:${20+Math.random()*60}%;top:40%;color:${PLAYER_COLORS[i%6]};animation-delay:${i*0.1}s;`;
+      parent.appendChild(star); setTimeout(()=>star.remove(), 1500);
+    });
+  }
+
+  /* ── 10. INPUT HANDLER ── */
+  function handlePlayerAction(key) {
+    if (state.screen !== 'hpb-game' || state.paused) return;
+
+    const pressingPlayer = state.players.find(p => p.key === key && p.alive);
+    if (!pressingPlayer) return;
+
+    const holder = state.players[state.holderIdx];
+
+    if (pressingPlayer !== holder) {
+        sfxPenalty();
+        state.holderIdx = state.players.indexOf(pressingPlayer);
+        state.timeLeft = Math.max(0.1, state.timeLeft - 1.5);
+        updateBombUI();
+
+        const shell = $('HPB_SHELL');
+        if (shell) { shell.style.boxShadow='0 0 50px #ff0000'; setTimeout(()=>shell.style.boxShadow='',200); }
+        return;
+    }
+
+    const alive = alivePlayers().filter(p => p !== holder);
+    if (alive.length === 0) return;
+    const next = alive[Math.floor(Math.random()*alive.length)];
+    state.holderIdx = state.players.indexOf(next);
+
+    sfxPass();
+    updateBombUI();
+  }
+
+  function onKey(e) {
+    const key = e.key.toUpperCase();
+    if (PLAYER_KEYS.includes(key)) {
+        e.preventDefault();
+        handlePlayerAction(key);
+    }
+  }
+
+  function showModal(id) { const m = $(id); if(m) m.classList.add('show'); }
+  function hideModal(id) { const m = $(id); if(m) m.classList.remove('show'); }
+
+  /* ── 11. WIRE UP EVENTS ── */
+  function wire() {
+    $('hpb-menu-play')?.addEventListener('click',()=>{ initSetup(); showScreen('hpb-setup'); });
+    $('hpb-menu-howto')?.addEventListener('click',()=>showModal('hpb-howto-modal'));
+    $('hpb-setup-back')?.addEventListener('click',()=>showScreen('hpb-menu'));
+
+    $('hpb-setup-start')?.addEventListener('click',()=>{ unlockAudio(); startTournament(); });
+
+    $('hpb-btn-pause')?.addEventListener('click',()=>{
+      state.paused = true;
+      $('hpb-pause-overlay')?.classList.add('show');
+    });
+    $('hpb-resume-btn')?.addEventListener('click',()=>{
+      state.paused = false;
+      $('hpb-pause-overlay')?.classList.remove('show');
+    });
+    $('hpb-quit-btn')?.addEventListener('click',()=>{
+      cancelAnimationFrame(state.animId);
+      $('hpb-pause-overlay')?.classList.remove('show');
+      showScreen('hpb-menu');
+    });
+
+    $('hpb-howto-close')?.addEventListener('click',()=>hideModal('hpb-howto-modal'));
+    document.addEventListener('keydown', onKey);
+
+    $('hpb-players-bar')?.addEventListener('click', (e) => {
+        const chip = e.target.closest('.hpb-player-chip');
+        if (!chip) return;
+        const key = chip.getAttribute('data-key');
+        if (key) handlePlayerAction(key);
+    });
+  }
+
+  wire();
+})();
+</script>
+</body>
+</html>
