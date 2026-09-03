@@ -354,15 +354,32 @@ function tone(f,t,d,v=0.15,sf=null){
   g.gain.setValueAtTime(v,ac.currentTime+d-0.05);g.gain.linearRampToValueAtTime(0,ac.currentTime+d);
   o.start(ac.currentTime);o.stop(ac.currentTime+d);}catch(e){}
 }
-function sfxC(){tone(520,'sine',0.12,0.18,350);}
+function sfxC(){const f=490+Math.random()*70;tone(f,'sine',0.1,0.14,f*0.68);}
 function sfxG(){tone(660,'sine',0.08,0.15);setTimeout(()=>tone(880,'sine',0.12,0.12),60);setTimeout(()=>tone(1100,'sine',0.15,0.1),130);}
 function sfxA(){try{const ac=getAC(),b=ac.createBuffer(1,ac.sampleRate*0.3,ac.sampleRate),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,2);const s=ac.createBufferSource(),g=ac.createGain();s.buffer=b;g.gain.setValueAtTime(0.4,ac.currentTime);g.gain.linearRampToValueAtTime(0,ac.currentTime+0.3);s.connect(g);g.connect(ac.destination);s.start();}catch(e){}}
 function sfxPU(){[300,400,600,900].forEach((f,i)=>setTimeout(()=>tone(f,'sine',0.1,0.14),i*60));}
 function sfxGO(){if(!cfg.sfx)return;[440,350,280,210].forEach((f,i)=>setTimeout(()=>tone(f,'sawtooth',0.25,0.12),i*140));}
 function sfxM(){tone(220,'sawtooth',0.18,0.12,300);}
-let musicInt=null;
-function startMusic(){if(!cfg.music||musicInt)return;const n=[261,294,329,349,392];let i=0;musicInt=setInterval(()=>{if(!cfg.music){stopMusic();return;}tone(n[i++%n.length],'sine',0.4,0.04);},600);}
-function stopMusic(){clearInterval(musicInt);musicInt=null;}
+let musicInt=null,musicStep=0,musicPhraseIdx=0;
+const MUSIC_PHRASES=[
+  [{n:261.63,d:0.55},{n:329.63,d:0.55},{n:392.00,d:0.55},{n:329.63,d:0.55},{n:293.66,d:0.55},{n:349.23,d:0.55},{n:440.00,d:0.9},{n:349.23,d:0.9}],
+  [{n:220.00,d:0.55},{n:277.18,d:0.55},{n:329.63,d:0.55},{n:392.00,d:0.55},{n:246.94,d:0.55},{n:311.13,d:0.55},{n:369.99,d:0.9},{n:293.66,d:0.9}]
+];
+function startMusic(){
+  if(!cfg.music||musicInt)return;
+  const playStep=()=>{
+    if(!cfg.music){stopMusic();return;}
+    const phrase=MUSIC_PHRASES[musicPhraseIdx];
+    const step=phrase[musicStep%phrase.length];
+    tone(step.n,'triangle',step.d,0.05);
+    if(musicStep%4===0)tone(step.n/2,'sine',step.d+0.3,0.028);
+    musicStep++;
+    if(musicStep%phrase.length===0)musicPhraseIdx=(musicPhraseIdx+1)%MUSIC_PHRASES.length;
+    musicInt=setTimeout(playStep,430);
+  };
+  playStep();
+}
+function stopMusic(){clearTimeout(musicInt);musicInt=null;}
 
 function resize(){
   cv.width=window.innerWidth;cv.height=window.innerHeight;
