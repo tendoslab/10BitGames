@@ -444,6 +444,20 @@ if (window._gzIsMobile) {
         {id:'se', name:'Sweden', region:'Europe', layers:[['bg','#006AA7'],['cross','#FECC02',0.36,0.16]]},
         {id:'nl', name:'Netherlands', region:'Europe', aliases:['holland'], layers:[['hstripes',['#AE1C28','#FFFFFF','#21468B']]]},
         {id:'ch', name:'Switzerland', region:'Europe', layers:[['bg','#D52B1E'],['swiss','#FFFFFF']]},
+        {id:'es', name:'Spain', region:'Europe', layers:[['hstripes',['#AA151B','#F1BF00','#AA151B'],[1,2,1]]]},
+        {id:'pt', name:'Portugal', region:'Europe', layers:[['vstripes',['#046A38','#DA291C'],[2,3]]]},
+        {id:'pl', name:'Poland', region:'Europe', layers:[['hstripes',['#FFFFFF','#DC143C']]]},
+        {id:'be', name:'Belgium', region:'Europe', layers:[['vstripes',['#000000','#FDDA24','#EF3340']]]},
+        {id:'at', name:'Austria', region:'Europe', layers:[['hstripes',['#ED2939','#FFFFFF','#ED2939']]]},
+        {id:'no', name:'Norway', region:'Europe', layers:[['bg','#EF2B2D'],['cross','#FFFFFF',0.36,0.22],['cross','#00205B',0.36,0.12]]},
+        {id:'fi', name:'Finland', region:'Europe', layers:[['bg','#FFFFFF'],['cross','#003580',0.36,0.16]]},
+        {id:'dk', name:'Denmark', region:'Europe', layers:[['bg','#C60C30'],['cross','#FFFFFF',0.38,0.16]]},
+        {id:'is', name:'Iceland', region:'Europe', layers:[['bg','#02529C'],['cross','#FFFFFF',0.36,0.24],['cross','#DC1E35',0.36,0.12]]},
+        {id:'gr', name:'Greece', region:'Europe', layers:[['hstripes',['#0D5EAF','#FFFFFF','#0D5EAF','#FFFFFF','#0D5EAF']],['rect',0,0,0.4,0.555,'#0D5EAF'],['rect',0.16,0,0.08,0.555,'#FFFFFF'],['rect',0,0.2475,0.4,0.06,'#FFFFFF']]},
+        {id:'ua', name:'Ukraine', region:'Europe', layers:[['hstripes',['#005BBB','#FFD500']]]},
+        {id:'cz', name:'Czechia', region:'Europe', aliases:['czech republic'], layers:[['hstripes',['#FFFFFF','#D7141A']],['tri',[[0,0],[0.5,0.5],[0,1]],'#11457E']]},
+        {id:'ro', name:'Romania', region:'Europe', layers:[['vstripes',['#002B7F','#FCD116','#CE1126']]]},
+        {id:'hu', name:'Hungary', region:'Europe', layers:[['hstripes',['#CE2939','#FFFFFF','#477050']]]},
         // Asia
         {id:'jp', name:'Japan', region:'Asia', layers:[['bg','#FFFFFF'],['circle',0.5,0.5,0.3,'#BC002D']]},
         {id:'cn', name:'China', region:'Asia', layers:[['bg','#DE2910'],['star',0.18,0.25,0.11,'#FFDE00'],['star',0.33,0.11,0.035,'#FFDE00'],['star',0.40,0.21,0.035,'#FFDE00'],['star',0.40,0.34,0.035,'#FFDE00'],['star',0.33,0.44,0.035,'#FFDE00']]},
@@ -452,7 +466,15 @@ if (window._gzIsMobile) {
         {id:'id', name:'Indonesia', region:'Asia', layers:[['hstripes',['#FF0000','#FFFFFF']]]},
         {id:'th', name:'Thailand', region:'Asia', layers:[['hstripes',['#A51931','#F4F5F8','#2D2A4A','#F4F5F8','#A51931'],[1,1,2,1,1]]]},
         {id:'vn', name:'Vietnam', region:'Asia', layers:[['bg','#DA251D'],['star',0.5,0.5,0.18,'#FFFF00']]},
-        {id:'tr', name:'Turkey', region:'Asia', aliases:['turkiye'], layers:[['bg','#E30A17'],['crescent',0.42,0.5,0.16,0.05,'#FFFFFF'],['star',0.58,0.5,0.055,'#FFFFFF']]},
+        {id:'tr', name:'Turkey', region:'Asia', aliases:['turkiye'], layers:[['bg','#E30A17'],['crescent',0.42,0.5,0.16,0.05,'#FFFFFF','#E30A17'],['star',0.58,0.5,0.055,'#FFFFFF']]},
+        {id:'ph', name:'Philippines', region:'Asia', layers:[['hstripes',['#0038A8','#CE1126']],['tri',[[0,0],[0.35,0.5],[0,1]],'#FFFFFF'],['sun',0.13,0.5,0.045,'#FCD116',8]]},
+        {id:'my', name:'Malaysia', region:'Asia', layers:[['hstripes',['#CC0001','#FFFFFF','#CC0001','#FFFFFF','#CC0001','#FFFFFF','#CC0001']],['rect',0,0,0.5,0.5,'#010066'],['crescent',0.18,0.25,0.13,0.045,'#FFCC00','#010066'],['star',0.32,0.25,0.06,'#FFCC00',14,-90,0.5]]},
+        {id:'sg', name:'Singapore', region:'Asia', layers:[['rect',0,0,1,0.5,'#EF3340'],['rect',0,0.5,1,0.5,'#FFFFFF'],['crescent',0.18,0.22,0.09,0.035,'#FFFFFF','#EF3340'],['star',0.32,0.14,0.028,'#FFFFFF'],['star',0.38,0.20,0.028,'#FFFFFF'],['star',0.38,0.28,0.028,'#FFFFFF'],['star',0.32,0.34,0.028,'#FFFFFF'],['star',0.27,0.22,0.028,'#FFFFFF']]},
+        {id:'pk', name:'Pakistan', region:'Asia', layers:[['rect',0,0,0.25,1,'#FFFFFF'],['rect',0.25,0,0.75,1,'#01411C'],['crescent',0.62,0.5,0.13,0.045,'#FFFFFF','#01411C'],['star',0.78,0.32,0.05,'#FFFFFF']]},
+        {id:'bd', name:'Bangladesh', region:'Asia', layers:[['bg','#006A4E'],['circle',0.45,0.5,0.16,'#F42A41']]},
+        {id:'il', name:'Israel', region:'Asia', layers:[['bg','#FFFFFF'],['rect',0,0.18,1,0.10,'#0038B8'],['rect',0,0.72,1,0.10,'#0038B8'],['star',0.5,0.5,0.14,'#0038B8',6,-90,0.5]]},
+        {id:'ir', name:'Iran', region:'Asia', layers:[['hstripes',['#239F40','#FFFFFF','#DA0000']]]},
+        {id:'kh', name:'Cambodia', region:'Asia', layers:[['hstripes',['#032EA1','#E00025','#032EA1'],[1,2,1]]]},
         // Africa
         {id:'ng', name:'Nigeria', region:'Africa', layers:[['vstripes',['#008751','#FFFFFF','#008751']]]},
         {id:'eg', name:'Egypt', region:'Africa', layers:[['hstripes',['#CE1126','#FFFFFF','#000000']]]},
@@ -462,6 +484,15 @@ if (window._gzIsMobile) {
         {id:'cm', name:'Cameroon', region:'Africa', layers:[['vstripes',['#007A5E','#CE1126','#FCD116']],['star',0.5,0.5,0.09,'#FCD116']]},
         {id:'ma', name:'Morocco', region:'Africa', layers:[['bg','#C1272D'],['star',0.5,0.5,0.16,'#006233']]},
         {id:'et', name:'Ethiopia', region:'Africa', layers:[['hstripes',['#078930','#FCDD09','#DA121A']],['circle',0.5,0.5,0.13,'#0F47AF'],['star',0.5,0.5,0.06,'#FCDD09']]},
+        {id:'ci', name:'Ivory Coast', region:'Africa', aliases:["cote d'ivoire",'cote divoire'], layers:[['vstripes',['#FF8200','#FFFFFF','#009E60']]]},
+        {id:'ml', name:'Mali', region:'Africa', layers:[['vstripes',['#14B53A','#FCD116','#CE1126']]]},
+        {id:'bf', name:'Burkina Faso', region:'Africa', layers:[['hstripes',['#EF2B2D','#009739']],['star',0.5,0.5,0.09,'#FCD116']]},
+        {id:'bj', name:'Benin', region:'Africa', layers:[['rect',0,0,0.4,1,'#008751'],['rect',0.4,0,0.6,0.5,'#FCD116'],['rect',0.4,0.5,0.6,0.5,'#E8112D']]},
+        {id:'gn', name:'Guinea', region:'Africa', layers:[['vstripes',['#CE1126','#FCD116','#009460']]]},
+        {id:'tg', name:'Togo', region:'Africa', layers:[['hstripes',['#006A4E','#FFCE00','#006A4E','#FFCE00','#006A4E']],['rect',0,0,0.4,0.555,'#D21034'],['star',0.2,0.28,0.07,'#FFFFFF']]},
+        {id:'dz', name:'Algeria', region:'Africa', layers:[['rect',0,0,0.5,1,'#006233'],['rect',0.5,0,0.5,1,'#FFFFFF'],['crescent',0.5,0.5,0.14,0.045,'#D21034','#FFFFFF'],['star',0.62,0.5,0.06,'#D21034']]},
+        {id:'so', name:'Somalia', region:'Africa', layers:[['bg','#4189DD'],['star',0.5,0.5,0.16,'#FFFFFF']]},
+        {id:'tn', name:'Tunisia', region:'Africa', layers:[['bg','#E70013'],['circle',0.5,0.5,0.19,'#FFFFFF'],['crescent',0.47,0.5,0.11,0.035,'#E70013','#FFFFFF'],['star',0.58,0.5,0.045,'#E70013']]},
         // Americas
         {id:'us', name:'United States', region:'Americas', aliases:['usa','united states of america','america'], layers:[['usa']]},
         {id:'ca', name:'Canada', region:'Americas', layers:[['vstripes',['#FF0000','#FFFFFF','#FF0000'],[1,2,1]],['star',0.5,0.5,0.17,'#FF0000',11,-90,0.55]]},
@@ -471,6 +502,15 @@ if (window._gzIsMobile) {
         {id:'pe', name:'Peru', region:'Americas', layers:[['vstripes',['#D91023','#FFFFFF','#D91023']]]},
         {id:'cu', name:'Cuba', region:'Americas', layers:[['hstripes',['#002A8F','#FFFFFF','#002A8F','#FFFFFF','#002A8F']],['tri',[[0,0],[0.5,0.5],[0,1]],'#CB1515'],['star',0.16,0.5,0.07,'#FFFFFF']]},
         {id:'mx', name:'Mexico', region:'Americas', layers:[['vstripes',['#006341','#FFFFFF','#CE1126']],['circle',0.5,0.5,0.07,'#8B5E3C'],['ring',0.5,0.5,0.07,0.012,'#000000']]},
+        {id:'co', name:'Colombia', region:'Americas', layers:[['hstripes',['#FCD116','#003893','#CE1126'],[2,1,1]]]},
+        {id:'ve', name:'Venezuela', region:'Americas', layers:[['hstripes',['#FCD116','#00247D','#CE1126']],['star',0.32,0.5,0.025,'#FFFFFF'],['star',0.38,0.42,0.025,'#FFFFFF'],['star',0.44,0.38,0.025,'#FFFFFF'],['star',0.5,0.36,0.025,'#FFFFFF'],['star',0.56,0.38,0.025,'#FFFFFF'],['star',0.62,0.42,0.025,'#FFFFFF'],['star',0.68,0.5,0.025,'#FFFFFF']]},
+        {id:'bo', name:'Bolivia', region:'Americas', layers:[['hstripes',['#D52B1E','#F9E300','#007934']]]},
+        {id:'uy', name:'Uruguay', region:'Americas', layers:[['hstripes',['#FFFFFF','#0038A8','#FFFFFF','#0038A8','#FFFFFF']],['rect',0,0,0.35,0.4,'#FFFFFF'],['sun',0.175,0.2,0.07,'#FCD116',12]]},
+        {id:'gt', name:'Guatemala', region:'Americas', layers:[['vstripes',['#4997D0','#FFFFFF','#4997D0']]]},
+        {id:'hn', name:'Honduras', region:'Americas', layers:[['hstripes',['#0073CF','#FFFFFF','#0073CF']],['star',0.35,0.5,0.035,'#0073CF'],['star',0.44,0.42,0.035,'#0073CF'],['star',0.5,0.5,0.035,'#0073CF'],['star',0.56,0.42,0.035,'#0073CF'],['star',0.65,0.5,0.035,'#0073CF']]},
+        {id:'cr', name:'Costa Rica', region:'Americas', layers:[['hstripes',['#002B7F','#FFFFFF','#CE1126','#FFFFFF','#002B7F'],[1,1,2,1,1]]]},
+        {id:'ht', name:'Haiti', region:'Americas', layers:[['rect',0,0,1,0.5,'#00209F'],['rect',0,0.5,1,0.5,'#D21034']]},
+        {id:'pa', name:'Panama', region:'Americas', layers:[['rect',0,0,0.5,0.5,'#FFFFFF'],['rect',0.5,0,0.5,0.5,'#DA121A'],['rect',0,0.5,0.5,0.5,'#072357'],['rect',0.5,0.5,0.5,0.5,'#FFFFFF'],['star',0.25,0.25,0.06,'#072357'],['star',0.75,0.75,0.06,'#DA121A']]},
         // Oceania
         {id:'au', name:'Australia', region:'Oceania', layers:[['bg','#00247D'],['unionjackcanton',0,0,0.5,0.5],['star',0.25,0.75,0.09,'#FFFFFF',7,-90,0.45],['star',0.75,0.28,0.05,'#FFFFFF'],['star',0.87,0.5,0.04,'#FFFFFF'],['star',0.82,0.75,0.045,'#FFFFFF'],['star',0.65,0.85,0.032,'#FFFFFF']]},
         {id:'nz', name:'New Zealand', region:'Oceania', layers:[['bg','#00247D'],['unionjackcanton',0,0,0.5,0.5],['star',0.75,0.25,0.055,'#FF0000'],['star',0.88,0.42,0.04,'#FF0000'],['star',0.80,0.65,0.05,'#FF0000'],['star',0.65,0.80,0.045,'#FF0000']]},
@@ -478,6 +518,9 @@ if (window._gzIsMobile) {
         {id:'ws', name:'Samoa', region:'Oceania', layers:[['bg','#CE1126'],['rect',0,0,0.5,0.5,'#002B7F'],['star',0.10,0.10,0.035,'#FFFFFF'],['star',0.32,0.06,0.025,'#FFFFFF'],['star',0.40,0.22,0.035,'#FFFFFF'],['star',0.20,0.36,0.03,'#FFFFFF'],['star',0.30,0.15,0.02,'#FFFFFF']]},
         {id:'pw', name:'Palau', region:'Oceania', layers:[['bg','#4AADD6'],['circle',0.42,0.5,0.2,'#FFDE00']]},
         {id:'to', name:'Tonga', region:'Oceania', layers:[['bg','#C10000'],['rect',0,0,0.42,0.55,'#FFFFFF'],['rect',0.155,0,0.11,0.55,'#C10000'],['rect',0,0.215,0.42,0.12,'#C10000']]},
+        {id:'fj', name:'Fiji', region:'Oceania', layers:[['bg','#68BFE5'],['unionjackcanton',0,0,0.5,0.5]]},
+        {id:'nr', name:'Nauru', region:'Oceania', layers:[['bg','#002B7F'],['rect',0,0.47,1,0.06,'#FFC61E'],['star',0.35,0.65,0.09,'#FFFFFF',12,-90,0.5]]},
+        {id:'fm', name:'Micronesia', region:'Oceania', layers:[['bg','#75B2DD'],['star',0.35,0.35,0.06,'#FFFFFF'],['star',0.65,0.35,0.06,'#FFFFFF'],['star',0.35,0.65,0.06,'#FFFFFF'],['star',0.65,0.65,0.06,'#FFFFFF']]},
     ];
     const FLAG_BY_ID = {};
     FLAGS.forEach(f => FLAG_BY_ID[f.id] = f);
@@ -639,13 +682,14 @@ if (window._gzIsMobile) {
                     break;
                 }
                 case 'crescent': {
-                    const [cx2, cy2, r, offset, c] = a;
+                    // cutColor paints the "bite" directly rather than erasing to transparency
+                    // (destination-out was punching a true hole through to whatever sits behind
+                    // the canvas — a black hole instead of a crescent) so it always matches
+                    // whatever surface the crescent is drawn on top of.
+                    const [cx2, cy2, r, offset, c, cutColor] = a;
                     const X = x + cx2 * w, Y = y + cy2 * h, R = r * h;
                     ctx.beginPath(); ctx.arc(X, Y, R, 0, Math.PI * 2); ctx.fillStyle = c; ctx.fill();
-                    ctx.save();
-                    ctx.globalCompositeOperation = 'destination-out';
-                    ctx.beginPath(); ctx.arc(X + offset * h, Y, R * 0.82, 0, Math.PI * 2); ctx.fill();
-                    ctx.restore();
+                    ctx.beginPath(); ctx.arc(X + offset * h, Y, R * 0.82, 0, Math.PI * 2); ctx.fillStyle = cutColor; ctx.fill();
                     break;
                 }
                 case 'sun': {
@@ -704,7 +748,7 @@ if (window._gzIsMobile) {
     function scramblePixels(imgData, amount) {
         const data = imgData.data;
         const pixelCount = data.length / 4;
-        const swaps = Math.floor(pixelCount * amount * 1.5);
+        const swaps = Math.floor(pixelCount * amount);
         for (let i = 0; i < swaps; i++) {
             const ai = ((Math.random() * pixelCount) | 0) * 4;
             const bi = ((Math.random() * pixelCount) | 0) * 4;
@@ -975,6 +1019,7 @@ if (window._gzIsMobile) {
         session.answered = false;
         session.wrongCount = 0;
         lastTickSecond = -1;
+        lastPixelRenderTime = 0;
         resultBannerEl.classList.remove('show');
         renderPixelFrame(0);
         updateRevealBar(0);
@@ -1014,6 +1059,7 @@ if (window._gzIsMobile) {
             playSound('buzz');
             typeInputEl.classList.remove('shake'); void typeInputEl.offsetWidth; typeInputEl.classList.add('shake');
             typeInputEl.value = '';
+            typeInputEl.focus();
         }
     });
 
@@ -1199,6 +1245,12 @@ if (window._gzIsMobile) {
     }
 
     // ── Main loop ─────────────────────────────────────────────────────────
+    // The noisy "static" phase used to re-scramble the canvas on every animation
+    // frame (~60Hz), which reads as an actual strobe effect rather than a
+    // gentle reveal. Throttling the redraw while noise is present keeps the
+    // same overall pace but at a much calmer, TV-static-like update rate.
+    const NOISY_FRAME_INTERVAL_MS = 90;
+    let lastPixelRenderTime = 0;
     function frame(now) {
         requestAnimationFrame(frame);
         if (gameState !== 'PLAY' || !session) return;
@@ -1206,7 +1258,12 @@ if (window._gzIsMobile) {
         if (!session.answered) {
             const clamped = Math.min(elapsed, REVEAL_MS);
             const progress = clamped / REVEAL_MS;
-            renderPixelFrame(progress);
+            const isNoisy = (progress / NOISE_FADE_END) < 1;
+            const interval = isNoisy ? NOISY_FRAME_INTERVAL_MS : 0;
+            if (now - lastPixelRenderTime >= interval) {
+                lastPixelRenderTime = now;
+                renderPixelFrame(progress);
+            }
             updateRevealBar(progress);
             const secLeftTotal = Math.max(0, Math.ceil((REVEAL_MS + GRACE_MS - elapsed) / 1000));
             countdownChipEl.textContent = secLeftTotal + 's';
@@ -1287,7 +1344,12 @@ if (window._gzIsMobile) {
             }
         }
     });
-    wrapper.addEventListener('click', () => wrapper.focus());
+    wrapper.addEventListener('click', e => {
+        // Don't steal focus from the type-answer field (or its submit button) —
+        // doing so mid-round silently killed further keystrokes until the next round.
+        if (e.target.closest('input, textarea, #type-answer')) return;
+        wrapper.focus();
+    });
 })();
 </script>
 
