@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Rune Match | 10-Bit Games</title>
+<meta name="description" content="Ancient runes are scattered across an arcane board — uncover matching pairs before the hourglass runs dry. Every realm you clear brings darker magic and a bigger board, with escalating combos and a saved high score.">
+<style>
+  body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: 'IM Fell English', Georgia, serif;
+    background:
+      radial-gradient(1px 1px at 10% 20%, rgba(201,168,76,0.5), transparent),
+      radial-gradient(1px 1px at 25% 55%, rgba(255,255,255,0.3), transparent),
+      radial-gradient(1.5px 1.5px at 42% 15%, rgba(167,139,250,0.4), transparent),
+      radial-gradient(1px 1px at 60% 65%, rgba(255,255,255,0.25), transparent),
+      radial-gradient(1.5px 1.5px at 78% 30%, rgba(224,92,92,0.4), transparent),
+      radial-gradient(1px 1px at 90% 55%, rgba(201,168,76,0.35), transparent),
+      radial-gradient(1px 1px at 15% 85%, rgba(255,255,255,0.25), transparent),
+      radial-gradient(ellipse 900px 500px at 50% -10%, rgba(201,168,76,0.08), transparent),
+      #0c0a07;
+    background-attachment: fixed;
+  }
+  .site-intro { position: relative; z-index: 1; max-width: 640px; margin: 0 auto; padding: 24px 15px 0; text-align: center; }
+  .site-intro h1 { font-family: 'MedievalSharp', 'IM Fell English', Georgia, serif; font-weight: 400; color: #c9a84c; letter-spacing: 3px; margin: 0 0 6px; font-size: 1.6rem; text-shadow: 0 0 20px rgba(201,168,76,0.4); }
+  .site-intro p { color: #a08060; font-size: 0.95rem; line-height: 1.5; margin: 0; font-style: italic; }
+</style>
+<link rel="icon" href="assets/favicon-192.png?v=2" type="image/png">
+<link rel="icon" href="favicon.ico?v=2" sizes="any">
+<link rel="apple-touch-icon" href="assets/favicon-apple-touch.png?v=2">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
+</head>
+<body>
+<style>
+  .tbg-topbar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    background: #150f0a;
+    border-bottom: 2px solid #3a2a10;
+  }
+  .tbg-topbar a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: #f0e6d0;
+    text-decoration: none;
+    font-family: 'IM Fell English', Georgia, serif;
+    font-weight: 700;
+    font-size: 0.9rem;
+    border: 2px solid #3a2a10;
+    padding: 0.35rem 0.7rem 0.35rem 0.55rem;
+    border-radius: 999px;
+  }
+  .tbg-topbar a:hover, .tbg-topbar a:focus-visible { border-color: #f0e6d0; }
+  .tbg-topbar a svg { width: 14px; height: 14px; flex-shrink: 0; }
+  .tbg-topbar .tbg-site-name {
+    font-family: 'MedievalSharp', 'IM Fell English', Georgia, serif;
+    color: #e05c5c;
+    font-size: 1.05rem;
+    text-shadow: 0 0 6px rgba(224, 92, 92, 0.5);
+    text-decoration: none;
+    border: none;
+    padding: 0;
+  }
+  .tbg-topbar .tbg-site-name:hover, .tbg-topbar .tbg-site-name:focus-visible { text-decoration: underline; }
+</style>
+
+<div class="tbg-topbar">
+  <a href="index.html">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M15 5 L8 12 L15 19" stroke="#F0E6D0" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    All games
+  </a>
+  <a class="tbg-site-name" href="index.html">10-Bit Games</a>
+</div>
+<div class="site-intro">
+  <h1>RUNE MATCH</h1>
+  <p>Ancient runes have been scattered across the arcane board. Uncover matching pairs before the hourglass runs dry — each realm you conquer brings darker magic, and harder puzzles.</p>
+</div>
+
+<!-- Mobile fullscreen overlay — only used on touch devices -->
+<div id="gz-fullscreen-overlay" style="
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100vh; height: 100dvh;
+    background: #000;
+    z-index: 99999;
+    touch-action: none;
+    align-items: center;
+    justify-content: center;
+">
+    <div id="game-host-mobile" style="
+        width: 100%; height: 100%;
+        touch-action: pan-y;
+    "></div>
+    <button id="gz-close-btn" style="
+        position: absolute;
+        top: 12px; right: 12px;
+        background: rgba(0,0,0,0.75);
+        color: white;
+        border: 2px solid rgba(255,255,255,0.4);
+        border-radius: 50%;
+        width: 44px; height: 44px;
+        font-size: 18px;
+        cursor: pointer;
+        z-index: 100000;
+        display: flex; align-items: center; justify-content: center;
+        line-height: 1;
+    ">&#10005;</button>
+</div>
+
+<!-- Desktop: game renders inline here -->
+<div id="game-host-desktop" style="display:flex; justify-content:center; margin: 20px 0;"></div>
+
+<!-- Mobile: preview card with Play button (hidden on desktop) -->
+<div id="gz-game-preview" style="display:none;
+    position: relative;
+    overflow: hidden;
+    background:
+        radial-gradient(circle at 50% 20%, rgba(201,168,76,0.14), transparent 60%),
+        repeating-linear-gradient(45deg, #1a140c 0 10px, #14100a 10px 20px);
+    border-radius: 10px;
+    border: 2px solid #5c3d1a;
+    box-shadow: 0 0 0 1px rgba(201,168,76,0.15), 0 12px 28px rgba(0,0,0,0.5);
+    padding: 38px 20px 30px;
+    text-align: center;
+    font-family: 'IM Fell English', Georgia, serif;
+">
+    <div style="margin-bottom:14px; font-size:30px; letter-spacing:8px;" aria-hidden="true">
+        <span style="color:#c9a84c">&#5787;</span>
+        <span style="color:#8b5cf6">&#5809;</span>
+        <span style="color:#e05c5c">&#5798;</span>
+    </div>
+    <div style="color:#f0e0b0; font-size:1.4rem; font-family:'MedievalSharp',Georgia,serif; letter-spacing:2px; margin-bottom:6px; text-shadow:0 0 18px rgba(201,168,76,0.4);">RUNE MATCH</div>
+    <div style="color:#a08060; font-size:0.85rem; margin-bottom:20px; letter-spacing:0.5px; font-style:italic;">uncover the pairs before time runs out</div>
+    <button id="gz-play-btn" style="
+        background: linear-gradient(180deg,#6b4a18 0%,#3d2a0a 100%);
+        border: 1px solid #c9a84c;
+        padding: 16px 48px;
+        border-radius: 30px;
+        color: #f0d080;
+        font-size: 1.05rem;
+        font-family: 'MedievalSharp', Georgia, serif;
+        cursor: pointer;
+        letter-spacing: 1px;
+        box-shadow: 0 6px 20px rgba(201,168,76,0.25), inset 0 1px 0 rgba(255,220,100,.15);
+        text-shadow: 0 1px 4px rgba(0,0,0,.6);
+    ">&#9654; PLAY FULLSCREEN</button>
+</div>
+
+<script>
+window._gzIsMobile = ('ontouchstart' in window) || (window.innerWidth <= 768);
+if (window._gzIsMobile) {
+    document.getElementById('game-host-desktop').style.display = 'none';
+    document.getElementById('gz-game-preview').style.display = 'block';
+}
+document.getElementById('gz-play-btn').addEventListener('click', function () {
+    var ol = document.getElementById('gz-fullscreen-overlay');
+    ol.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+});
+document.getElementById('gz-close-btn').addEventListener('click', function () {
+    document.getElementById('gz-fullscreen-overlay').style.display = 'none';
+    document.body.style.overflow = '';
+    if (window._rmPauseIfRunning) window._rmPauseIfRunning();
+});
+</script>
+
+<script>
+(function () {
+'use strict';
+
+const isMobile = ('ontouchstart' in window) || (window.innerWidth <= 768);
+const hostId = isMobile ? 'game-host-mobile' : 'game-host-desktop';
+const host = document.getElementById(hostId);
+host.style.display = 'flex';
+host.style.alignItems = 'center';
+host.style.justifyContent = 'center';
+const shadow = host.attachShadow({ mode: 'closed' });
+
+const style = document.createElement('style');
+style.textContent = `
+    * { box-sizing: border-box; }
+    .rm-hidden { display: none !important; }
+
+    #game-wrapper {
+        position: relative;
+        background: #12100e;
+        border: 2px solid #5c3d1a;
+        border-radius: 8px;
+        padding: 24px 20px 20px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        font-family: 'IM Fell English', Georgia, serif;
+        color: #d8c8a8;
+        user-select: none;
+    }
+    #game-wrapper::before {
+        content: ''; position: absolute; inset: 0; pointer-events: none; border-radius: 8px;
+        background:
+            radial-gradient(ellipse 80% 60% at 50% 0%, rgba(180,120,30,.08) 0%, transparent 70%),
+            repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(255,255,255,.012) 3px, rgba(255,255,255,.012) 4px);
+    }
+    ${isMobile ? `
+    #game-wrapper { width: 100%; height: 100%; max-height: 100dvh; margin: 0 auto; border-radius: 0; border-width: 0; padding: 64px 14px 16px; }
+    ` : `
+    #game-wrapper { width: min(94vw, 560px); height: min(88vh, 680px); }
+    `}
+
+    /* Fixed-size frame: only the board area scrolls, so switching between the
+       preview, the game, and boards of different sizes never changes the
+       frame's own footprint. */
+    .rm-screen { position: relative; z-index: 2; display: flex; flex-direction: column; flex: 1; min-height: 0; }
+    #screen-preview { justify-content: center; overflow-y: auto; }
+    #screen-game .rm-board-wrap { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; justify-content: safe center; }
+
+    .rm-corner { position: absolute; width: 18px; height: 18px; border-color: #c9a84c; border-style: solid; z-index: 2; }
+    .rm-tl { top: 6px; left: 6px; border-width: 2px 0 0 2px; }
+    .rm-tr { top: 6px; right: 6px; border-width: 2px 2px 0 0; }
+    .rm-bl { bottom: 6px; left: 6px; border-width: 0 0 2px 2px; }
+    .rm-br { bottom: 6px; right: 6px; border-width: 0 2px 2px 0; }
+
+    /* ── Preview screen ── */
+    .rm-preview-body { text-align: center; }
+    .rm-rune-row { display: flex; justify-content: center; gap: 10px; margin-bottom: 14px; }
+    .rm-demo-rune { font-size: 32px; opacity: .7; animation: rmFloat 3s ease-in-out infinite; }
+    .rm-demo-rune:nth-child(2) { animation-delay: .4s; }
+    .rm-demo-rune:nth-child(3) { animation-delay: .8s; }
+    .rm-demo-rune:nth-child(4) { animation-delay: 1.2s; }
+    .rm-demo-rune:nth-child(5) { animation-delay: 1.6s; }
+    @keyframes rmFloat { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+
+    .rm-preview-badge { font-size: 10px; letter-spacing: 3px; color: #7a5a28; margin-bottom: 6px; text-transform: uppercase; }
+    .rm-preview-title {
+        font-family: 'MedievalSharp', 'IM Fell English', Georgia, serif;
+        font-size: 34px; color: #c9a84c; margin: 0 0 12px; letter-spacing: 3px;
+        text-shadow: 0 0 20px rgba(201,168,76,.35);
+    }
+    .rm-preview-desc { font-size: 14px; color: #a08060; line-height: 1.75; margin: 0 0 16px; font-style: italic; }
+    .rm-preview-meta { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+    .rm-meta-pill {
+        font-size: 10px; letter-spacing: 1px; color: #7a5a28; border: 1px solid #3a2a10;
+        padding: 4px 10px; border-radius: 2px; background: rgba(90,60,20,.2);
+    }
+
+    /* ── Buttons ── */
+    .rm-launch-btn {
+        font-family: 'MedievalSharp', 'IM Fell English', Georgia, serif;
+        font-size: 13px; letter-spacing: 2px;
+        background: linear-gradient(180deg,#6b4a18 0%,#3d2a0a 100%);
+        color: #f0d080; border: 1px solid #c9a84c;
+        padding: 14px 28px; border-radius: 3px; cursor: pointer;
+        transition: transform .12s, background .18s; display: inline-block;
+        text-shadow: 0 1px 4px rgba(0,0,0,.6);
+        box-shadow: inset 0 1px 0 rgba(255,220,100,.15);
+        min-height: 46px;
+    }
+    .rm-launch-btn:active { transform: translateY(1px); }
+    .rm-btn-danger { background: linear-gradient(180deg,#5c1a1a 0%,#3a0a0a 100%); color: #f08080; border-color: #e05c5c; }
+
+    @media (hover: hover) and (pointer: fine) {
+        .rm-launch-btn:hover { background: linear-gradient(180deg,#8b6020 0%,#4d3410 100%); color: #fce090; transform: translateY(-1px); }
+        .rm-btn-danger:hover { background: linear-gradient(180deg,#7a2020 0%,#4d1010 100%); color: #fca0a0; }
+    }
+
+    /* ── Control buttons row ── */
+    .rm-controls-row { position: relative; z-index: 2; display: flex; justify-content: flex-end; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+    .rm-ctrl-btn {
+        font-family: 'MedievalSharp', 'IM Fell English', Georgia, serif;
+        font-size: 10px; letter-spacing: 2px;
+        background: rgba(30,20,8,.6); color: #a08a5c; border: 1px solid #3a2a10;
+        padding: 7px 12px; border-radius: 2px; cursor: pointer;
+        transition: background .15s, color .15s, border-color .15s;
+        min-height: 32px;
+    }
+    .rm-ctrl-btn.rm-paused { color: #c9a84c; border-color: #5c3d1a; background: rgba(60,40,12,.8); }
+    @media (hover: hover) and (pointer: fine) {
+        .rm-ctrl-btn:hover { background: rgba(60,40,12,.8); color: #c9a84c; border-color: #5c3d1a; }
+        .rm-ctrl-leave:hover { color: #e05c5c; border-color: #5c2020; }
+    }
+
+    /* ── Game header ── */
+    .rm-header { position: relative; z-index: 2; display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 8px; flex-wrap: wrap; gap: 6px; }
+    .rm-stat-label { font-size: 9px; letter-spacing: 3px; color: #7a5a30; text-transform: uppercase; margin-bottom: 2px; }
+    .rm-stat-val { font-family: 'MedievalSharp', Georgia, serif; font-size: 22px; color: #c9a84c; }
+    .rm-title-center { flex: 1; text-align: center; padding: 0 10px; min-width: 140px; }
+    .rm-game-title { font-family: 'MedievalSharp', Georgia, serif; font-size: 18px; letter-spacing: 3px; color: #c9a84c; text-shadow: 0 0 12px rgba(201,168,76,.3); margin-bottom: 6px; }
+    .rm-timer-bar-wrap { height: 6px; background: #1e1610; border: 1px solid #3a2a10; border-radius: 2px; overflow: hidden; }
+    .rm-timer-bar { height: 100%; width: 100%; background: linear-gradient(90deg,#c9a84c,#e8c060); border-radius: 2px; transition: width .25s linear, background .5s; }
+
+    .rm-subheader {
+        position: relative; z-index: 2; display: flex; justify-content: space-between; align-items: center;
+        font-size: 11px; letter-spacing: 1px; color: #7a5a30;
+        border-top: 1px solid #2a1e0a; border-bottom: 1px solid #2a1e0a;
+        padding: 5px 2px; margin-bottom: 14px; gap: 6px; flex-wrap: wrap;
+    }
+    #rmCombo { color: #c9a84c; font-weight: bold; min-width: 60px; text-align: right; }
+
+    /* ── Board ── */
+    .rm-board-wrap { position: relative; z-index: 2; }
+    .rm-board { display: grid; gap: 8px; justify-content: center; margin-bottom: 10px; }
+
+    .rm-tile {
+        aspect-ratio: 1;
+        background: linear-gradient(160deg,#1e1a12 0%,#15110a 100%);
+        border: 1px solid #3d2e12; border-radius: 4px; cursor: pointer;
+        display: flex; align-items: center; justify-content: center; font-size: 22px;
+        transition: transform .15s, border-color .15s, background .15s;
+        position: relative; overflow: hidden; user-select: none;
+    }
+    .rm-tile::before { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.06), transparent 60%); pointer-events: none; }
+    @media (hover: hover) and (pointer: fine) {
+        .rm-tile:hover:not(.rm-revealed):not(.rm-matched) { border-color: #c9a84c; transform: scale(1.06); background: linear-gradient(160deg,#2e2414 0%,#1e1a0e 100%); }
+    }
+    .rm-tile.rm-face-down .rm-tile-symbol { opacity: 0; }
+    .rm-tile.rm-face-down .rm-tile-back { opacity: 1; }
+    .rm-tile-back { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 18px; color: #3a2a10; transition: opacity .2s; pointer-events: none; }
+    .rm-tile-symbol { position: relative; z-index: 2; transition: opacity .2s; font-size: inherit; }
+    .rm-tile.rm-revealed { background: linear-gradient(160deg,#2a2010 0%,#1e1608 100%); border-color: #c9a84c; animation: rmReveal .2s ease-out; }
+    @keyframes rmReveal { 0% { transform: scale(.8) rotateY(90deg); opacity: .5; } 100% { transform: scale(1) rotateY(0); opacity: 1; } }
+    .rm-tile.rm-matched { background: linear-gradient(160deg,#182210 0%,#0e1808 100%); border-color: #4ade80; cursor: default; animation: rmMatch .35s ease-out; }
+    @keyframes rmMatch { 0% { transform: scale(1); } 40% { transform: scale(1.18); } 70% { transform: scale(.95); } 100% { transform: scale(1); } }
+    .rm-tile.rm-matched .rm-tile-symbol { filter: drop-shadow(0 0 6px currentColor); }
+    .rm-tile.rm-wrong { animation: rmWrong .4s ease-out; border-color: #e05c5c; }
+    @keyframes rmWrong { 0%,100% { transform: translateX(0); } 20% { transform: translateX(-5px); } 60% { transform: translateX(5px); } }
+    .rm-tile.rm-blocked { pointer-events: none; }
+
+    /* ── Overlay ── */
+    .rm-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(10,8,4,.85); z-index: 20; border-radius: 4px; padding: 10px; }
+    .rm-overlay-box { position: relative; background: #16110a; border: 2px solid #5c3d1a; border-radius: 5px; padding: 26px 26px; text-align: center; min-width: 200px; max-width: 100%; }
+    .rm-overlay-icon { font-size: 36px; margin-bottom: 8px; animation: rmPulse 1.5s infinite; }
+    @keyframes rmPulse { 0%,100% { opacity: .7; transform: scale(1); } 50% { opacity: 1; transform: scale(1.12); } }
+    .rm-overlay-title { font-family: 'MedievalSharp', Georgia, serif; font-size: 20px; color: #c9a84c; letter-spacing: 2px; margin-bottom: 6px; }
+    .rm-overlay-sub { font-size: 12px; color: #a08a5c; letter-spacing: 1px; line-height: 1.7; }
+
+    /* ── Footer ── */
+    .rm-footer-hint { position: relative; z-index: 2; font-size: 11px; color: #6a5230; letter-spacing: 1px; text-align: center; font-style: italic; border-top: 1px solid #1e1608; padding-top: 8px; }
+
+    @media (max-width: 480px) {
+        .rm-preview-title { font-size: 28px; }
+        .rm-stat-val { font-size: 18px; }
+        .rm-game-title { font-size: 15px; }
+        .rm-ctrl-btn { font-size: 9px; padding: 6px 10px; }
+        .rm-subheader { font-size: 10px; }
+        .rm-launch-btn { padding: 12px 20px; font-size: 12px; }
+    }
+`;
+
+const wrapper = document.createElement('div');
+wrapper.id = 'game-wrapper';
+wrapper.innerHTML = `
+    <div class="rm-corner rm-tl"></div><div class="rm-corner rm-tr"></div>
+    <div class="rm-corner rm-bl"></div><div class="rm-corner rm-br"></div>
+
+    <div class="rm-screen" id="screen-preview">
+        <div class="rm-preview-body">
+            <div class="rm-rune-row" aria-hidden="true">
+                <span class="rm-demo-rune" style="color:#c9a84c">&#5787;</span>
+                <span class="rm-demo-rune" style="color:#8b5cf6">&#5809;</span>
+                <span class="rm-demo-rune" style="color:#e05c5c">&#5798;</span>
+                <span class="rm-demo-rune" style="color:#4ade80">&#5794;</span>
+                <span class="rm-demo-rune" style="color:#38bdf8">&#5855;</span>
+            </div>
+            <div class="rm-preview-badge">PUZZLE MINIGAME</div>
+            <h2 class="rm-preview-title">RUNE MATCH</h2>
+            <p class="rm-preview-desc">
+                Ancient runes have been scattered across the arcane board. Uncover matching pairs before the hourglass runs dry. Each realm you conquer brings darker magic — and harder puzzles.
+            </p>
+            <div class="rm-preview-meta">
+                <span class="rm-meta-pill">&#9876; FANTASY</span>
+                <span class="rm-meta-pill">&#9726; MEMORY MATCH</span>
+                <span class="rm-meta-pill">&#8593; ESCALATING</span>
+            </div>
+            <button class="rm-launch-btn" id="btn-enter">&#10022; ENTER THE SANCTUM</button>
+        </div>
+    </div>
+
+    <div class="rm-screen rm-hidden" id="screen-game">
+        <div class="rm-header">
+            <div class="rm-stat-block">
+                <div class="rm-stat-label">REALM</div>
+                <div class="rm-stat-val" id="rmLevel">1</div>
+            </div>
+            <div class="rm-title-center">
+                <div class="rm-game-title">RUNE MATCH</div>
+                <div class="rm-timer-bar-wrap"><div class="rm-timer-bar" id="rmTimerBar"></div></div>
+            </div>
+            <div class="rm-stat-block" style="text-align:right">
+                <div class="rm-stat-label">SCORE</div>
+                <div class="rm-stat-val" id="rmScore">0</div>
+            </div>
+        </div>
+
+        <div class="rm-controls-row">
+            <button class="rm-ctrl-btn" id="btn-settings" title="Settings">&#9881; SETTINGS</button>
+            <button class="rm-ctrl-btn" id="rmPauseBtn" title="Pause">&#9646;&#9646; PAUSE</button>
+            <button class="rm-ctrl-btn rm-ctrl-leave" id="btn-leave" title="Leave game">&#10005; LEAVE</button>
+        </div>
+
+        <div class="rm-subheader">
+            <span id="rmPairsLeft">Pairs left: 0</span>
+            <span id="rmBest">Best: 0</span>
+            <span id="rmCombo"></span>
+        </div>
+
+        <div class="rm-board-wrap">
+            <div class="rm-board" id="rmBoard"></div>
+
+            <div class="rm-overlay" id="rmPauseOverlay" style="display:none">
+                <div class="rm-overlay-box">
+                    <div class="rm-corner rm-tl"></div><div class="rm-corner rm-tr"></div>
+                    <div class="rm-corner rm-bl"></div><div class="rm-corner rm-br"></div>
+                    <div class="rm-overlay-icon" style="color:#c9a84c">&#9646;&#9646;</div>
+                    <div class="rm-overlay-title">PAUSED</div>
+                    <div class="rm-overlay-sub" style="margin-bottom:18px">The hourglass is frozen.<br>Your progress is safe.</div>
+                    <button class="rm-launch-btn" id="btn-resume">&#9654; RESUME</button>
+                </div>
+            </div>
+
+            <div class="rm-overlay" id="rmSettingsOverlay" style="display:none">
+                <div class="rm-overlay-box">
+                    <div class="rm-corner rm-tl"></div><div class="rm-corner rm-tr"></div>
+                    <div class="rm-corner rm-bl"></div><div class="rm-corner rm-br"></div>
+                    <div class="rm-overlay-icon" style="color:#a78bfa">&#9881;</div>
+                    <div class="rm-overlay-title">SETTINGS</div>
+                    <div class="rm-overlay-sub" style="margin-bottom:18px">Adjust the arcane forces.</div>
+                    <div style="display:flex;flex-direction:column;gap:12px;align-items:center">
+                        <button class="rm-launch-btn" id="rmSndToggle" style="width:180px">&#128266; Sound: ON</button>
+                        <button class="rm-launch-btn" id="btn-settings-back" style="width:180px">&#8617; Back to Pause</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="rm-overlay" id="rmLeaveOverlay" style="display:none">
+                <div class="rm-overlay-box">
+                    <div class="rm-corner rm-tl"></div><div class="rm-corner rm-tr"></div>
+                    <div class="rm-corner rm-bl"></div><div class="rm-corner rm-br"></div>
+                    <div class="rm-overlay-icon" style="color:#e05c5c">&#9888;</div>
+                    <div class="rm-overlay-title">ABANDON QUEST?</div>
+                    <div class="rm-overlay-sub" style="margin-bottom:18px">Your current run will be lost.<br>High score is already saved.</div>
+                    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+                        <button class="rm-launch-btn rm-btn-danger" id="btn-leave-confirm">&#10005; Leave</button>
+                        <button class="rm-launch-btn" id="btn-leave-cancel">&#8617; Stay</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="rm-overlay" id="rmOverlay" style="display:none; z-index:30;">
+                <div class="rm-overlay-box">
+                    <div class="rm-corner rm-tl"></div><div class="rm-corner rm-tr"></div>
+                    <div class="rm-corner rm-bl"></div><div class="rm-corner rm-br"></div>
+                    <div class="rm-overlay-icon" id="rmOverIcon">&#10022;</div>
+                    <div class="rm-overlay-title" id="rmOverTitle">REALM CLEARED</div>
+                    <div class="rm-overlay-sub" id="rmOverSub"></div>
+                    <button class="rm-launch-btn" id="rmOverBtn" style="margin-top:18px">Continue</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="rm-footer-hint" id="rmHint">Reveal matching rune pairs to advance</div>
+    </div>
+`;
+
+shadow.appendChild(style);
+shadow.appendChild(wrapper);
+function $(id) { return shadow.getElementById(id); }
+
+/* ── Audio Engine (Web Audio API) ── */
+let audioCtx = null;
+let gSoundEnabled = true;
+
+function lsGet(key, fallback) { try { const v = localStorage.getItem(key); return v === null ? fallback : JSON.parse(v); } catch (e) { return fallback; } }
+function lsSet(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) {} }
+const SETTINGS_KEY = 'runeMatch_settings';
+const RM_KEY = 'runeMatch_highScore_v1';
+
+function playTone(freq, type, duration, vol) {
+    if (!gSoundEnabled) return;
+    try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(vol || 0.1, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+    } catch (e) { /* audio not supported */ }
+}
+function sndFlip() { playTone(400, 'sine', 0.1, 0.05); }
+function sndMatch() { playTone(800, 'sine', 0.1, 0.1); setTimeout(() => playTone(1200, 'sine', 0.2, 0.1), 100); }
+function sndWrong() { playTone(200, 'sawtooth', 0.2, 0.08); setTimeout(() => playTone(150, 'sawtooth', 0.2, 0.08), 150); }
+function sndWin() { playTone(400, 'sine', 0.1, 0.1); setTimeout(() => playTone(600, 'sine', 0.1, 0.1), 100); setTimeout(() => playTone(800, 'sine', 0.3, 0.1), 200); }
+function sndLose() { playTone(300, 'sawtooth', 0.4, 0.1); setTimeout(() => playTone(250, 'sawtooth', 0.4, 0.1), 300); }
+
+/* ── Rune symbols ── */
+/* The full 24-rune Elder Futhark alphabet — one symbol per rune, matching
+   the hardest level's 24 pairs so no board ever needs to repeat a glyph. */
+const RUNES = [
+    { sym: 'ᚠ', col: '#c9a84c' }, { sym: 'ᚢ', col: '#38bdf8' },
+    { sym: 'ᚦ', col: '#e05c5c' }, { sym: 'ᚨ', col: '#4ade80' },
+    { sym: 'ᚱ', col: '#a78bfa' }, { sym: 'ᚲ', col: '#fb923c' },
+    { sym: 'ᚷ', col: '#f472b6' }, { sym: 'ᚹ', col: '#2dd4bf' },
+    { sym: 'ᚺ', col: '#facc15' }, { sym: 'ᚾ', col: '#60a5fa' },
+    { sym: 'ᛁ', col: '#c084fc' }, { sym: 'ᛃ', col: '#86efac' },
+    { sym: 'ᛇ', col: '#fca5a5' }, { sym: 'ᛈ', col: '#93c5fd' },
+    { sym: 'ᛉ', col: '#d8b4fe' }, { sym: 'ᛊ', col: '#fde047' },
+    { sym: 'ᛏ', col: '#f9a8d4' }, { sym: 'ᛒ', col: '#6ee7b7' },
+    { sym: 'ᛖ', col: '#fb7185' }, { sym: 'ᛗ', col: '#818cf8' },
+    { sym: 'ᛚ', col: '#a3e635' }, { sym: 'ᛜ', col: '#22d3ee' },
+    { sym: 'ᛞ', col: '#f97316' }, { sym: 'ᛟ', col: '#e879f9' }
+];
+
+/* ── Level config: {cols, rows, time(s)} ── */
+const LEVELS = [
+    { cols: 4, rows: 3, time: 40 },
+    { cols: 4, rows: 4, time: 55 },
+    { cols: 5, rows: 4, time: 65 },
+    { cols: 6, rows: 4, time: 75 },
+    { cols: 6, rows: 5, time: 85 },
+    { cols: 7, rows: 6, time: 95 },
+    { cols: 8, rows: 6, time: 105 }
+];
+
+let gLevel = 1, gScore = 0, gBest = 0, gCombo = 0;
+let gCards = [], gFlipped = [], gLocked = false, gPairsLeft = 0;
+let gTimer = 0, gTimerMax = 0, gTimerRaf = null, gLastTs = null;
+let gPaused = false;
+
+function loadBest() { try { const v = localStorage.getItem(RM_KEY); if (v) gBest = parseInt(v) || 0; } catch (e) {} }
+function saveBest() { try { if (gScore > gBest) { gBest = gScore; localStorage.setItem(RM_KEY, gBest); } } catch (e) {} }
+
+function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+
+function computeTileSize(cols) {
+    const boardWrap = $('rmBoard').parentElement;
+    const avail = boardWrap.clientWidth || (isMobile ? window.innerWidth - 40 : 520);
+    const gap = 8;
+    const raw = Math.floor((avail - (cols - 1) * gap) / cols);
+    const cap = isMobile ? 58 : 68;
+    return Math.max(26, Math.min(cap, raw));
+}
+
+/* ── Build board for current level ── */
+function buildLevel() {
+    const board = $('rmBoard');
+    board.innerHTML = '';
+    gCards = []; gFlipped = []; gLocked = false; gPaused = false;
+    const pb = $('rmPauseBtn');
+    pb.textContent = '▮▮ PAUSE';
+    pb.classList.remove('rm-paused');
+
+    $('rmPauseOverlay').style.display = 'none';
+    $('rmLeaveOverlay').style.display = 'none';
+    $('rmSettingsOverlay').style.display = 'none';
+    $('rmOverlay').style.display = 'none';
+
+    const cfg = LEVELS[Math.min(gLevel - 1, LEVELS.length - 1)];
+    const totalTiles = cfg.cols * cfg.rows;
+    const pairs = totalTiles / 2;
+    gPairsLeft = pairs;
+    gTimerMax = cfg.time;
+    gTimer = cfg.time;
+
+    const pool = RUNES.slice();
+    shuffle(pool);
+    const chosen = pool.slice(0, pairs);
+    const deck = shuffle(chosen.concat(chosen));
+
+    const tileSize = computeTileSize(cfg.cols);
+    board.style.gridTemplateColumns = 'repeat(' + cfg.cols + ',' + tileSize + 'px)';
+
+    deck.forEach((rune, idx) => {
+        const tile = document.createElement('div');
+        tile.className = 'rm-tile rm-face-down';
+        tile.dataset.idx = idx;
+        tile.dataset.sym = rune.sym;
+
+        const back = document.createElement('div');
+        back.className = 'rm-tile-back';
+        back.textContent = '᛭';
+        tile.appendChild(back);
+
+        const sym = document.createElement('div');
+        sym.className = 'rm-tile-symbol';
+        sym.textContent = rune.sym;
+        sym.style.color = rune.col;
+        sym.style.fontSize = Math.max(14, tileSize * .38) + 'px';
+        tile.appendChild(sym);
+
+        tile.addEventListener('click', () => onTileClick(idx));
+        board.appendChild(tile);
+        gCards.push(tile);
+    });
+
+    updateHUD();
+    startTimer();
+    setHint('Realm ' + gLevel + ' — uncover all ' + pairs + ' rune pairs');
+}
+
+function onTileClick(idx) {
+    const tile = gCards[idx];
+    if (gPaused || gLocked || tile.classList.contains('rm-revealed') || tile.classList.contains('rm-matched')) return;
+    if (gFlipped.length >= 2) return;
+
+    sndFlip();
+    tile.classList.remove('rm-face-down');
+    tile.classList.add('rm-revealed');
+    gFlipped.push(idx);
+
+    if (gFlipped.length === 2) {
+        gLocked = true;
+        const a = gCards[gFlipped[0]], b = gCards[gFlipped[1]];
+        if (a.dataset.sym === b.dataset.sym) {
+            setTimeout(() => {
+                sndMatch();
+                a.classList.add('rm-matched'); b.classList.add('rm-matched');
+                a.classList.remove('rm-revealed'); b.classList.remove('rm-revealed');
+                gFlipped = []; gLocked = false;
+                gPairsLeft--;
+                gCombo++;
+                const bonus = gCombo > 1 ? gCombo * 10 : 10;
+                gScore += bonus;
+                saveBest();
+                updateHUD();
+                if (gCombo > 1) setHint('✶ Combo x' + gCombo + ' — +' + bonus + ' arcane points!');
+                if (gPairsLeft === 0) { stopTimer(); showOverlay('win'); }
+            }, 320);
+        } else {
+            setTimeout(() => {
+                sndWrong();
+                a.classList.add('rm-wrong'); b.classList.add('rm-wrong');
+                setTimeout(() => {
+                    a.classList.remove('rm-wrong', 'rm-revealed'); a.classList.add('rm-face-down');
+                    b.classList.remove('rm-wrong', 'rm-revealed'); b.classList.add('rm-face-down');
+                    gFlipped = []; gLocked = false;
+                    gCombo = 0;
+                    updateHUD();
+                    setHint('The runes resist... try again');
+                }, 400);
+            }, 600);
+        }
+    }
+}
+
+/* ── Timer ── */
+function startTimer() {
+    stopTimer();
+    gLastTs = null;
+    function tick(ts) {
+        if (!gLastTs) gLastTs = ts;
+        const dt = (ts - gLastTs) / 1000; gLastTs = ts;
+        gTimer = Math.max(0, gTimer - dt);
+        const pct = (gTimer / gTimerMax) * 100;
+        const bar = $('rmTimerBar');
+        if (bar) {
+            bar.style.width = pct + '%';
+            bar.style.background = pct > 40 ? 'linear-gradient(90deg,#c9a84c,#e8c060)' :
+                pct > 20 ? 'linear-gradient(90deg,#e08020,#f0a030)' :
+                'linear-gradient(90deg,#c03020,#e04030)';
+        }
+        if (gTimer <= 0) { stopTimer(); gScore = Math.max(0, gScore - 20); saveBest(); showOverlay('timeout'); return; }
+        gTimerRaf = requestAnimationFrame(tick);
+    }
+    gTimerRaf = requestAnimationFrame(tick);
+}
+function stopTimer() { if (gTimerRaf) { cancelAnimationFrame(gTimerRaf); gTimerRaf = null; } }
+
+/* ── Overlays ── */
+function showOverlay(type) {
+    const ov = $('rmOverlay');
+    const icon = $('rmOverIcon');
+    const title = $('rmOverTitle');
+    const sub = $('rmOverSub');
+    const btn = $('rmOverBtn');
+    ov.style.display = 'flex';
+    gCards.forEach(c => c.classList.add('rm-blocked'));
+
+    if (type === 'win') {
+        sndWin();
+        icon.textContent = '✶'; icon.style.color = '#c9a84c';
+        title.textContent = 'REALM CLEARED';
+        const timeBonus = Math.floor(gTimer) * 5;
+        gScore += timeBonus; saveBest();
+        sub.innerHTML = 'Time bonus: +' + timeBonus + ' &nbsp;|&nbsp; Score: ' + gScore + '<br><span style="font-size:10px;color:#7a5a30">Realm ' + (gLevel + 1) + ' awaits...</span>';
+        btn.textContent = '⚔ Next Realm';
+        btn.onclick = () => { ov.style.display = 'none'; gLevel++; buildLevel(); };
+    } else {
+        sndLose();
+        icon.textContent = '💀'; icon.style.color = '#e05c5c';
+        title.textContent = 'TIME EXPIRED';
+        sub.innerHTML = 'The hourglass is empty.<br>Score: ' + gScore + '&nbsp;|&nbsp;Best: ' + gBest;
+        btn.textContent = '↺ Try Again';
+        btn.onclick = () => { ov.style.display = 'none'; gLevel = 1; gScore = 0; gCombo = 0; buildLevel(); };
+    }
+    updateHUD();
+}
+
+function updateHUD() {
+    $('rmLevel').textContent = gLevel;
+    $('rmScore').textContent = gScore;
+    $('rmBest').textContent = 'Best: ' + gBest;
+    $('rmPairsLeft').textContent = 'Pairs: ' + gPairsLeft;
+    $('rmCombo').textContent = gCombo > 1 ? 'x' + gCombo + ' COMBO' : '';
+}
+function setHint(t) { const h = $('rmHint'); if (h) h.textContent = t; }
+
+function isGameOverlayActive() { return $('rmOverlay').style.display === 'flex'; }
+
+function enterPause() {
+    gPaused = true;
+    stopTimer();
+    gCards.forEach(c => c.classList.add('rm-blocked'));
+    $('rmPauseBtn').textContent = '► RESUME';
+    $('rmPauseBtn').classList.add('rm-paused');
+}
+
+function rmTogglePause() {
+    if (isGameOverlayActive()) return;
+    if (gPaused) {
+        gPaused = false;
+        $('rmPauseOverlay').style.display = 'none';
+        $('rmSettingsOverlay').style.display = 'none';
+        $('rmPauseBtn').textContent = '▮▮ PAUSE';
+        $('rmPauseBtn').classList.remove('rm-paused');
+        gCards.forEach(c => c.classList.remove('rm-blocked'));
+        startTimer();
+    } else {
+        enterPause();
+        $('rmPauseOverlay').style.display = 'flex';
+    }
+}
+
+function rmAskLeave() {
+    if (isGameOverlayActive()) return;
+    if (!gPaused) enterPause();
+    $('rmPauseOverlay').style.display = 'none';
+    $('rmSettingsOverlay').style.display = 'none';
+    $('rmLeaveOverlay').style.display = 'flex';
+}
+
+function rmCancelLeave() {
+    $('rmLeaveOverlay').style.display = 'none';
+    $('rmPauseOverlay').style.display = 'flex';
+}
+
+function rmConfirmLeave() {
+    stopTimer();
+    saveBest();
+    $('rmLeaveOverlay').style.display = 'none';
+    $('screen-game').classList.add('rm-hidden');
+    $('screen-preview').classList.remove('rm-hidden');
+    gLevel = 1; gScore = 0; gCombo = 0; gPaused = false;
+}
+
+function rmOpenSettings() {
+    if (isGameOverlayActive()) return;
+    if (!gPaused) enterPause();
+    $('rmPauseOverlay').style.display = 'none';
+    $('rmLeaveOverlay').style.display = 'none';
+    $('rmSettingsOverlay').style.display = 'flex';
+}
+
+function rmCloseSettings() {
+    $('rmSettingsOverlay').style.display = 'none';
+    $('rmPauseOverlay').style.display = 'flex';
+}
+
+function rmToggleSound() {
+    gSoundEnabled = !gSoundEnabled;
+    const btn = $('rmSndToggle');
+    if (gSoundEnabled) {
+        btn.innerHTML = '&#128266; Sound: ON';
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        playTone(600, 'sine', 0.1, 0.1);
+    } else {
+        btn.innerHTML = '&#128263; Sound: OFF';
+    }
+    lsSet(SETTINGS_KEY, { sound: gSoundEnabled });
+}
+
+function rmLaunch() {
+    if (gSoundEnabled && !audioCtx) {
+        try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+        catch (e) { /* audio not supported */ }
+    }
+    $('screen-preview').classList.add('rm-hidden');
+    $('screen-game').classList.remove('rm-hidden');
+    loadBest();
+    buildLevel();
+}
+
+/* Lets the mobile fullscreen close (X) button pause an in-progress run instead
+   of leaving the timer running invisibly behind the closed overlay. */
+window._rmPauseIfRunning = function () {
+    if (!gPaused && gCards.length && !isGameOverlayActive()) rmTogglePause();
+};
+
+(function initSettings() {
+    const s = lsGet(SETTINGS_KEY, { sound: true });
+    gSoundEnabled = s.sound !== false;
+    $('rmSndToggle').innerHTML = gSoundEnabled ? '&#128266; Sound: ON' : '&#128263; Sound: OFF';
+})();
+
+$('btn-enter').addEventListener('click', rmLaunch);
+$('btn-settings').addEventListener('click', rmOpenSettings);
+$('rmPauseBtn').addEventListener('click', rmTogglePause);
+$('btn-leave').addEventListener('click', rmAskLeave);
+$('btn-resume').addEventListener('click', rmTogglePause);
+$('rmSndToggle').addEventListener('click', rmToggleSound);
+$('btn-settings-back').addEventListener('click', rmCloseSettings);
+$('btn-leave-confirm').addEventListener('click', rmConfirmLeave);
+$('btn-leave-cancel').addEventListener('click', rmCancelLeave);
+
+let resizeTimer = null;
+window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+        if (!gCards.length || $('screen-game').classList.contains('rm-hidden')) return;
+        const cfg = LEVELS[Math.min(gLevel - 1, LEVELS.length - 1)];
+        const tileSize = computeTileSize(cfg.cols);
+        $('rmBoard').style.gridTemplateColumns = 'repeat(' + cfg.cols + ',' + tileSize + 'px)';
+        gCards.forEach(tile => {
+            const sym = tile.querySelector('.rm-tile-symbol');
+            if (sym) sym.style.fontSize = Math.max(14, tileSize * .38) + 'px';
+        });
+    }, 150);
+});
+
+})();
+</script>
+
+</body>
+</html>

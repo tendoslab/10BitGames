@@ -1119,10 +1119,10 @@ if (window._gzIsMobile) {
                     </g>
 
                     <g>
-                        <animateTransform attributeName="transform" type="translate" values="-50,0;450,0" dur="7s" repeatCount="indefinite"/>
+                        <animateTransform attributeName="transform" type="translate" values="450,0;-50,0" dur="7s" repeatCount="indefinite"/>
                         <g transform="translate(50,205)">
                             <g>
-                                <animateTransform attributeName="transform" type="rotate" values="0 0 0;360 0 0" dur="1.1s" repeatCount="indefinite"/>
+                                <animateTransform attributeName="transform" type="rotate" values="0 0 0;-360 0 0" dur="1.1s" repeatCount="indefinite"/>
                                 <circle r="16" fill="none" stroke="${c.bicycle}" stroke-width="4"/>
                                 <line x1="0" y1="0" x2="16" y2="0" stroke="${c.bicycle}" stroke-width="1.5"/>
                                 <line x1="0" y1="0" x2="-16" y2="0" stroke="${c.bicycle}" stroke-width="1.5"/>
@@ -1131,7 +1131,7 @@ if (window._gzIsMobile) {
                             </g>
                             <g transform="translate(46,0)">
                                 <g>
-                                    <animateTransform attributeName="transform" type="rotate" values="0 0 0;360 0 0" dur="1.1s" repeatCount="indefinite"/>
+                                    <animateTransform attributeName="transform" type="rotate" values="0 0 0;-360 0 0" dur="1.1s" repeatCount="indefinite"/>
                                     <circle r="16" fill="none" stroke="${c.bicycle}" stroke-width="4"/>
                                     <line x1="0" y1="0" x2="16" y2="0" stroke="${c.bicycle}" stroke-width="1.5"/>
                                     <line x1="0" y1="0" x2="-16" y2="0" stroke="${c.bicycle}" stroke-width="1.5"/>
@@ -1144,7 +1144,7 @@ if (window._gzIsMobile) {
                     </g>
 
                     <g transform="translate(-80,0)">
-                        <animateTransform attributeName="transform" type="translate" values="-80,0;480,0" dur="9s" begin="2.5s" repeatCount="indefinite"/>
+                        <animateTransform attributeName="transform" type="translate" values="-80,0;480,0" dur="9s" repeatCount="indefinite"/>
                         <g transform="translate(80,205)">
                             <g>
                                 <animateTransform attributeName="transform" type="translate" values="0,0;0,-2;0,0" dur="0.9s" repeatCount="indefinite"/>
@@ -1223,11 +1223,42 @@ if (window._gzIsMobile) {
         }, 700);
     }
 
+    // SMIL <animate>/<animateTransform> begin times are resolved against the
+    // document's single shared animation clock, not the moment an element is
+    // inserted. Since scene SVGs are rebuilt many seconds into the page's
+    // life, a freshly inserted animation with an implicit begin="0s" doesn't
+    // start at its first keyframe — it sits on its pre-animation frame for
+    // one full cycle, then jumps in to resync. That's the freeze-then-
+    // teleport seen on the city scene's car and bicycle (and, less visibly,
+    // every other scene's motion).
+    //
+    // beginElement()/beginElementAt() force a clean restart relative to now —
+    // but only once the browser has had one animation frame to register the
+    // newly inserted timed elements on the SVG timeline. Calling them in the
+    // same tick as the innerHTML assignment is silently a no-op, so the
+    // restart is deferred by one requestAnimationFrame.
+    function restartSceneAnimations(svg) {
+        if (!svg) return;
+        const anims = [...svg.querySelectorAll('animate, animateTransform, animateMotion')];
+        requestAnimationFrame(() => {
+            anims.forEach(el => {
+                const beginAttr = el.getAttribute('begin');
+                const m = beginAttr && beginAttr.match(/(-?[\d.]+)s/);
+                const offset = m ? parseFloat(m[1]) : 0;
+                try {
+                    if (offset > 0) el.beginElementAt(offset);
+                    else el.beginElement();
+                } catch (e) { /* SMIL beginElement unsupported — falls back to declarative timing */ }
+            });
+        });
+    }
+
     function showSceneScreen() {
         const round = session.plan[session.roundIndex];
         $('scene-round-label').textContent = 'Round ' + (session.roundIndex + 1) + ' / ' + session.plan.length;
-        $('scene-frame').innerHTML = round.scene.build(round.colors);
         showScreen('screen-scene');
+        $('scene-frame').innerHTML = round.scene.build(round.colors);
+        restartSceneAnimations($('scene-frame').querySelector('svg'));
         playSound('whoosh');
         const durationMs = Math.max(4500, 7500 - session.roundIndex * 500);
         const start = performance.now();
