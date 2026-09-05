@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Sling Puck Madness | 10-Bit Games</title>
 <meta name="description" content="Sling Puck Madness is a wood-table puck battle. Flick your pucks through the centre gap to clear your side or race them across — play solo against the CPU or pass-and-play with a friend.">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5906994755657512" crossorigin="anonymous"></script>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="icon" href="assets/favicon-192.png?v=2" type="image/png">
 <link rel="icon" href="favicon.ico?v=2" sizes="any">
@@ -12,8 +13,22 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Karla:wght@400;500;700&family=Bungee+Shade&display=swap" rel="stylesheet">
 </head>
-<body class="min-h-screen bg-slate-900 text-slate-100 font-sans flex flex-col items-center py-3 px-4 m-0 overflow-x-hidden">
+<body class="min-h-screen bg-slate-900 text-slate-100 font-sans flex flex-col items-center tbg-page m-0 overflow-x-hidden">
     <style>
+      /* Plain CSS (not a Tailwind utility class) so this padding is guaranteed
+         to apply immediately, before the Tailwind CDN script has loaded —
+         otherwise the topbar's negative margin below has nothing to cancel
+         out yet and the bar renders clipped at the top-left edge. */
+      .tbg-page {
+        margin: 0;
+        padding: 0.75rem 1rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background: #0f172a;
+        min-height: 100vh;
+      }
+
       .tbg-topbar {
         display: flex;
         align-items: center;
@@ -64,9 +79,28 @@
       .tbg-topbar .tbg-site-name:focus-visible {
         text-decoration: underline;
       }
+
+      /* AdSense placeholders — swap the inner contents for real <ins> ad
+         units once your AdSense account is approved and slots are created.
+         Kept clear of the game board and controls per AdSense placement policy. */
+      .ad-slot {
+        width: 100%;
+        max-width: 640px;
+        margin: 0 auto 0.75rem;
+      }
+
+      .ad-slot-inner {
+        border: 2px dashed rgba(255, 255, 255, 0.25);
+        border-radius: 8px;
+        padding: 0.9rem;
+        text-align: center;
+        color: rgba(255, 255, 255, 0.45);
+        font-size: 0.78rem;
+        letter-spacing: 0.03em;
+      }
     </style>
 
-    <div class="tbg-topbar">
+    <header class="tbg-topbar">
       <a href="index.html">
         <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <path d="M15 5 L8 12 L15 19" stroke="#FBF7FF" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -74,7 +108,9 @@
         All games
       </a>
       <a class="tbg-site-name" href="index.html">10-Bit Games</a>
-    </div>
+    </header>
+
+    <div class="ad-slot"><div class="ad-slot-inner">Ad slot — above game</div></div>
 
     <header class="max-w-2xl w-full text-center mb-2">
         <h1 class="text-2xl font-black tracking-tight">Sling Puck Madness</h1>
@@ -1001,5 +1037,8 @@ window.SPG.init();
 
 })();
 </script>
+
+<div class="ad-slot"><div class="ad-slot-inner">Ad slot — below game</div></div>
+
 </body>
 </html>
