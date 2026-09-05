@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Psy-Koh's Color Match | 10-Bit Games</title>
-<meta name="description" content="Memorise a shifting scenery, then color-match one object from memory on a hue wheel while Psy-Koh the chameleon wears your guess. Five sceneries a game, a daily challenge everyone shares, and a perceptual scoring system that rewards a good eye.">
+<meta name="description" content="Memorise a living, moving scenery, then color-match one object's exact hue from memory on a wheel — while Psy-Koh the chameleon wears your guess the whole time. Five sceneries a run, with perceptual scoring that rewards a genuinely good eye.">
 <style>
   body {
     margin: 0;
@@ -30,7 +30,7 @@
 <link rel="icon" href="favicon.ico?v=2" sizes="any">
 <link rel="apple-touch-icon" href="assets/favicon-apple-touch.png?v=2">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Karla:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Bungee+Shade&family=Karla:wght@400;500;700&display=swap" rel="stylesheet">
 </head>
 <body>
 <style>
@@ -80,7 +80,7 @@
 </div>
 <div class="site-intro">
   <h1>PSY-KOH'S COLOR MATCH</h1>
-  <p>Memorise the scenery, then match one object's exact color from memory — on a wheel, with Psy-Koh wearing your guess the whole time.</p>
+  <p>Memorise the living scenery, then match one object's exact color from memory — on a wheel, with Psy-Koh wearing your guess the whole time.</p>
 </div>
 
 <!-- Mobile fullscreen overlay — only used on touch devices -->
@@ -282,7 +282,7 @@ if (window._gzIsMobile) {
         }
         .pk-swatch-row { display: flex; gap: 10px; justify-content: center; margin: 10px 0; }
         .pk-swatch-card { flex: 1; max-width: 150px; background: #1e2a21; border: 1px solid #33472f; border-radius: 10px; padding: 8px; text-align: center; }
-        .pk-swatch-card .pk-swatch-label { font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: #6f8a77; margin-bottom: 6px; }
+        .pk-swatch-card .pk-swatch-label { font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: #6f8a77; margin-bottom: 6px; min-height: 24px; display: flex; align-items: center; justify-content: center; white-space: nowrap; }
         .pk-swatch-block { width: 100%; height: 46px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); margin-bottom: 6px; }
         .pk-swatch-hex { font-size: 11px; color: #a9c2b1; font-family: monospace; }
         .pk-score-big { font-family: 'Bungee', sans-serif; font-size: 56px; text-align: center; color: #5AD696; margin: 6px 0 0; text-shadow: 0 0 24px rgba(90,214,150,0.4); }
@@ -297,6 +297,21 @@ if (window._gzIsMobile) {
         }
         .pk-chip.on { background: #2a4a35; border-color: #5AD696; color: #eafff0; }
         .pk-sound-toggle { position: absolute; top: 10px; left: 10px; background: none; border: none; color: #6f8a77; font-size: 18px; cursor: pointer; padding: 6px; z-index: 5; }
+        .pk-daily-status {
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            background: #16261c; border: 2px solid #5AD696; border-radius: 12px;
+            padding: 10px 16px; margin: 4px 0 12px; text-align: center;
+            color: #eafff0; font-size: 13.5px; font-weight: 700; letter-spacing: 0.2px;
+            box-shadow: 0 0 16px rgba(90,214,150,0.15);
+        }
+        .pk-daily-status .pk-daily-check {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 20px; height: 20px; border-radius: 50%; background: #5AD696;
+            color: #0b1710; font-size: 13px; flex-shrink: 0;
+        }
+        .pk-btn.completed {
+            background: #1e2a21; color: #a9c2b1; border: 2px solid #33472f; box-shadow: none;
+        }
     `;
 
     const wrapper = document.createElement('div');
@@ -308,6 +323,7 @@ if (window._gzIsMobile) {
             <div class="pk-mascot-wrap" id="mascot-start"></div>
             <h1 class="pk-title">PSY-KOH'S<br>COLOR MATCH</h1>
             <p class="pk-sub">Memorise the scenery. One object gets picked. Match its exact color from memory — Psy-Koh wears your guess the whole time.</p>
+            <div class="pk-daily-status pk-hidden" id="daily-status"></div>
             <div class="pk-badge-row" id="start-badges"></div>
             <button class="pk-btn" id="btn-daily">Daily Challenge</button>
             <button class="pk-btn secondary" id="btn-practice">Practice (random)</button>
@@ -403,27 +419,32 @@ if (window._gzIsMobile) {
     function tone(freq0, freq1, dur, type, gain, delay) {
         if (!audioCtx || !soundEnabled) return;
         const t0 = audioCtx.currentTime + (delay || 0);
+        const attack = Math.min(0.012, dur * 0.25);
         const osc = audioCtx.createOscillator();
         const g = audioCtx.createGain();
-        osc.connect(g); g.connect(audioCtx.destination);
+        const lp = audioCtx.createBiquadFilter();
+        lp.type = 'lowpass';
+        lp.frequency.value = 3200;
+        osc.connect(g); g.connect(lp); lp.connect(audioCtx.destination);
         osc.type = type || 'sine';
         osc.frequency.setValueAtTime(freq0, t0);
         osc.frequency.exponentialRampToValueAtTime(Math.max(freq1, 1), t0 + dur);
-        g.gain.setValueAtTime(gain, t0);
-        g.gain.linearRampToValueAtTime(0.0001, t0 + dur);
+        g.gain.setValueAtTime(0.0001, t0);
+        g.gain.linearRampToValueAtTime(gain, t0 + attack);
+        g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
         osc.start(t0); osc.stop(t0 + dur + 0.02);
     }
     function playSound(type) {
         if (!audioCtx || !soundEnabled) return;
         switch (type) {
-            case 'click': tone(500, 460, 0.06, 'triangle', 0.12); break;
-            case 'tick': tone(880, 860, 0.045, 'square', 0.05); break;
-            case 'warn': tone(500, 480, 0.09, 'square', 0.09); break;
-            case 'go': tone(300, 900, 0.28, 'sawtooth', 0.16); break;
-            case 'whoosh': tone(180, 620, 0.32, 'sine', 0.1); break;
-            case 'blip': tone(700 + Math.random()*200, 700 + Math.random()*200, 0.03, 'sine', 0.04); break;
-            case 'submit': tone(400, 760, 0.18, 'triangle', 0.14); break;
-            case 'round': tone(500, 640, 0.2, 'sine', 0.12); break;
+            case 'click': tone(500, 460, 0.07, 'sine', 0.07); break;
+            case 'tick': tone(780, 760, 0.05, 'sine', 0.035); break;
+            case 'warn': tone(500, 480, 0.1, 'triangle', 0.05); break;
+            case 'go': tone(320, 760, 0.3, 'triangle', 0.1); break;
+            case 'whoosh': tone(180, 560, 0.34, 'sine', 0.07); break;
+            case 'blip': tone(700 + Math.random()*200, 700 + Math.random()*200, 0.035, 'sine', 0.03); break;
+            case 'submit': tone(400, 700, 0.2, 'sine', 0.09); break;
+            case 'round': tone(480, 620, 0.22, 'sine', 0.07); break;
             default: break;
         }
     }
@@ -432,21 +453,22 @@ if (window._gzIsMobile) {
         const now = audioCtx.currentTime;
         if (score >= 85) {
             [523.25, 659.25, 784.0, 1046.5].forEach((f, i) => {
-                const t0 = now + i * 0.09;
+                const t0 = now + i * 0.1;
                 const osc = audioCtx.createOscillator(), g = audioCtx.createGain();
                 osc.connect(g); g.connect(audioCtx.destination);
-                osc.type = 'square';
+                osc.type = 'triangle';
                 osc.frequency.setValueAtTime(f, t0);
-                g.gain.setValueAtTime(0.15, t0);
-                g.gain.linearRampToValueAtTime(0.0001, t0 + 0.3);
-                osc.start(t0); osc.stop(t0 + 0.3);
+                g.gain.setValueAtTime(0.0001, t0);
+                g.gain.linearRampToValueAtTime(0.09, t0 + 0.012);
+                g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.32);
+                osc.start(t0); osc.stop(t0 + 0.32);
             });
         } else if (score >= 55) {
-            tone(500, 700, 0.22, 'triangle', 0.14);
+            tone(500, 660, 0.24, 'sine', 0.08);
         } else if (score >= 30) {
-            tone(400, 320, 0.25, 'sine', 0.12);
+            tone(400, 320, 0.26, 'sine', 0.07);
         } else {
-            tone(300, 140, 0.4, 'sawtooth', 0.13);
+            tone(300, 160, 0.4, 'triangle', 0.07);
         }
     }
     function playFanfare(good) {
@@ -454,14 +476,15 @@ if (window._gzIsMobile) {
         const now = audioCtx.currentTime;
         const notes = good ? [523.25, 659.25, 784.0, 1046.5, 784.0, 1046.5, 1318.5] : [400, 380, 340, 300];
         notes.forEach((freq, i) => {
-            const t0 = now + i * 0.12;
+            const t0 = now + i * 0.13;
             const osc = audioCtx.createOscillator(), g = audioCtx.createGain();
             osc.connect(g); g.connect(audioCtx.destination);
-            osc.type = 'square';
+            osc.type = 'triangle';
             osc.frequency.setValueAtTime(freq, t0);
-            g.gain.setValueAtTime(0.16, t0);
-            g.gain.linearRampToValueAtTime(0.0001, t0 + 0.35);
-            osc.start(t0); osc.stop(t0 + 0.35);
+            g.gain.setValueAtTime(0.0001, t0);
+            g.gain.linearRampToValueAtTime(0.1, t0 + 0.015);
+            g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.38);
+            osc.start(t0); osc.stop(t0 + 0.38);
         });
     }
     $('btn-sound').addEventListener('click', () => {
@@ -564,12 +587,21 @@ if (window._gzIsMobile) {
     function scoreFromDeltaE(dE) {
         return Math.max(0, Math.min(100, Math.round(100 * Math.exp(-dE / 25))));
     }
+    const FLAVOR_POOLS = {
+        elite: ["Chameleon-tier precision.", "Your eye for color is elite.", "That's basically a superpower.", "Flawless — Psy-Koh salutes you.", "Uncanny. Almost suspicious."],
+        good: ["Sharp eye. Psy-Koh's impressed.", "Really close — nicely read.", "Great instincts on that one.", "You nailed the tone almost perfectly.", "Strong read. Barely any drift."],
+        mid: ["Close enough to bluff your way through.", "Solid guess — in the right neighborhood.", "Not bad, just a shade off.", "Respectable read on that color.", "A reasonable ballpark guess."],
+        low: ["A bit off, but not embarrassing.", "Middle of the road — room to improve.", "Passable. Psy-Koh's seen worse.", "Somewhere in the neighborhood, loosely."],
+        bad: ["Color blind confirmed (jk... mostly).", "That one got away from you.", "Way off — but hey, bold guess.", "Psy-Koh is squinting at that one.", "Not your finest shade of the day."]
+    };
     function flavorForScore(score) {
-        if (score >= 90) return "Chameleon-tier precision.";
-        if (score >= 75) return "Sharp eye. Psy-Koh's impressed.";
-        if (score >= 55) return "Close enough to bluff your way through.";
-        if (score >= 30) return "The beige of scores. Functional. Forgettable.";
-        return "Color blind confirmed (jk... mostly).";
+        let pool;
+        if (score >= 90) pool = FLAVOR_POOLS.elite;
+        else if (score >= 75) pool = FLAVOR_POOLS.good;
+        else if (score >= 55) pool = FLAVOR_POOLS.mid;
+        else if (score >= 30) pool = FLAVOR_POOLS.low;
+        else pool = FLAVOR_POOLS.bad;
+        return pool[Math.floor(Math.random() * pool.length)];
     }
     function gridCellColor(score) {
         if (score >= 80) return '#4CAF6D';
@@ -586,40 +618,69 @@ if (window._gzIsMobile) {
     }
     function mascotSvg(hex, mood) {
         mood = mood || 'neutral';
-        const dark = shade(hex, -40);
+        const light = shade(hex, 40);
+        const dark = shade(hex, -45);
+        const darker = shade(hex, -70);
+        const uid = Math.random().toString(36).slice(2, 9);
+        const bodyGrad = 'pkBodyGrad' + uid;
+        const eyeGrad = 'pkEyeGrad' + uid;
         const eyeOpen = mood !== 'sad';
         const mouth = mood === 'happy'
-            ? '<path d="M12,86 Q26,96 40,85" stroke="#12180F" stroke-width="3.5" stroke-linecap="round" fill="none"/>'
+            ? '<path d="M10,84 Q26,98 42,82" stroke="#12180F" stroke-width="3.2" stroke-linecap="round" fill="none"/>'
             : mood === 'sad'
-            ? '<path d="M12,90 Q26,82 40,90" stroke="#12180F" stroke-width="3.5" stroke-linecap="round" fill="none"/>'
-            : '<path d="M12,87 Q26,91 40,87" stroke="#12180F" stroke-width="3" stroke-linecap="round" fill="none"/>';
-        return `<svg viewBox="0 0 170 130" width="132" height="101" style="display:block;">
-            <ellipse cx="95" cy="118" rx="62" ry="8" fill="#000" opacity="0.15"/>
+            ? '<path d="M10,90 Q26,80 42,90" stroke="#12180F" stroke-width="3.2" stroke-linecap="round" fill="none"/>'
+            : '<path d="M10,86 Q26,90 42,86" stroke="#12180F" stroke-width="2.6" stroke-linecap="round" fill="none"/>';
+        return `<svg viewBox="0 0 172 132" width="132" height="101" style="display:block;">
+            <defs>
+                <linearGradient id="${bodyGrad}" x1="0" y1="0" x2="0.25" y2="1">
+                    <stop offset="0" stop-color="${light}"/>
+                    <stop offset="0.55" stop-color="${hex}"/>
+                    <stop offset="1" stop-color="${dark}"/>
+                </linearGradient>
+                <radialGradient id="${eyeGrad}" cx="35%" cy="30%" r="75%">
+                    <stop offset="0" stop-color="#4a3626"/>
+                    <stop offset="65%" stop-color="#12180F"/>
+                    <stop offset="100%" stop-color="#000"/>
+                </radialGradient>
+            </defs>
+            <ellipse cx="96" cy="120" rx="60" ry="7" fill="#000" opacity="0.16"/>
+
             <!-- curled tail -->
-            <path d="M138,72 Q168,66 166,40 Q164,20 144,18" fill="none" stroke="${hex}" stroke-width="16" stroke-linecap="round" style="transition: stroke 0.15s linear;"/>
+            <path d="M132,78 Q160,80 164,58 Q167,38 150,30 Q136,24 130,36"
+                  fill="none" stroke="url(#${bodyGrad})" stroke-width="15" stroke-linecap="round" style="transition: stroke 0.15s linear;"/>
+
             <!-- legs -->
-            <path d="M70,100 Q62,114 44,118" stroke="${hex}" stroke-width="12" stroke-linecap="round" fill="none" style="transition: stroke 0.15s linear;"/>
-            <path d="M118,100 Q126,114 144,118" stroke="${hex}" stroke-width="12" stroke-linecap="round" fill="none" style="transition: stroke 0.15s linear;"/>
+            <path d="M64,98 Q56,112 40,114" stroke="${dark}" stroke-width="11" stroke-linecap="round" fill="none" style="transition: stroke 0.15s linear;"/>
+            <path d="M112,98 Q120,112 136,116" stroke="${dark}" stroke-width="11" stroke-linecap="round" fill="none" style="transition: stroke 0.15s linear;"/>
+            <ellipse cx="38" cy="115" rx="5" ry="3" fill="${darker}"/>
+            <ellipse cx="138" cy="117" rx="5" ry="3" fill="${darker}"/>
+
             <!-- body -->
-            <path d="M40,86 C22,86 18,54 40,40 C58,28 96,26 122,38 C148,50 150,82 126,92 C102,102 60,100 40,86 Z"
-                  fill="${hex}" stroke="#12180F" stroke-width="3" style="transition: fill 0.15s linear;"/>
-            <!-- back spikes -->
-            <g fill="${dark}">
-                <path d="M58,32 L63,20 L69,33 Z"/>
-                <path d="M78,27 L83,14 L89,28 Z"/>
-                <path d="M98,27 L103,15 L109,29 Z"/>
+            <path d="M38,84 C18,82 14,50 36,36 C56,24 96,22 118,34 C144,46 146,80 122,90 C98,100 58,98 38,84 Z"
+                  fill="url(#${bodyGrad})" stroke="#12180F" stroke-width="2.5" style="transition: fill 0.15s linear;"/>
+            <ellipse cx="60" cy="46" rx="26" ry="10" fill="#fff" opacity="0.16"/>
+
+            <!-- back ridge -->
+            <g fill="${dark}" opacity="0.9">
+                <path d="M56,32 Q60,19 66,32 Q61,27 56,32 Z"/>
+                <path d="M75,26 Q79,13 85,26 Q80,20 75,26 Z"/>
+                <path d="M95,26 Q99,13 105,26 Q100,20 95,26 Z"/>
             </g>
+
             <!-- head -->
-            <g transform="translate(6,54)">
-                <path d="M32,30 C10,30 -6,14 4,-2 C12,-14 32,-16 40,-4 C46,4 44,22 32,30 Z" fill="${hex}" stroke="#12180F" stroke-width="3" style="transition: fill 0.15s linear;"/>
-                <path d="M6,-4 L-10,-14 L2,3 Z" fill="${dark}"/>
-                <circle cx="18" cy="4" r="16" fill="#F5FFF7" stroke="#12180F" stroke-width="2.5"/>
+            <g transform="translate(4,52)">
+                <path d="M34,32 C10,32 -8,14 4,-4 C13,-17 36,-18 44,-4 C50,6 48,24 34,32 Z"
+                      fill="url(#${bodyGrad})" stroke="#12180F" stroke-width="2.5" style="transition: fill 0.15s linear;"/>
+                <path d="M6,-6 L-12,-16 L2,3 Z" fill="${dark}"/>
+                <circle cx="19" cy="5" r="17" fill="#F5FFF7" stroke="#12180F" stroke-width="2.2"/>
                 ${eyeOpen ? `
-                <circle cx="19" cy="4" r="7" fill="#12180F"/>
-                <circle cx="16.5" cy="1.5" r="2" fill="#fff"/>
+                <circle cx="20" cy="5" r="8.5" fill="url(#${eyeGrad})"/>
+                <circle cx="17" cy="1.8" r="2.6" fill="#fff"/>
+                <circle cx="22.5" cy="7" r="1.1" fill="#fff" opacity="0.7"/>
                 ` : `
-                <path d="M8,4 Q18,12 28,4" stroke="#12180F" stroke-width="3" stroke-linecap="round" fill="none"/>
+                <path d="M8,5 Q19,13 30,5" stroke="#12180F" stroke-width="2.8" stroke-linecap="round" fill="none"/>
                 `}
+                <ellipse cx="8" cy="16" rx="4" ry="2.4" fill="${dark}" opacity="0.3"/>
             </g>
             ${mouth}
         </svg>`;
@@ -641,31 +702,107 @@ if (window._gzIsMobile) {
             ],
             build(c) { return `
                 <svg viewBox="0 0 400 250" xmlns="http://www.w3.org/2000/svg">
-                    <defs><linearGradient id="sky1" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0" stop-color="#bfe3ff"/><stop offset="1" stop-color="#eaf6ff"/>
-                    </linearGradient></defs>
+                    <defs>
+                        <linearGradient id="sky1" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0" stop-color="#8fd0ff"/>
+                            <stop offset="0.55" stop-color="#bfe3ff"/>
+                            <stop offset="1" stop-color="#eef8ff"/>
+                        </linearGradient>
+                        <linearGradient id="grass1" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0" stop-color="#6fb84a"/><stop offset="1" stop-color="#4d8f34"/>
+                        </linearGradient>
+                        <radialGradient id="sunGlow" cx="50%" cy="50%" r="50%">
+                            <stop offset="0" stop-color="#fff6c8" stop-opacity="0.9"/>
+                            <stop offset="1" stop-color="#fff6c8" stop-opacity="0"/>
+                        </radialGradient>
+                    </defs>
                     <rect width="400" height="250" fill="url(#sky1)"/>
+                    <circle cx="350" cy="35" r="46" fill="url(#sunGlow)"/>
+                    <circle cx="350" cy="35" r="16" fill="#FFE99A"/>
+                    <path d="M0,215 Q90,180 200,212 Q300,190 400,214 L400,225 L0,225 Z" fill="#5a9a3c" opacity="0.5"/>
                     <rect y="220" width="400" height="30" fill="#6b4a2f"/>
-                    <rect y="210" width="400" height="14" fill="#5aa848"/>
-                    <path d="M300,30 L340,45 L300,55 L305,45 Z" fill="${c.plane}"/>
-                    <ellipse cx="70" cy="55" rx="26" ry="15" fill="${c.cloud}"/>
-                    <ellipse cx="95" cy="48" rx="20" ry="14" fill="${c.cloud}"/>
+                    <rect y="208" width="400" height="16" fill="url(#grass1)"/>
+                    <g fill="#3f7a2a" opacity="0.7">
+                        <path d="M20,209 L23,199 L26,209 Z"/><path d="M60,210 L63,201 L66,210 Z"/>
+                        <path d="M150,209 L153,200 L156,209 Z"/><path d="M370,209 L373,199 L376,209 Z"/>
+                    </g>
+
+                    <g transform="translate(60,50)">
+                        <animateTransform attributeName="transform" type="translate" values="60,50;90,50;60,50" dur="9s" repeatCount="indefinite"/>
+                        <ellipse cx="0" cy="6" rx="26" ry="14" fill="${c.cloud}"/>
+                        <ellipse cx="22" cy="0" rx="20" ry="13" fill="${c.cloud}"/>
+                        <ellipse cx="-20" cy="4" rx="16" ry="10" fill="${c.cloud}"/>
+                        <ellipse cx="4" cy="-6" rx="15" ry="10" fill="${c.cloud}" opacity="0.9"/>
+                    </g>
+                    <g transform="translate(190,25)" opacity="0.85">
+                        <animateTransform attributeName="transform" type="translate" values="190,25;165,25;190,25" dur="11s" repeatCount="indefinite"/>
+                        <ellipse cx="0" cy="4" rx="18" ry="10" fill="${c.cloud}"/>
+                        <ellipse cx="14" cy="0" rx="12" ry="8" fill="${c.cloud}"/>
+                    </g>
+
                     <path d="M250,120 Q290,60 340,80 Q330,100 300,105 Q320,120 340,150" stroke="#6b4a2f" stroke-width="6" fill="none" stroke-linecap="round"/>
-                    <g transform="translate(300,90)">
-                        <ellipse rx="20" ry="16" fill="${c.bird}"/>
-                        <circle cx="16" cy="-6" r="8" fill="${c.bird}"/>
-                        <path d="M22,-6 L32,-3 L22,0 Z" fill="#c68a3c"/>
-                        <circle cx="18" cy="-8" r="1.6" fill="#12180F"/>
+                    <g transform="translate(300,88)">
+                        <g>
+                            <animateTransform attributeName="transform" type="translate" values="0,0;0,-4;0,0" dur="2.4s" repeatCount="indefinite"/>
+                            <ellipse rx="20" ry="15" fill="${c.bird}"/>
+                            <ellipse rx="17" ry="6" cy="-4" fill="#fff" opacity="0.12"/>
+                            <circle cx="15" cy="-7" r="8" fill="${c.bird}"/>
+                            <path d="M22,-7 L33,-4 L22,-1 Z" fill="#c68a3c"/>
+                            <circle cx="18" cy="-9" r="1.6" fill="#12180F"/>
+                            <g transform="translate(-4,-4)">
+                                <g>
+                                    <animateTransform attributeName="transform" type="rotate" values="10 0 0;-25 0 0;10 0 0" dur="0.5s" repeatCount="indefinite"/>
+                                    <path d="M0,0 Q-16,-6 -20,6 Q-8,4 0,4 Z" fill="${c.bird}" opacity="0.85"/>
+                                </g>
+                            </g>
+                            <path d="M-12,10 L-14,18 M-2,12 L-2,20" stroke="#c68a3c" stroke-width="2" stroke-linecap="round"/>
+                        </g>
                     </g>
-                    <g transform="translate(40,208)">
-                        <path d="M0,4 Q10,-6 20,4 Q30,-6 40,4 Q50,-6 60,4" stroke="${c.worm}" stroke-width="7" fill="none" stroke-linecap="round"/>
-                        <circle cx="4" cy="4" r="1.4" fill="#12180F"/>
+
+                    <g transform="translate(40,207)">
+                        <path fill="none" stroke="${c.worm}" stroke-width="7" stroke-linecap="round" d="M0,4 Q10,-6 20,4 Q30,-6 40,4 Q50,-6 60,4">
+                            <animate attributeName="d" dur="1.1s" repeatCount="indefinite"
+                                values="M0,4 Q10,-6 20,4 Q30,-6 40,4 Q50,-6 60,4;
+                                        M0,4 Q10,-1 20,4 Q30,-11 40,4 Q50,-1 60,4;
+                                        M0,4 Q10,-6 20,4 Q30,-6 40,4 Q50,-6 60,4"/>
+                        </path>
+                        <circle cx="4" cy="4" r="1.6" fill="#12180F"/>
                     </g>
-                    <g transform="translate(330,205)">
-                        <ellipse cx="0" cy="10" rx="22" ry="12" fill="${c.dog}"/>
+
+                    <g transform="translate(330,203)">
+                        <ellipse cx="0" cy="12" rx="22" ry="12" fill="${c.dog}"/>
+                        <ellipse cx="0" cy="8" rx="18" ry="5" fill="#fff" opacity="0.1"/>
                         <circle cx="-16" cy="-2" r="11" fill="${c.dog}"/>
-                        <ellipse cx="-22" cy="-6" rx="4" ry="7" fill="${c.dog}" transform="rotate(-30 -22 -6)"/>
-                        <circle cx="-13" cy="-3" r="1.4" fill="#12180F"/>
+                        <g transform="translate(-22,-8)">
+                            <g>
+                                <animateTransform attributeName="transform" type="rotate" values="-15 0 0;-35 0 0;-15 0 0" dur="1.6s" repeatCount="indefinite"/>
+                                <ellipse rx="4.5" ry="7.5" fill="${c.dog}"/>
+                            </g>
+                        </g>
+                        <circle cx="-13" cy="-3" r="1.5" fill="#12180F"/>
+                        <ellipse cx="-8" cy="3" rx="2.4" ry="1.6" fill="#12180F" opacity="0.7"/>
+                        <g transform="translate(20,10)">
+                            <g>
+                                <animateTransform attributeName="transform" type="rotate" values="10 0 0;40 0 0;10 0 0" dur="0.5s" repeatCount="indefinite"/>
+                                <path d="M0,0 Q14,-6 16,4" stroke="${c.dog}" stroke-width="5" fill="none" stroke-linecap="round"/>
+                            </g>
+                        </g>
+                    </g>
+
+                    <g>
+                        <animateTransform attributeName="transform" type="translate" values="-60,0;460,0" dur="9s" repeatCount="indefinite"/>
+                        <g transform="translate(0,50)">
+                            <g opacity="0.35">
+                                <circle cx="-14" cy="0" r="2" fill="#fff"/>
+                                <circle cx="-24" cy="0" r="1.6" fill="#fff"/>
+                                <circle cx="-34" cy="0" r="1.2" fill="#fff"/>
+                            </g>
+                            <path d="M0,0 L34,4 L52,0 L34,-4 Z" fill="${c.plane}"/>
+                            <path d="M18,-2 L10,-16 L20,-3 Z" fill="${c.plane}" opacity="0.85"/>
+                            <path d="M18,2 L10,16 L20,3 Z" fill="${c.plane}" opacity="0.85"/>
+                            <path d="M48,0 L58,-6 L58,6 Z" fill="${c.plane}"/>
+                            <circle cx="8" cy="0" r="1.6" fill="#12180F" opacity="0.5"/>
+                        </g>
                     </g>
                 </svg>`; }
         },
@@ -680,35 +817,93 @@ if (window._gzIsMobile) {
             ],
             build(c) { return `
                 <svg viewBox="0 0 400 250" xmlns="http://www.w3.org/2000/svg">
-                    <defs><linearGradient id="water1" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0" stop-color="#1c5f8a"/><stop offset="1" stop-color="#0c3450"/>
-                    </linearGradient></defs>
+                    <defs>
+                        <linearGradient id="water1" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0" stop-color="#2a76a8"/>
+                            <stop offset="0.6" stop-color="#155e88"/>
+                            <stop offset="1" stop-color="#0b3450"/>
+                        </linearGradient>
+                    </defs>
                     <rect width="400" height="250" fill="url(#water1)"/>
                     <rect y="225" width="400" height="25" fill="#c9b27a"/>
+                    <rect y="222" width="400" height="4" fill="#e6d59a"/>
+
                     <g transform="translate(70,190)">
                         <path d="M0,30 L0,0 L14,0 L14,-14 L28,0 L42,0 L42,30 Z" fill="${c.castle}"/>
                         <rect x="18" y="14" width="8" height="16" fill="#0c3450"/>
+                        <circle cx="14" cy="-14" r="3" fill="${c.castle}" opacity="0.85"/>
+                        <circle cx="28" cy="-14" r="3" fill="${c.castle}" opacity="0.85"/>
                     </g>
-                    <path d="M280,230 Q270,180 285,150 Q295,180 288,230 Z" fill="${c.seaweed}"/>
-                    <path d="M300,230 Q292,190 305,160 Q313,195 308,230 Z" fill="${c.seaweed}"/>
-                    <g transform="translate(150,120)">
-                        <ellipse rx="14" ry="10" fill="${c.coral}"/>
-                        <ellipse cx="16" cy="-4" rx="10" ry="7" fill="${c.coral}"/>
-                        <ellipse cx="-14" cy="4" rx="9" ry="6" fill="${c.coral}"/>
+
+                    <g transform="translate(280,230)">
+                        <g>
+                            <animateTransform attributeName="transform" type="rotate" values="-6 0 0;6 0 0;-6 0 0" dur="2.6s" repeatCount="indefinite"/>
+                            <path d="M0,0 Q-10,-50 5,-80 Q15,-50 8,0 Z" fill="${c.seaweed}"/>
+                        </g>
                     </g>
-                    <g transform="translate(180,80)">
-                        <ellipse rx="34" ry="18" fill="${c.fishA}"/>
-                        <path d="M-30,0 L-50,-14 L-50,14 Z" fill="${c.fishA}"/>
-                        <circle cx="14" cy="-4" r="3" fill="#12180F"/>
+                    <g transform="translate(302,230)">
+                        <g>
+                            <animateTransform attributeName="transform" type="rotate" values="5 0 0;-5 0 0;5 0 0" dur="3.1s" repeatCount="indefinite"/>
+                            <path d="M0,0 Q-8,-40 4,-70 Q12,-40 6,0 Z" fill="${c.seaweed}"/>
+                        </g>
                     </g>
-                    <g transform="translate(300,60) scale(0.6)">
-                        <ellipse rx="34" ry="18" fill="${c.fishB}"/>
-                        <path d="M-30,0 L-50,-14 L-50,14 Z" fill="${c.fishB}"/>
-                        <circle cx="14" cy="-4" r="3" fill="#12180F"/>
+
+                    <g transform="translate(150,132)">
+                        <ellipse cx="0" cy="4" rx="18" ry="6" fill="${c.coral}" opacity="0.9"/>
+                        <path d="M0,0 Q-2,-18 -16,-28 Q-20,-31 -16,-35" stroke="${c.coral}" stroke-width="8" fill="none" stroke-linecap="round"/>
+                        <path d="M0,0 Q2,-22 16,-34 Q20,-38 16,-42" stroke="${c.coral}" stroke-width="8" fill="none" stroke-linecap="round"/>
+                        <path d="M0,0 Q0,-24 0,-42 Q0,-46 -5,-50" stroke="${c.coral}" stroke-width="9" fill="none" stroke-linecap="round"/>
+                        <path d="M0,0 Q-6,-6 -26,-8 Q-31,-9 -33,-14" stroke="${c.coral}" stroke-width="7" fill="none" stroke-linecap="round"/>
+                        <path d="M0,0 Q8,-4 26,-4 Q32,-4 35,-9" stroke="${c.coral}" stroke-width="7" fill="none" stroke-linecap="round"/>
                     </g>
-                    <circle cx="60" cy="60" r="4" fill="#dff3ff" opacity="0.5"/>
-                    <circle cx="90" cy="40" r="3" fill="#dff3ff" opacity="0.5"/>
-                    <circle cx="340" cy="130" r="4" fill="#dff3ff" opacity="0.4"/>
+
+                    <g>
+                        <animateTransform attributeName="transform" type="translate" values="60,80;260,60;60,80" dur="10s" repeatCount="indefinite"/>
+                        <g>
+                            <animateTransform attributeName="transform" type="scale" values="1,1;-1,1;1,1" dur="10s" repeatCount="indefinite"/>
+                            <ellipse rx="34" ry="18" fill="${c.fishA}"/>
+                            <ellipse rx="26" ry="6" fill="#fff" opacity="0.15" transform="translate(-4,-8)"/>
+                            <g transform="translate(-30,0)">
+                                <g>
+                                    <animateTransform attributeName="transform" type="rotate" values="-8 0 0;10 0 0;-8 0 0" dur="0.7s" repeatCount="indefinite"/>
+                                    <path d="M0,0 L-22,-14 L-22,14 Z" fill="${c.fishA}"/>
+                                </g>
+                            </g>
+                            <path d="M8,-14 L18,-24 L20,-10 Z" fill="${c.fishA}" opacity="0.9"/>
+                            <circle cx="16" cy="-4" r="3" fill="#12180F"/>
+                            <circle cx="17" cy="-5" r="1" fill="#fff"/>
+                        </g>
+                    </g>
+
+                    <g>
+                        <animateTransform attributeName="transform" type="translate" values="330,60;110,110;330,60" dur="8s" repeatCount="indefinite"/>
+                        <g>
+                            <animateTransform attributeName="transform" type="scale" values="0.6,0.6;-0.6,0.6;0.6,0.6" dur="8s" repeatCount="indefinite"/>
+                            <ellipse rx="34" ry="18" fill="${c.fishB}"/>
+                            <g transform="translate(-30,0)">
+                                <g>
+                                    <animateTransform attributeName="transform" type="rotate" values="-8 0 0;10 0 0;-8 0 0" dur="0.6s" repeatCount="indefinite"/>
+                                    <path d="M0,0 L-22,-14 L-22,14 Z" fill="${c.fishB}"/>
+                                </g>
+                            </g>
+                            <circle cx="16" cy="-4" r="3" fill="#12180F"/>
+                        </g>
+                    </g>
+
+                    <g fill="#dff3ff" opacity="0.5">
+                        <circle cx="60" cy="230" r="3">
+                            <animate attributeName="cy" values="230;20" dur="4.5s" repeatCount="indefinite"/>
+                            <animate attributeName="opacity" values="0.6;0" dur="4.5s" repeatCount="indefinite"/>
+                        </circle>
+                        <circle cx="90" cy="230" r="2.4">
+                            <animate attributeName="cy" values="230;10" dur="3.6s" begin="1s" repeatCount="indefinite"/>
+                            <animate attributeName="opacity" values="0.55;0" dur="3.6s" begin="1s" repeatCount="indefinite"/>
+                        </circle>
+                        <circle cx="340" cy="230" r="3.2">
+                            <animate attributeName="cy" values="230;30" dur="5s" begin="0.5s" repeatCount="indefinite"/>
+                            <animate attributeName="opacity" values="0.5;0" dur="5s" begin="0.5s" repeatCount="indefinite"/>
+                        </circle>
+                    </g>
                 </svg>`; }
         },
         {
@@ -721,30 +916,62 @@ if (window._gzIsMobile) {
             ],
             build(c) { return `
                 <svg viewBox="0 0 400 250" xmlns="http://www.w3.org/2000/svg">
-                    <defs><linearGradient id="sky2" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0" stop-color="#cdeeff"/><stop offset="1" stop-color="#f3fff0"/>
-                    </linearGradient></defs>
+                    <defs>
+                        <linearGradient id="sky2" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0" stop-color="#cdeeff"/><stop offset="1" stop-color="#f3fff0"/>
+                        </linearGradient>
+                        <linearGradient id="grass2" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0" stop-color="#8ecf5e"/><stop offset="1" stop-color="#6bab3e"/>
+                        </linearGradient>
+                    </defs>
                     <rect width="400" height="250" fill="url(#sky2)"/>
-                    <rect y="190" width="400" height="60" fill="#7ab853"/>
+                    <circle cx="40" cy="35" r="18" fill="#fff6c8" opacity="0.8"/>
+                    <rect y="190" width="400" height="60" fill="url(#grass2)"/>
+                    <g fill="#4d8f34" opacity="0.5">
+                        <path d="M40,192 L43,182 L46,192 Z"/><path d="M180,191 L183,180 L186,191 Z"/>
+                        <path d="M340,192 L343,183 L346,192 Z"/>
+                    </g>
+
                     <g transform="translate(90,190)">
                         <rect x="-16" y="0" width="32" height="24" fill="${c.pot}"/>
                         <rect x="-20" y="-6" width="40" height="10" fill="${c.pot}"/>
-                        <line x1="0" y1="-6" x2="0" y2="-70" stroke="#4a7d34" stroke-width="4"/>
-                        <circle cx="0" cy="-78" r="10" fill="#f2c94c"/>
-                        <circle cx="-16" cy="-70" r="11" fill="${c.flower}"/>
-                        <circle cx="16" cy="-70" r="11" fill="${c.flower}"/>
-                        <circle cx="0" cy="-92" r="11" fill="${c.flower}"/>
-                        <circle cx="0" cy="-60" r="11" fill="${c.flower}"/>
+                        <rect x="-16" y="0" width="32" height="6" fill="#000" opacity="0.12"/>
+                        <g>
+                            <animateTransform attributeName="transform" type="rotate" values="-3 0 -6;3 0 -6;-3 0 -6" dur="3.2s" repeatCount="indefinite"/>
+                            <line x1="0" y1="-6" x2="0" y2="-70" stroke="#4a7d34" stroke-width="4"/>
+                            <path d="M0,-40 Q-14,-46 -20,-36" stroke="#4a7d34" stroke-width="3" fill="none"/>
+                            <path d="M0,-55 Q14,-60 20,-50" stroke="#4a7d34" stroke-width="3" fill="none"/>
+                            <circle cx="0" cy="-78" r="10" fill="#f2c94c"/>
+                            <circle cx="-16" cy="-70" r="11" fill="${c.flower}"/>
+                            <circle cx="16" cy="-70" r="11" fill="${c.flower}"/>
+                            <circle cx="0" cy="-92" r="11" fill="${c.flower}"/>
+                            <circle cx="0" cy="-60" r="11" fill="${c.flower}"/>
+                            <circle cx="0" cy="-78" r="5" fill="#e0a93a"/>
+                        </g>
                     </g>
+
                     <g transform="translate(230,175) rotate(-8)">
                         <ellipse cx="0" cy="0" rx="30" ry="18" fill="${c.wateringCan}"/>
+                        <ellipse cx="-6" cy="-6" rx="18" ry="6" fill="#fff" opacity="0.15"/>
                         <rect x="-40" y="-6" width="16" height="10" fill="${c.wateringCan}"/>
                         <circle cx="24" cy="-16" r="10" fill="none" stroke="${c.wateringCan}" stroke-width="6"/>
+                        <circle cx="30" cy="-6" r="2" fill="#8fd6ff" opacity="0.8">
+                            <animate attributeName="cy" values="-6;16;-6" dur="1.4s" repeatCount="indefinite"/>
+                            <animate attributeName="opacity" values="0.8;0;0.8" dur="1.4s" repeatCount="indefinite"/>
+                        </circle>
                     </g>
-                    <g transform="translate(310,90) rotate(15)">
-                        <path d="M0,0 Q-20,-24 -6,-6 Q-20,4 0,4" fill="${c.butterfly}"/>
-                        <path d="M0,0 Q20,-24 6,-6 Q20,4 0,4" fill="${c.butterfly}"/>
-                        <line x1="0" y1="-6" x2="0" y2="6" stroke="#12180F" stroke-width="2"/>
+
+                    <g>
+                        <animateTransform attributeName="transform" type="translate"
+                            values="310,90;270,60;230,100;270,130;310,90" dur="7s" repeatCount="indefinite"/>
+                        <g transform="rotate(15)">
+                            <g>
+                                <animateTransform attributeName="transform" type="scale" values="1,1;0.35,1;1,1" dur="0.35s" repeatCount="indefinite"/>
+                                <path d="M0,0 Q-20,-24 -6,-6 Q-20,4 0,4" fill="${c.butterfly}"/>
+                                <path d="M0,0 Q20,-24 6,-6 Q20,4 0,4" fill="${c.butterfly}"/>
+                            </g>
+                            <line x1="0" y1="-6" x2="0" y2="6" stroke="#12180F" stroke-width="2"/>
+                        </g>
                     </g>
                 </svg>`; }
         },
@@ -758,29 +985,83 @@ if (window._gzIsMobile) {
             ],
             build(c) { return `
                 <svg viewBox="0 0 400 250" xmlns="http://www.w3.org/2000/svg">
-                    <defs><linearGradient id="night1" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0" stop-color="#1a1d3d"/><stop offset="1" stop-color="#3a2d4d"/>
-                    </linearGradient></defs>
+                    <defs>
+                        <linearGradient id="night1" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0" stop-color="#12142e"/>
+                            <stop offset="0.6" stop-color="#241c3f"/>
+                            <stop offset="1" stop-color="#3a2d4d"/>
+                        </linearGradient>
+                    </defs>
                     <rect width="400" height="250" fill="url(#night1)"/>
                     <circle cx="340" cy="40" r="20" fill="#f4f1d9"/>
-                    <rect y="210" width="400" height="40" fill="#3d2a1a"/>
-                    <g transform="translate(150,210)">
-                        <path d="M0,0 L-60,0 L0,-90 L60,0 Z" fill="${c.tent}"/>
-                        <path d="M0,0 L0,-90" stroke="#12180F" stroke-width="2"/>
-                        <path d="M-20,0 L0,-40 L20,0 Z" fill="#12180F" opacity="0.4"/>
+                    <circle cx="333" cy="34" r="3" fill="#d8d3ab" opacity="0.6"/>
+                    <circle cx="346" cy="46" r="2.4" fill="#d8d3ab" opacity="0.5"/>
+                    <g fill="#fff">
+                        <circle cx="40" cy="30" r="1.4"><animate attributeName="opacity" values="1;0.2;1" dur="2.4s" repeatCount="indefinite"/></circle>
+                        <circle cx="90" cy="55" r="1.1"><animate attributeName="opacity" values="0.3;1;0.3" dur="3.1s" repeatCount="indefinite"/></circle>
+                        <circle cx="150" cy="25" r="1.3"><animate attributeName="opacity" values="1;0.3;1" dur="2.7s" repeatCount="indefinite"/></circle>
+                        <circle cx="200" cy="60" r="1"><animate attributeName="opacity" values="0.4;1;0.4" dur="3.6s" repeatCount="indefinite"/></circle>
+                        <circle cx="270" cy="20" r="1.2"><animate attributeName="opacity" values="1;0.25;1" dur="2.2s" repeatCount="indefinite"/></circle>
                     </g>
+                    <path d="M0,175 L60,120 L110,175 Z" fill="#241a35" opacity="0.7"/>
+                    <path d="M280,180 L340,110 L400,180 Z" fill="#241a35" opacity="0.7"/>
+                    <rect y="210" width="400" height="40" fill="#3d2a1a"/>
+                    <rect y="207" width="400" height="5" fill="#4c3623"/>
+
+                    <g transform="translate(150,210)">
+                        <g>
+                            <animateTransform attributeName="transform" type="skewX" values="-1;1.5;-1" dur="3.4s" repeatCount="indefinite"/>
+                            <path d="M0,0 L-60,0 L0,-90 L60,0 Z" fill="${c.tent}"/>
+                            <path d="M0,0 L0,-90" stroke="#12180F" stroke-width="2"/>
+                            <path d="M-20,0 L0,-40 L20,0 Z" fill="#12180F" opacity="0.4"/>
+                        </g>
+                        <line x1="-60" y1="0" x2="-78" y2="10" stroke="#8a7860" stroke-width="1.5"/>
+                        <line x1="60" y1="0" x2="78" y2="10" stroke="#8a7860" stroke-width="1.5"/>
+                    </g>
+
                     <g transform="translate(260,222)">
                         <ellipse rx="40" ry="10" fill="${c.sleepingBag}"/>
                         <ellipse cx="-30" cy="0" rx="12" ry="10" fill="${c.sleepingBag}"/>
+                        <path d="M-10,-8 Q10,-14 30,-8" stroke="#000" stroke-opacity="0.15" stroke-width="3" fill="none"/>
                     </g>
+
                     <g transform="translate(50,190)">
-                        <rect x="-14" y="0" width="28" height="34" rx="6" fill="${c.backpack}"/>
-                        <rect x="-10" y="-10" width="20" height="14" rx="5" fill="${c.backpack}"/>
+                        <path d="M-9,-8 Q-17,10 -13,34" stroke="${shade(c.backpack,-35)}" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+                        <path d="M9,-8 Q17,10 13,34" stroke="${shade(c.backpack,-35)}" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+                        <rect x="-14" y="0" width="28" height="34" rx="8" fill="${c.backpack}"/>
+                        <rect x="-10" y="-11" width="20" height="16" rx="6" fill="${c.backpack}"/>
+                        <path d="M-6,-11 Q0,-17 6,-11" stroke="#2a1f16" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                        <rect x="-8" y="15" width="16" height="14" rx="4" fill="#000" opacity="0.16"/>
+                        <line x1="0" y1="15" x2="0" y2="29" stroke="#000" stroke-opacity="0.3" stroke-width="1.5" stroke-dasharray="2,2"/>
                     </g>
+
+                    <g transform="translate(180,232)">
+                        <ellipse rx="16" ry="4" fill="#000" opacity="0.25"/>
+                        <path d="M-8,0 L0,-10 L8,0 Z" fill="#5a4a3a"/>
+                        <path d="M0,-4 L-6,4 L6,4 Z" fill="#5a4a3a"/>
+                        <path fill="#F2994A">
+                            <animate attributeName="d" dur="0.5s" repeatCount="indefinite"
+                                values="M0,-2 Q-6,-16 0,-26 Q6,-16 0,-2 Z;
+                                        M0,-2 Q-4,-14 0,-22 Q4,-14 0,-2 Z;
+                                        M0,-2 Q-6,-16 0,-26 Q6,-16 0,-2 Z"/>
+                        </path>
+                        <path fill="#FFD26B">
+                            <animate attributeName="d" dur="0.4s" repeatCount="indefinite"
+                                values="M0,-2 Q-3,-10 0,-16 Q3,-10 0,-2 Z;
+                                        M0,-2 Q-2,-8 0,-13 Q2,-8 0,-2 Z;
+                                        M0,-2 Q-3,-10 0,-16 Q3,-10 0,-2 Z"/>
+                        </path>
+                    </g>
+
                     <g transform="translate(210,175)">
                         <rect x="-8" y="0" width="16" height="18" fill="#5a4a3a"/>
-                        <circle cx="0" cy="-6" r="12" fill="${c.lantern}" opacity="0.9"/>
-                        <circle cx="0" cy="-6" r="20" fill="${c.lantern}" opacity="0.25"/>
+                        <circle cx="0" cy="-6" r="12" fill="${c.lantern}">
+                            <animate attributeName="opacity" values="0.85;1;0.8;1" dur="1.8s" repeatCount="indefinite"/>
+                        </circle>
+                        <circle cx="0" cy="-6" r="20" fill="${c.lantern}" opacity="0.25">
+                            <animate attributeName="r" values="18;24;18" dur="1.8s" repeatCount="indefinite"/>
+                            <animate attributeName="opacity" values="0.2;0.32;0.2" dur="1.8s" repeatCount="indefinite"/>
+                        </circle>
                     </g>
                 </svg>`; }
         },
@@ -794,28 +1075,74 @@ if (window._gzIsMobile) {
             ],
             build(c) { return `
                 <svg viewBox="0 0 400 250" xmlns="http://www.w3.org/2000/svg">
-                    <defs><linearGradient id="sky3" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0" stop-color="#a9c9e8"/><stop offset="1" stop-color="#dfe9f2"/>
-                    </linearGradient></defs>
+                    <defs>
+                        <linearGradient id="sky3" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0" stop-color="#a9c9e8"/><stop offset="1" stop-color="#dfe9f2"/>
+                        </linearGradient>
+                    </defs>
                     <rect width="400" height="250" fill="url(#sky3)"/>
                     <rect x="30" y="60" width="80" height="140" fill="${c.building}"/>
+                    <g fill="#fff" opacity="0.35">
+                        <rect x="40" y="72" width="12" height="14"/><rect x="60" y="72" width="12" height="14"/><rect x="80" y="72" width="12" height="14"/>
+                        <rect x="40" y="98" width="12" height="14"/><rect x="60" y="98" width="12" height="14"/><rect x="80" y="98" width="12" height="14"/>
+                        <rect x="40" y="124" width="12" height="14"/><rect x="60" y="124" width="12" height="14"/><rect x="80" y="124" width="12" height="14"/>
+                    </g>
                     <rect x="140" y="30" width="60" height="170" fill="#9aa0a8"/>
+                    <g fill="#fff" opacity="0.3">
+                        <rect x="148" y="44" width="10" height="12"/><rect x="166" y="44" width="10" height="12"/><rect x="184" y="44" width="10" height="12"/>
+                        <rect x="148" y="70" width="10" height="12"/><rect x="166" y="70" width="10" height="12"/><rect x="184" y="70" width="10" height="12"/>
+                    </g>
+                    <rect x="205" y="90" width="50" height="110" fill="#b7bcc4"/>
                     <rect y="200" width="400" height="50" fill="#6b6f75"/>
                     <rect y="196" width="400" height="6" fill="#e8e3d4"/>
-                    <g transform="translate(280,150) rotate(-6)">
-                        <path d="M0,0 A30,30 0 0 1 60,0 Z" fill="${c.umbrella}"/>
-                        <line x1="30" y1="0" x2="30" y2="46" stroke="#3a3a3a" stroke-width="3"/>
+                    <g fill="#fff" opacity="0.8">
+                        <rect x="20" y="218" width="26" height="7"/><rect x="60" y="218" width="26" height="7"/>
+                        <rect x="100" y="218" width="26" height="7"/><rect x="140" y="218" width="26" height="7"/>
                     </g>
+
+                    <g transform="translate(280,150) rotate(-6)">
+                        <g>
+                            <animateTransform attributeName="transform" type="rotate" values="-4 30 0;4 30 0;-4 30 0" dur="2.6s" repeatCount="indefinite"/>
+                            <path d="M0,0 A30,30 0 0 1 60,0 Z" fill="${c.umbrella}"/>
+                            <path d="M20,0 A10,8 0 0 1 40,0 Z" fill="${c.umbrella}" opacity="0.7"/>
+                            <line x1="30" y1="0" x2="30" y2="46" stroke="#3a3a3a" stroke-width="3"/>
+                        </g>
+                    </g>
+
                     <g transform="translate(90,180)">
-                        <circle r="16" fill="none" stroke="${c.bicycle}" stroke-width="4"/>
-                        <circle cx="46" cy="0" r="16" fill="none" stroke="${c.bicycle}" stroke-width="4"/>
+                        <g>
+                            <animateTransform attributeName="transform" type="rotate" values="0 0 0;360 0 0" dur="1.1s" repeatCount="indefinite"/>
+                            <circle r="16" fill="none" stroke="${c.bicycle}" stroke-width="4"/>
+                            <line x1="0" y1="0" x2="16" y2="0" stroke="${c.bicycle}" stroke-width="1.5"/>
+                            <line x1="0" y1="0" x2="-16" y2="0" stroke="${c.bicycle}" stroke-width="1.5"/>
+                            <line x1="0" y1="0" x2="0" y2="16" stroke="${c.bicycle}" stroke-width="1.5"/>
+                            <line x1="0" y1="0" x2="0" y2="-16" stroke="${c.bicycle}" stroke-width="1.5"/>
+                        </g>
+                        <g transform="translate(46,0)">
+                            <g>
+                                <animateTransform attributeName="transform" type="rotate" values="0 0 0;360 0 0" dur="1.1s" repeatCount="indefinite"/>
+                                <circle r="16" fill="none" stroke="${c.bicycle}" stroke-width="4"/>
+                                <line x1="0" y1="0" x2="16" y2="0" stroke="${c.bicycle}" stroke-width="1.5"/>
+                                <line x1="0" y1="0" x2="-16" y2="0" stroke="${c.bicycle}" stroke-width="1.5"/>
+                                <line x1="0" y1="0" x2="0" y2="16" stroke="${c.bicycle}" stroke-width="1.5"/>
+                                <line x1="0" y1="0" x2="0" y2="-16" stroke="${c.bicycle}" stroke-width="1.5"/>
+                            </g>
+                        </g>
                         <path d="M0,0 L23,-24 L46,0 M23,-24 L23,-4" stroke="${c.bicycle}" stroke-width="4" fill="none"/>
                     </g>
+
                     <g transform="translate(220,205)">
-                        <rect x="-30" y="-16" width="60" height="20" rx="6" fill="${c.car}"/>
-                        <rect x="-18" y="-28" width="34" height="16" rx="4" fill="${c.car}"/>
-                        <circle cx="-16" cy="4" r="8" fill="#20242a"/>
-                        <circle cx="16" cy="4" r="8" fill="#20242a"/>
+                        <g>
+                            <animateTransform attributeName="transform" type="translate" values="0,0;0,-2;0,0" dur="0.9s" repeatCount="indefinite"/>
+                            <rect x="-30" y="-16" width="60" height="20" rx="6" fill="${c.car}"/>
+                            <rect x="-18" y="-28" width="34" height="16" rx="4" fill="${c.car}"/>
+                            <rect x="-14" y="-26" width="12" height="12" rx="2" fill="#dff3ff" opacity="0.5"/>
+                            <rect x="2" y="-26" width="12" height="12" rx="2" fill="#dff3ff" opacity="0.5"/>
+                            <circle cx="-16" cy="4" r="8" fill="#20242a"/>
+                            <circle cx="16" cy="4" r="8" fill="#20242a"/>
+                            <circle cx="-16" cy="4" r="3" fill="#666"/>
+                            <circle cx="16" cy="4" r="3" fill="#666"/>
+                        </g>
                     </g>
                 </svg>`; }
         }
@@ -1125,9 +1452,22 @@ if (window._gzIsMobile) {
         const played = lsGet(DAILY_KEY(today), null);
         const streak = getStreakData();
         const badges = [];
-        if (played) badges.push('<span class="pk-badge">Today: ' + played.avg + '/100</span>');
-        if (streak.current > 0) badges.push('<span class="pk-badge">Streak ' + streak.current + '&#128293;</span>');
+        if (streak.current > 0) badges.push('<span class="pk-badge">Best streak ' + streak.best + '&#128293;</span>');
         $('start-badges').innerHTML = badges.join('');
+
+        const statusEl = $('daily-status');
+        const dailyBtn = $('btn-daily');
+        if (played) {
+            statusEl.classList.remove('pk-hidden');
+            statusEl.innerHTML = '<span class="pk-daily-check">&#10003;</span> Daily done — scored ' + played.avg + '/100'
+                + (streak.current > 0 ? ' &middot; Streak ' + streak.current + '&#128293;' : '');
+            dailyBtn.textContent = 'Replay Daily (for fun)';
+            dailyBtn.classList.add('completed');
+        } else {
+            statusEl.classList.add('pk-hidden');
+            dailyBtn.textContent = 'Daily Challenge';
+            dailyBtn.classList.remove('completed');
+        }
     }
 
     $('btn-daily').addEventListener('click', () => { playSound('click'); startSession('daily'); });
