@@ -30,7 +30,7 @@
 <link rel="icon" href="favicon.ico?v=2" sizes="any">
 <link rel="apple-touch-icon" href="assets/favicon-apple-touch.png?v=2">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Karla:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Bungee+Shade&family=Karla:wght@400;500;700&display=swap" rel="stylesheet">
 </head>
 <body>
 <style>
@@ -250,6 +250,20 @@ if (window._gzIsMobile) {
         .pp-btn.ghost:hover { border-color: #574d78; color: #fff; }
         .pp-badge-row { display: flex; justify-content: center; gap: 8px; margin-top: 6px; flex-wrap: wrap; }
         .pp-badge { font-size: 11.5px; background: rgba(51,214,192,0.12); border: 1px solid rgba(51,214,192,0.35); color: #33D6C0; padding: 3px 10px; border-radius: 999px; }
+        .pp-daily-status {
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            background: rgba(51,214,192,0.1); border: 2px solid #33D6C0; border-radius: 12px;
+            padding: 10px 16px; margin: 4px 0 10px; text-align: center;
+            color: #eafffb; font-size: 13.5px; font-weight: 700; letter-spacing: 0.2px;
+            box-shadow: 0 0 16px rgba(51,214,192,0.15);
+        }
+        .pp-daily-status .pp-daily-check {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 20px; height: 20px; border-radius: 50%; background: #33D6C0;
+            color: #16142a; font-size: 13px; flex-shrink: 0;
+        }
+        .pp-btn.completed { background: #221d38; color: #a9a2c4; box-shadow: none; }
+        .pp-daily-status.hidden { display: none; }
         .pp-sound-toggle { position: absolute; top: 14px; right: 14px; background: rgba(0,0,0,0.35); border: 1px solid #3a3350; color: #b0abc4; width: 34px; height: 34px; border-radius: 50%; cursor: pointer; font-size: 15px; display: flex; align-items: center; justify-content: center; }
         .pp-sound-toggle:hover { border-color: #F2B84B; color: #F2B84B; }
 
@@ -359,6 +373,7 @@ if (window._gzIsMobile) {
 
             <button class="pp-btn" id="btn-play">Play — <span id="round-count-label">10</span> Rounds</button>
             <button class="pp-btn secondary" id="btn-daily">Daily Passport</button>
+            <div class="pp-daily-status hidden" id="daily-status"></div>
             <div class="pp-badge-row" id="daily-badges"></div>
             <button class="pp-btn ghost" id="btn-inst" style="margin-top:14px;">How to Play</button>
         </div>
@@ -975,9 +990,22 @@ if (window._gzIsMobile) {
         const played = getDailyResult(today);
         const streakData = getStreakData();
         const badges = [];
-        if (played) badges.push('<span class="pp-badge">Today: ' + played.score.toLocaleString() + ' pts</span>');
-        if (streakData.current > 0) badges.push('<span class="pp-badge">&#128293; ' + streakData.current + '-day streak</span>');
+        if (streakData.best > 0) badges.push('<span class="pp-badge">&#128293; Best streak ' + streakData.best + '</span>');
         getUI('daily-badges').innerHTML = badges.join('');
+
+        const statusEl = getUI('daily-status');
+        const dailyBtn = getUI('btn-daily');
+        if (played) {
+            statusEl.classList.remove('hidden');
+            statusEl.innerHTML = '<span class="pp-daily-check">&#10003;</span> Daily done — scored ' + played.score.toLocaleString() + ' pts'
+                + (streakData.current > 0 ? ' &middot; Streak ' + streakData.current + '&#128293;' : '');
+            dailyBtn.textContent = 'Replay Daily (for fun)';
+            dailyBtn.classList.add('completed');
+        } else {
+            statusEl.classList.add('hidden');
+            dailyBtn.textContent = 'Daily Passport';
+            dailyBtn.classList.remove('completed');
+        }
     }
 
     function setActiveChips() {
